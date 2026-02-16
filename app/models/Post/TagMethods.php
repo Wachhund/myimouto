@@ -260,7 +260,7 @@ trait PostTagMethods
                             $pool = Pool::create(array('name' => $name, 'is_public' => false, 'user_id' => $this->updater_user_id));
                         
                         if (!$pool || !$pool->can_change(current_user(), null))
-                            continue;
+                            continue 2;
                         
                         $pool->add_post($this->id, $options);
                         
