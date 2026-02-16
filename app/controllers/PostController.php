@@ -627,6 +627,12 @@ class PostController extends ApplicationController
         $this->respond_to_list("posts");
     }
 
+    public function histogram()
+    {
+        // Legacy /histogram alias: keep route working without a separate code path.
+        $this->popularByDay();
+    }
+
     public function popularByWeek()
     {
         if (!$this->params()->year || !$this->params()->month || !$this->params()->day ||
