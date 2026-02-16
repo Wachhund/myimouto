@@ -41,6 +41,8 @@ $to_atom_date = static function ($date) {
   <author><name><?= $this->h(CONFIG()->app_name) ?></name></author>
   <?php foreach ($this->posts as $post) : ?>
     <?php $post_url = $to_absolute_url('/post/show/' . $post->id); ?>
+    <?php $updated_at = (Post::isAttribute('updated_at') && $post->updated_at) ? $post->updated_at : $post->created_at; ?>
+    <?php $preview_url = method_exists($post, 'preview_url') ? $post->preview_url() : ''; ?>
     <entry>
       <title><?= $this->h($post->cached_tags) ?></title>
       <link href="<?= $this->h($post_url) ?>" rel="alternate"/>
@@ -48,12 +50,12 @@ $to_atom_date = static function ($date) {
         <link href="<?= $this->h($post->source) ?>" rel="related"/>
       <?php endif ?>
       <id><?= $this->h($post_url) ?></id>
-      <updated><?= $this->h($to_atom_date($post->updated_at ?: $post->created_at)) ?></updated>
+      <updated><?= $this->h($to_atom_date($updated_at)) ?></updated>
       <summary><?= $this->h($post->cached_tags) ?></summary>
       <content type="xhtml">
         <div xmlns="http://www.w3.org/1999/xhtml">
           <a href="<?= $this->h($post_url) ?>">
-            <img src="<?= $this->h($to_absolute_url($post->preview_url)) ?>" alt="<?= $this->h($post->cached_tags) ?>"/>
+            <img src="<?= $this->h($to_absolute_url($preview_url)) ?>" alt="<?= $this->h($post->cached_tags) ?>"/>
           </a>
         </div>
       </content>

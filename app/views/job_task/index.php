@@ -16,7 +16,7 @@
     <?php foreach ($this->job_tasks as $job_task) : ?>
       <tr>
         <td><?= $job_task->id ?></td>
-        <td><?= $this->linkTo($this->h($job_task->task_type), ['action' => "show", 'id' => $job_task->id]) ?></td>
+        <td><?= $this->linkTo($this->h($job_task->task_type), ['#show', 'id' => $job_task->id]) ?></td>
         <td><?= $this->h($job_task->status) ?></td>
         <td><?= $this->h($job_task->pretty_data()) ?: "ERROR" ?></td>
         <?php if (current_user()->is_mod_or_higher()) : ?>

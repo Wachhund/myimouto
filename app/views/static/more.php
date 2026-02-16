@@ -25,9 +25,9 @@
     </ul>
     <ul>
       <li><h4><?= $this->t('static_t2') ?></h4></li>
-      <li><?= $this->linkTo($this->t('static14'), 'help#bookmarklet') ?></li>
+      <li><?= $this->linkTo($this->t('static14'), '/help/bookmarklet') ?></li>
       <li><?= $this->linkTo($this->t('static15'), 'http://unbuffered.info/danbooruup') ?></li>
-      <li><?= $this->linkTo($this->t('static16'), 'help#api') ?></li>
+      <li><?= $this->linkTo($this->t('static16'), '/help/api') ?></li>
     </ul>
     <?php if (CONFIG()->enable_reporting) : ?>
       <ul>
@@ -111,7 +111,9 @@
         <li><?= $this->linkTo($this->t('static55'), 'user#edit') ?></li>
         <li><?= $this->linkTo($this->t('static56'), 'user#show_blocked_users') ?></li>
         <li><?= $this->linkTo($this->t('static57'), 'user#change_password') ?></li>
-        <li><?= $this->linkTo($this->t('static58'), 'user#invites') ?></li>
+        <?php if (current_user()->is_janitor_or_higher()) : ?>
+          <li><?= $this->linkTo($this->t('static58'), 'user#invites') ?></li>
+        <?php endif ?>
       <?php endif ?>
       <li><?= $this->linkTo($this->t('static59'), 'help#users') ?></li>
       <li><?= $this->linkTo($this->t('static60'), 'user#index') ?></li>

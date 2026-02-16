@@ -6,13 +6,29 @@ class UserController extends ApplicationController
         return [
             'before' => [
                 'blocked_only'        => ['only' => ['authenticate', 'update', 'edit', 'modifyBlacklist']],
-                'janitor_only'        => ['only' => ['invites']],
+                'invites_only'        => ['only' => ['invites']],
                 'mod_only'            => ['only' => ['block', 'unblock', 'showBlockedUsers']],
                 'post_member_only'    => ['only' => ['setAvatar']],
                 'no_anonymous'        => ['only' => ['changePassword', 'changeEmail']],
                 'set_settings_layout' => ['only' => ['changePassword', 'changeEmail', 'edit']]
             ]
         ];
+    }
+
+    protected function invites_only()
+    {
+        if (current_user()->is_janitor_or_higher()) {
+            return;
+        }
+
+        if (current_user()->is_anonymous()) {
+            $this->notice('Access denied');
+            $this->redirectTo(['controller' => 'user', 'action' => 'login', 'url' => $this->request()->fullPath()]);
+            return;
+        }
+
+        $this->notice('Access denied');
+        $this->redirectTo(['controller' => 'user', 'action' => 'home']);
     }
     
     protected function set_settings_layout()

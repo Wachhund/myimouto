@@ -203,6 +203,24 @@ TXT,
 TXT,
         ],
     ],
+    'vendor/railsphp/railsphp/lib/Rails/Routing/UrlHelpers/UrlHelpers.php' => [
+        [
+            'find' => <<<'TXT'
+    private function useCache()
+    {
+        return \Rails::env() == 'production';
+    }
+TXT,
+            'replace' => <<<'TXT'
+    private function useCache()
+    {
+        // Token/alias cache keys are not invalidated when routes change in this stack.
+        // Keep this disabled to avoid stale URL generation.
+        return false;
+    }
+TXT,
+        ],
+    ],
     'vendor/zendframework/zend-db/src/Sql/AbstractSql.php' => [
         [
             'find' => <<<'TXT'

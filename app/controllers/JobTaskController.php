@@ -9,10 +9,23 @@ class JobTaskController extends ApplicationController
 
     public function show()
     {
-        $this->job_task = JobTask::find($this->params()->id);
+        $id = (int)$this->params()->id;
+        if ($id <= 0) {
+            $this->respond_to_error('That page does not exist.', ['#index'], ['status' => 404]);
+            return;
+        }
+
+        $this->job_task = JobTask::where(['id' => $id])->first();
+        if (!$this->job_task) {
+            $this->respond_to_error('That page does not exist.', ['#index'], ['status' => 404]);
+            return;
+        }
 
         if ($this->job_task->task_type == "upload_post" && $this->job_task->status == "finished") {
-            $this->redirectTo(['controller' => "post", 'action' => "show", 'id' => $this->job_task->status_message]);
+            $post_id = (int)$this->job_task->status_message;
+            if ($post_id > 0 && Post::exists($post_id)) {
+                $this->redirectTo(['controller' => "post", 'action' => "show", 'id' => $post_id]);
+            }
         }
     }
 
