@@ -9,3 +9,5 @@
 !/vendor/Horde
 !/vendor/ZipStream.php
 !/vendor/htmLawed
+docs/*
+features/*
