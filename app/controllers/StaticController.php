@@ -19,4 +19,9 @@ class StaticController extends ApplicationController
         $this->setLayout(false);
         $this->response()->headers()->setContentType('application/opensearchdescription+xml');
     }
+
+    public function error500()
+    {
+        $this->render(['action' => '500', 'status' => 500]);
+    }
 }

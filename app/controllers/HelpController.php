@@ -1,6 +1,12 @@
 <?php
 class HelpController extends ApplicationController
 {
+    public function index()
+    {
+        $this->params()->page = 'index';
+        $this->show();
+    }
+
     public function show()
     {
         $page = trim((string) $this->params()->page);

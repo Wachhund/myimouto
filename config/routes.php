@@ -81,9 +81,8 @@ MyImouto\Application::routes()->draw(function() {
 
     # Help
     $this->match('help', 'help#index', ['via' => ['get', 'post']]);
-    $this->get('help(/:page)', 'help#show', ['as' => 'help']);
     $this->match('help(/index)', 'help#index', ['via' => ['get', 'post']]);
-    $this->match('help/:action', 'help#:action', ['via' => ['get', 'post']]);
+    $this->match('help/:page', 'help#show', ['as' => 'help', 'via' => ['get', 'post']]);
 
     # History
     $this->match('history(/index)', 'history#index', ['via' => ['get', 'post']]);
@@ -126,6 +125,7 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('pool/show(.:format)(/:id)', 'pool#show', ['via' => ['get', 'post']]);
     $this->match('pool/transfer_metadata', ['via' => ['get', 'post']]);
     $this->match('pool/update(.:format)(/:id)', 'pool#update', ['via' => ['get', 'post']]);
+    $this->match('pool/zip/:id', 'pool#zip', ['via' => ['get', 'post']]);
     $this->match('pool/zip/:id/:filename', 'pool#zip', ['constraints' => ['filename' => '/.*/'], 'via' => ['get', 'post']]);
 
     # Post
@@ -184,7 +184,7 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('settings/api', 'settings_api#update', ['via' => ['post', 'put']]);
 
     # Static
-    $this->match('static/500', ['via' => ['get', 'post']]);
+    $this->match('static/500', 'static#error500', ['via' => ['get', 'post']]);
     $this->match('static/more', ['via' => ['get', 'post']]);
     $this->match('static/terms_of_service', ['via' => ['get', 'post']]);
     $this->match('/opensearch', 'static#opensearch', ['via' => ['get', 'post']]);
@@ -249,6 +249,7 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('user/update', ['via' => ['post', 'put']]);
     $this->post('user/create');
     $this->post('user/remove_avatar/:id', 'user#remove_avatar');
+    $this->delete('session', 'user#logout', ['as' => 'logout']);
 
     # UserRecord
     $this->match('user_record(/index)', 'user_record#index', ['via' => ['get', 'post']]);
@@ -275,4 +276,5 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('errors/not_found', 'errors#not_found', ['via' => ['get', 'post']]);
 
     $this->root('static#index');
+    $this->match('*path', 'errors#not_found', ['constraints' => ['path' => '/.+/'], 'via' => ['get', 'post', 'put', 'patch', 'delete']]);
 });
