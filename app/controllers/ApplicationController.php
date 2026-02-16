@@ -1,6 +1,8 @@
 <?php
 class ApplicationController extends Rails\ActionController\Base
 {
+    protected $authenticated_with_api_key = false;
+
     public function __call($method, $params)
     {
         if (preg_match("/^(\w+)_only$/", $method, $m)) {
@@ -80,16 +82,33 @@ class ApplicationController extends Rails\ActionController\Base
             'ip_addr'                  => $this->request()->remoteIp()
         );
         
+        $api_auth_attempted = false;
+        $this->authenticated_with_api_key = false;
+
         if (!current_user() && $this->session()->user_id) {
             $user = User::where(['id' => $this->session()->user_id])->first();
         } else {
-            if ($this->cookies()->login && $this->cookies()->pass_hash) {
+            if (isset($this->params()->api_key) && isset($this->params()->username)) {
+                $api_auth_attempted = true;
+                $user = User::authenticate_with_api_key($this->params()->username, $this->params()->api_key);
+                if ($user) {
+                    $this->authenticated_with_api_key = true;
+                }
+            }
+
+            if (!$user && $this->cookies()->login && $this->cookies()->pass_hash) {
                 $user = User::authenticate_hash($this->cookies()->login, $this->cookies()->pass_hash);
-            } elseif (isset($this->params()->login) && isset($this->params()->password_hash)) {
-                $user = User::authenticate($this->params()->login, $this->params()->password_hash);
-            } elseif (isset($this->params()->user['name']) && isset($this->params()->user['password'])) {
+            } elseif (!$user && isset($this->params()->login) && isset($this->params()->password_hash)) {
+                $user = User::authenticate_hash($this->params()->login, $this->params()->password_hash);
+            } elseif (!$user && isset($this->params()->user['name']) && isset($this->params()->user['password'])) {
                 $user = User::authenticate($this->params()->user['name'], $this->params()->user['password']);
             }
+
+            if ($api_auth_attempted && !$user) {
+                $this->access_denied();
+                return;
+            }
+
             $user && $user->updateAttribute('last_logged_in_at', date('Y-m-d H:i:s'));
         }
         if ($user) {
@@ -405,6 +424,45 @@ class ApplicationController extends Rails\ActionController\Base
     protected function sanitize_id()
     {
         $this->params()->id = (int)$this->params()->id;
+    }
+
+    protected function form_authenticity_token()
+    {
+        if (empty($this->session()->csrf_token)) {
+            $this->session()->csrf_token = $this->generate_csrf_token();
+        }
+
+        return (string)$this->session()->csrf_token;
+    }
+
+    protected function valid_authenticity_token($token)
+    {
+        $expected = (string)$this->session()->csrf_token;
+        $provided = (string)$token;
+
+        if ($expected === '' || $provided === '') {
+            return false;
+        }
+
+        if (function_exists('hash_equals')) {
+            return hash_equals($expected, $provided);
+        }
+
+        return $expected === $provided;
+    }
+
+    protected function authenticated_with_api_key_request()
+    {
+        return !empty($this->authenticated_with_api_key);
+    }
+
+    private function generate_csrf_token()
+    {
+        if (function_exists('random_bytes')) {
+            return bin2hex(random_bytes(32));
+        }
+
+        return sha1(uniqid(mt_rand(), true));
     }
     
     # iTODO:

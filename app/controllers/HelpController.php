@@ -4,6 +4,7 @@ class HelpController extends ApplicationController
     public function show()
     {
         $page = trim((string) $this->params()->page);
+        $page = trim($page, '/');
         if ($page === '') {
             $page = 'index';
         }

@@ -5,6 +5,6 @@
   </div>
 
   <table width="100%" class="highlightable">
-    <?= $this->partial("listing", ['tag_subscriptions' => $this->tag_subscriptions]) ?>
+    <?= $this->partial("listing", ['tag_subscriptions' => $this->tag_subscriptions, 'csrf_token' => $this->csrf_token]) ?>
   </table>
 <?php }) ?>

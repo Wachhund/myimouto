@@ -20,6 +20,10 @@ trait PostSqlMethods
 
     static public function generate_sql_range_helper($arr, $field, &$c, &$params = null)
     {
+        if (!is_array($arr) || !isset($arr[0])) {
+            return;
+        }
+
         $query_passed = is_object($c);
         
         switch ($arr[0]) {
@@ -111,7 +115,7 @@ trait PostSqlMethods
         }
         
         # Filling default values.
-        $q = array_merge(array_fill_keys(array('md5', 'ext', 'source', 'fav', 'user', 'rating', 'rating_negated', 'unlocked_rating', 'show_holds', 'shown_in_index', 'exclude', 'related', 'post_id', 'mpixels', 'width', 'height', 'score', 'date', 'change'), null), $q);
+        $q = array_merge(array_fill_keys(array('md5', 'ext', 'source', 'fav', 'user', 'subscriptions', 'rating', 'rating_negated', 'unlocked_rating', 'show_holds', 'shown_in_index', 'exclude', 'related', 'post_id', 'mpixels', 'width', 'height', 'score', 'date', 'change'), null), $q);
         $options = array_merge(array_fill_keys(array('pending', 'flagged', 'from_api', 'limit', 'offset', 'count', 'select', 'having'), null), $options);
         
         $conds = array('true');

@@ -17,7 +17,7 @@
       <h5><?= $this->t('layouts.settings.menu.title') ?></h5>
       <ul>
         <li><?= $this->linkTo($this->t('user.edit.title'), ['user#edit']) ?></li>
-        <!-- <li><?= $this->linkTo($this->t('settings.api.show.title'), $this->settingsApiPath()) ?></li> -->
+        <li><?= $this->linkTo($this->t('settings.api.show.title'), ['settings_api#show']) ?></li>
         <li><?= $this->linkTo($this->t('user.change_email.title'), $this->userChangeEmailPath()) ?></li>
         <li><?= $this->linkTo($this->t('user.change_password.title'), $this->userChangePasswordPath()) ?></li>
       </ul>

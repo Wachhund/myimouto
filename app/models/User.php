@@ -101,10 +101,37 @@ class User extends Rails\ActiveRecord\Base
         $user = parent::where("lower(name) = lower(?) AND password_hash = ?", $name, $pass)->first();
         return $user;
     }
+    
+    static public function authenticate_with_api_key($name, $api_key)
+    {
+        if (!$name || !$api_key) {
+            return null;
+        }
+
+        return parent::where("lower(name) = lower(?) AND api_key = ?", $name, $api_key)->first();
+    }
 
     static public function sha1($pass)
     {
         return sha1(CONFIG()->user_password_salt . '--' . $pass . '--');
+    }
+
+    public function set_api_key()
+    {
+        do {
+            $api_key = self::generate_api_key();
+        } while (self::where("api_key = ?", $api_key)->first());
+
+        $this->api_key = $api_key;
+    }
+
+    static private function generate_api_key()
+    {
+        if (function_exists('random_bytes')) {
+            return rtrim(strtr(base64_encode(random_bytes(24)), '+/', '-_'), '=');
+        }
+
+        return substr(sha1(uniqid(mt_rand(), true)), 0, 32);
     }
     
     # } UserPasswordMethods {

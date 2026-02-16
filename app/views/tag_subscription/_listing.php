@@ -11,14 +11,15 @@
   <tr>
     <td></td>
     <td colspan="3">
+      <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
       <?= $this->submitTag($this->t('sub_save')) ?>
-      <input onclick="new Ajax.Request('<?= $this->urlFor(['tag_subscription#create', 'format' => 'js']) ?>', {asynchronous:true, evalScripts:true});" type="button" value="<?= $this->t('sub_add') ?>">
+      <input onclick="new Ajax.Request('/tag_subscription/create.js', {asynchronous:true, evalScripts:true, parameters:'csrf_token=<?= rawurlencode($this->csrf_token) ?>'});" type="button" value="<?= $this->t('sub_add') ?>">
     </td>
   </tr>
 </tfoot>
 
 <tbody id="tag-subscription-body">
   <?php foreach ($this->tag_subscriptions as $tag_subscription) : ?>
-    <?= $this->partial("listing_row", ['tag_subscription' => $tag_subscription]) ?>
+    <?= $this->partial("listing_row", ['tag_subscription' => $tag_subscription, 'csrf_token' => $this->csrf_token]) ?>
   <?php endforeach ?>
 </tbody>

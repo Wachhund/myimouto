@@ -302,6 +302,12 @@ abstract class DefaultConfig
     # Max number of dmails users can send in one hour.
     public $max_dmails_per_hour = 10;
 
+    # Max number of favorite/list_users requests per actor (user or anonymous IP) in one window.
+    public $favorite_list_users_rate_limit = 60;
+
+    # favorite/list_users throttling window length in seconds.
+    public $favorite_list_users_rate_limit_window_seconds = 60;
+
     # Only Job tasks listed here will be active.
     # @see $enable_asynchronous_tasks
     # @see is_job_task_active()

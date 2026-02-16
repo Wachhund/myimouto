@@ -17,6 +17,11 @@ return array (
       'type' => 'varchar(40)',
       'default' => NULL,
     ),
+    'api_key' => 
+    array (
+      'type' => 'varchar(64)',
+      'default' => NULL,
+    ),
     'created_at' => 
     array (
       'type' => 'datetime',

@@ -379,6 +379,7 @@ CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(32) NOT NULL,
   `password_hash` varchar(40) DEFAULT NULL,
+  `api_key` varchar(64) DEFAULT NULL,
   `created_at` datetime DEFAULT NULL,
   `level` int(11) NOT NULL DEFAULT '20',
   `email` varchar(249) DEFAULT NULL,
@@ -408,6 +409,7 @@ CREATE TABLE `users` (
   `has_mail` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
+  UNIQUE KEY `users_api_key_unique` (`api_key`),
   KEY `fk_users__avatar_post_id` (`avatar_post_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

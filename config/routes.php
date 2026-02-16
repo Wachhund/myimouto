@@ -80,6 +80,7 @@ MyImouto\Application::routes()->draw(function() {
     $this->post('forum/create');
 
     # Help
+    $this->match('help', 'help#index', ['via' => ['get', 'post']]);
     $this->get('help(/:page)', 'help#show', ['as' => 'help']);
     $this->match('help(/index)', 'help#index', ['via' => ['get', 'post']]);
     $this->match('help/:action', 'help#:action', ['via' => ['get', 'post']]);
@@ -179,9 +180,8 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('report/set_dates', ['via' => ['get', 'post']]);
     
     # Settings
-    $this->namespaced('settings', function() {
-        $this->resource('api', ['only' => ['show', 'update']]);
-    });
+    $this->match('settings/api', 'settings_api#show', ['via' => ['get']]);
+    $this->match('settings/api', 'settings_api#update', ['via' => ['post', 'put']]);
 
     # Static
     $this->match('static/500', ['via' => ['get', 'post']]);
@@ -218,9 +218,9 @@ MyImouto\Application::routes()->draw(function() {
 
     # TagSubscription
     $this->match('tag_subscription(/index)', 'tag_subscription#index', ['via' => ['get', 'post']]);
-    $this->match('tag_subscription/create', ['via' => ['get', 'post']]);
+    $this->match('tag_subscription/create(.:format)', ['via' => ['get', 'post']]);
     $this->match('tag_subscription/update', ['via' => ['get', 'post']]);
-    $this->match('tag_subscription/destroy(/:id)', 'tag_subscription#destroy', ['via' => ['get', 'post']]);
+    $this->match('tag_subscription/destroy(/:id)(.:format)', 'tag_subscription#destroy', ['via' => ['get', 'post']]);
 
     # User
     $this->get('user/autocomplete_name', ['as' => 'ac_user_name']);
