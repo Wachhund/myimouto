@@ -1,6 +1,8 @@
 <?php
 class Inline extends Rails\ActiveRecord\Base
 {
+    static protected $module_tables_available = null;
+
     protected function associations()
     {
         return [
@@ -11,6 +13,37 @@ class Inline extends Rails\ActiveRecord\Base
                 'inline_images' => [function() { $this->order('sequence'); } /*Not yet supported: 'dependent' => 'destroy'*/, 'class_name' => 'InlineImage']
             ]
         ];
+    }
+
+    static public function module_tables_available()
+    {
+        if (self::$module_tables_available !== null) {
+            return self::$module_tables_available;
+        }
+
+        try {
+            $connection = self::connection();
+            self::$module_tables_available =
+                $connection->tableExists('inlines') &&
+                $connection->tableExists('inline_images');
+        } catch (\Throwable $e) {
+            Rails::log()->exception($e);
+            self::$module_tables_available = false;
+        }
+
+        return self::$module_tables_available;
+    }
+
+    static public function mark_module_unavailable()
+    {
+        self::$module_tables_available = false;
+    }
+
+    static public function missing_table_exception(\Throwable $e)
+    {
+        $message = strtolower($e->getMessage());
+        return strpos($message, 'base table or view not found') !== false ||
+               strpos($message, 'no such table') !== false;
     }
     
     protected function callbacks()

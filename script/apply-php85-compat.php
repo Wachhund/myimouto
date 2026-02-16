@@ -159,6 +159,96 @@ TXT,
             'replace' => '                if ($primary_key && (!is_array($primary_key) || count($primary_key) == 1)) {',
         ],
     ],
+    'vendor/railsphp/railsphp/lib/Rails/ActiveRecord/Migration/Migrator.php' => [
+        [
+            'find' => <<<'TXT'
+        require $file;
+        
+        $classes = get_declared_classes();
+        $className = array_pop($classes);
+        unset($classes);
+        
+        $migrator = new $className();
+        $migrator->up();
+TXT,
+            'replace' => <<<'TXT'
+        $beforeClasses = get_declared_classes();
+        require $file;
+        $afterClasses = get_declared_classes();
+
+        $newClasses = array_values(array_diff($afterClasses, $beforeClasses));
+        $className = null;
+        foreach (array_reverse($newClasses) as $candidate) {
+            if ($candidate === __NAMESPACE__ . '\\Base') {
+                continue;
+            }
+            if (is_subclass_of($candidate, __NAMESPACE__ . '\\Base')) {
+                $className = $candidate;
+                break;
+            }
+        }
+
+        if (!$className) {
+            throw new Exception\RuntimeException(
+                sprintf("Migration class for version %s not found in %s", $version, $file)
+            );
+        }
+
+        $migrator = new $className();
+        $migrator->up();
+TXT,
+        ],
+    ],
+    'vendor/zendframework/zend-db/src/Sql/AbstractSql.php' => [
+        [
+            'find' => <<<'TXT'
+                    $ppCount = count($multiParamsForPosition);
+                    if (!isset($paramSpecs[$position][$ppCount])) {
+                        throw new Exception\RuntimeException('A number of parameters (' . $ppCount . ') was found that is not supported by this specification');
+                    }
+                    $multiParamValues[] = vsprintf($paramSpecs[$position][$ppCount], $multiParamsForPosition);
+TXT,
+            'replace' => <<<'TXT'
+                    if ($multiParamsForPosition instanceof StatementContainer) {
+                        $multiParamsForPosition = array($multiParamsForPosition->getSql());
+                    } elseif ($multiParamsForPosition instanceof \Traversable) {
+                        $multiParamsForPosition = iterator_to_array($multiParamsForPosition);
+                    } elseif (!is_array($multiParamsForPosition)) {
+                        $multiParamsForPosition = array($multiParamsForPosition);
+                    }
+
+                    $ppCount = count($multiParamsForPosition);
+                    if (!isset($paramSpecs[$position][$ppCount])) {
+                        throw new Exception\RuntimeException('A number of parameters (' . $ppCount . ') was found that is not supported by this specification');
+                    }
+                    $multiParamValues[] = vsprintf($paramSpecs[$position][$ppCount], $multiParamsForPosition);
+TXT,
+        ],
+        [
+            'find' => <<<'TXT'
+                $ppCount = count($paramsForPosition);
+                if (!isset($paramSpecs[$position][$ppCount])) {
+                    throw new Exception\RuntimeException('A number of parameters (' . $ppCount . ') was found that is not supported by this specification');
+                }
+                $topParameters[] = vsprintf($paramSpecs[$position][$ppCount], $paramsForPosition);
+TXT,
+            'replace' => <<<'TXT'
+                if ($paramsForPosition instanceof StatementContainer) {
+                    $paramsForPosition = array($paramsForPosition->getSql());
+                } elseif ($paramsForPosition instanceof \Traversable) {
+                    $paramsForPosition = iterator_to_array($paramsForPosition);
+                } elseif (!is_array($paramsForPosition)) {
+                    $paramsForPosition = array($paramsForPosition);
+                }
+
+                $ppCount = count($paramsForPosition);
+                if (!isset($paramSpecs[$position][$ppCount])) {
+                    throw new Exception\RuntimeException('A number of parameters (' . $ppCount . ') was found that is not supported by this specification');
+                }
+                $topParameters[] = vsprintf($paramSpecs[$position][$ppCount], $paramsForPosition);
+TXT,
+        ],
+    ],
 ];
 
 $changedFiles = 0;

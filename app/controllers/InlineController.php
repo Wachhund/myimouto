@@ -5,6 +5,7 @@ class InlineController extends ApplicationController
     {
         return [
             'before' => [
+                'ensure_inline_module_available',
                 'member_only' => ['only' => ['create', 'copy']]
             ]
         ];
@@ -167,5 +168,19 @@ class InlineController extends ApplicationController
                 $this->respond_to_error($this->inline, ['#edit', 'id' => $this->inline->id]);
             }
         }
+    }
+
+    protected function ensure_inline_module_available()
+    {
+        if (Inline::module_tables_available()) {
+            return true;
+        }
+
+        $this->respond_to_error(
+            'Inline module unavailable: required database tables are missing. Run db:migrate.',
+            'static#more',
+            ['status' => 503]
+        );
+        return false;
     }
 }
