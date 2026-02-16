@@ -320,6 +320,59 @@ class PoolController extends ApplicationController
             $this->pool_posts = $this->pool->pool_posts;
     }
 
+    public function import()
+    {
+        $this->pool = Pool::find($this->params()->id);
+
+        if (!$this->pool->can_be_updated_by(current_user())) {
+            $this->access_denied();
+            return;
+        }
+
+        if ($this->request()->isPost()) {
+            $posts = $this->params()->posts;
+            if (is_array($posts) && !empty($posts)) {
+                asort($posts, SORT_NATURAL);
+
+                foreach (array_keys($posts) as $post_id) {
+                    $post_id = (int) $post_id;
+                    if ($post_id <= 0) {
+                        continue;
+                    }
+
+                    try {
+                        $this->pool->add_post($post_id, ['skip_update_pool_links' => true]);
+                    } catch (Pool_PostAlreadyExistsError $e) {
+                        # Ignore duplicates while importing.
+                    }
+                }
+
+                $this->pool->reload();
+                $this->pool->update_pool_links();
+            }
+
+            $this->redirectTo(['#show', 'id' => $this->pool->id]);
+            return;
+        }
+
+        if ($this->request()->format() == 'js') {
+            $query = trim((string) $this->params()->query);
+            $posts = $query !== '' ? Post::find_by_tags($query, ['limit' => 500]) : Post::emptyCollection();
+            if (!$posts) {
+                $posts = Post::emptyCollection();
+            }
+
+            $visible_posts = [];
+            foreach ($posts as $post) {
+                if ($post->can_be_seen_by(current_user())) {
+                    $visible_posts[] = $post;
+                }
+            }
+
+            $this->posts = new Rails\ActiveRecord\Collection($visible_posts);
+        }
+    }
+
     public function select()
     {
         if (current_user()->is_anonymous())

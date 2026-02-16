@@ -13,4 +13,10 @@ class StaticController extends ApplicationController
         else
             $this->post_count = Post::fast_count();
     }
+
+    public function opensearch()
+    {
+        $this->setLayout(false);
+        $this->response()->headers()->setContentType('application/opensearchdescription+xml');
+    }
 }

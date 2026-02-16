@@ -59,6 +59,7 @@
   <br />
   <?php if (current_user()->can_change($this->pool, 'posts')) : ?>
     <li><?= $this->linkTo($this->t('.links.order'), ['action' => "order", 'id' => $this->params()->id]) ?></li>
+    <li><?= $this->linkTo($this->t('.links.import'), ['action' => "import", 'id' => $this->params()->id]) ?></li>
     <?php if (current_user()->is_contributor_or_higher()) : ?>
       <li><?= $this->linkTo($this->t('.links.copy'), ['action' => "copy", 'id' => $this->params()->id]) ?></li>
       <li><?= $this->linkTo($this->t('.links.transfer'), ['action' => "transfer_metadata", 'to' => $this->params()->id]) ?></li>

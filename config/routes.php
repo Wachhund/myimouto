@@ -80,6 +80,7 @@ MyImouto\Application::routes()->draw(function() {
     $this->post('forum/create');
 
     # Help
+    $this->get('help(/:page)', 'help#show', ['as' => 'help']);
     $this->match('help(/index)', 'help#index', ['via' => ['get', 'post']]);
     $this->match('help/:action', 'help#:action', ['via' => ['get', 'post']]);
 
@@ -186,7 +187,7 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('static/500', ['via' => ['get', 'post']]);
     $this->match('static/more', ['via' => ['get', 'post']]);
     $this->match('static/terms_of_service', ['via' => ['get', 'post']]);
-    // $this->match('/opensearch', 'static#opensearch', ['via' => ['get', 'post']]);
+    $this->match('/opensearch', 'static#opensearch', ['via' => ['get', 'post']]);
 
     # TagAlias
     $this->match('tag_alias(/index)', 'tag_alias#index', ['via' => ['get', 'post']]);
@@ -270,6 +271,8 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('wiki/update(.:format)', 'wiki#update', ['via' => ['post', 'put']]);
     $this->match('wiki/destroy(.:format)', 'wiki#destroy', ['via' => ['post', 'delete']]);
     $this->post('wiki/create(.:format)', 'wiki#create');
+
+    $this->match('errors/not_found', 'errors#not_found', ['via' => ['get', 'post']]);
 
     $this->root('static#index');
 });
