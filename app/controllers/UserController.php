@@ -319,7 +319,8 @@ class UserController extends ApplicationController
                                                      '#login', ['api' => ['result' => "success"]]);
                     return;
                 // end
-            } catch (Exception $e) { // rescue Net::SMTPSyntaxError, Net::SMTPFatalError
+            } catch (\Throwable $e) { // rescue Net::SMTPSyntaxError, Net::SMTPFatalError
+                Rails::log()->exception($e);
                 $this->respond_to_success("Your email address was invalid",
                                                  '#login', ['api' => ['result' => "invalid-email"]]);
                 return;

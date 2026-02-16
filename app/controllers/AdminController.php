@@ -46,17 +46,18 @@ class AdminController extends ApplicationController
             
             if ($user) {
                 $new_password = $user->reset_password();
-                $this->notice('Password reset to ' . $new_password);
-                
+                $notice = 'Password reset to ' . $new_password;
+
                 if ($user->email) {
-                    // try {
+                    try {
                         UserMailer::mail('new_password', [$user, $new_password])->deliver();
-                    // } catch (\Exception $e) {
-                        // $this->respond_to_success("Specified user's email address was invalid",
-                            // ['#reset_password'], ['api' => ['result' => 'invalid-email']]);
-                        // return;
-                    // }
+                    } catch (\Throwable $e) {
+                        Rails::log()->exception($e);
+                        $notice .= ' (email delivery failed; check mail transport settings)';
+                    }
                 }
+
+                $this->notice($notice);
             } else {
                 $this->notice('That account does not exist');
                 $this->redirectTo('#reset_password');

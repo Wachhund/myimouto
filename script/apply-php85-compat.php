@@ -63,6 +63,22 @@ TXT,
 TXT,
         ],
     ],
+    'vendor/railsphp/railsphp/lib/Rails/ActionMailer/ActionMailer.php' => [
+        [
+            'find' => <<<'TXT'
+        switch ($config['delivery_method']) {
+TXT,
+            'replace' => <<<'TXT'
+        if ($config['delivery_method'] instanceof \Closure) {
+            $transport = $config['delivery_method']();
+            self::transport($transport);
+            return;
+        }
+
+        switch ($config['delivery_method']) {
+TXT,
+        ],
+    ],
     'vendor/railsphp/railsphp/lib/Rails/Config/Config.php' => [
         [
             'find' => "    function getIterator()\n",
