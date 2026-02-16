@@ -4,8 +4,15 @@ class InlineController extends ApplicationController
     protected function filters()
     {
         return [
-            'member_only' => ['only' => ['create', 'copy']]
+            'before' => [
+                'member_only' => ['only' => ['create', 'copy']]
+            ]
         ];
+    }
+
+    protected function init()
+    {
+        $this->helper('Inline');
     }
     
     public function create()

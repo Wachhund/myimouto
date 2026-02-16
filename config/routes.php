@@ -137,6 +137,7 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('post/download', ['via' => ['get', 'post']]);
     $this->match('post/error', ['via' => ['get', 'post']]);
     $this->match('post/exception', ['via' => ['get', 'post']]);
+    $this->match('post/favorites(/:id)', 'post#favorites', ['via' => ['get', 'post']]);
     // $this->match('post/histogram');
     $this->match('post/moderate', ['via' => ['get', 'post']]);
     $this->match('post/piclens', ['format' => 'rss', 'via' => ['get', 'post']]);

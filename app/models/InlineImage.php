@@ -87,8 +87,10 @@ class InlineImage extends Rails\ActiveRecord\Base
     {
         $post = Post::find($id);
         $file = $post->file_path();
-        
-        symlink($file, $this->tempfile_image_path());
+
+        if (!@symlink($file, $this->tempfile_image_path())) {
+            copy($file, $this->tempfile_image_path());
+        }
         
         $this->received_file = true;
         $this->md5 = $post->md5;
@@ -135,6 +137,20 @@ class InlineImage extends Rails\ActiveRecord\Base
             $this->delete_tempfile();
             $this->errors()->add('source', "couldn't be opened: " . $e->getMessage());
             return false;
+        }
+    }
+
+    protected function delete_tempfile()
+    {
+        $paths = [
+            $this->tempfile_image_path(),
+            $this->tempfile_sample_path(),
+            $this->tempfile_preview_path()
+        ];
+        foreach ($paths as $path) {
+            if (is_file($path)) {
+                @unlink($path);
+            }
         }
     }
     
@@ -291,6 +307,10 @@ class InlineImage extends Rails\ActiveRecord\Base
     public function set_default_sequence()
     {
         if ($this->sequence) {
+            return;
+        }
+        if (!$this->inline) {
+            $this->sequence = 1;
             return;
         }
         $siblings = $this->inline->inline_images;

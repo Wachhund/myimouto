@@ -477,24 +477,58 @@ class PostController extends ApplicationController
         // return false;
     // }
 
-    // public function atom()
-    // {
-        // $this->posts = Post.findBySql(Post.generate_sql($this->params()->tags, 'limit' => 20, 'order' => "p.id DESC"))
-        // $this->respondTo(array(
-            // format.atom { render 'index' }
-        // ));
-    // }
+    public function atom()
+    {
+        list($sql, $params) = Post::generate_sql($this->params()->tags, ['limit' => 20, 'order' => "p.id DESC"]);
+        $this->posts = Post::findBySql($sql, $params);
+        if (!$this->posts) {
+            $this->posts = new Rails\ActiveRecord\Collection();
+        }
+        $this->setLayout(false);
+    }
 
-    // public function piclens()
-    // {
-        // $this->posts = WillPaginate::Collection.create(page_number, 16, Post.fast_count($this->params()->tags)) do |pager|
-            // pager.replace(Post.findBySql(Post.generate_sql($this->params()->tags, 'order' => "p.id DESC", 'offset' => pager.offset, 'limit' => pager.per_page)))
-        // end
+    public function piclens()
+    {
+        $page = $this->page_number();
+        $per_page = 16;
+        $offset = ($page - 1) * $per_page;
+        $total_rows = Post::fast_count($this->params()->tags);
 
-        // $this->respondTo(array(
-            // format.rss
-        // ));
-    // }
+        list($sql, $params) = Post::generate_sql($this->params()->tags, ['order' => "p.id DESC", 'offset' => $offset, 'limit' => $per_page]);
+        $posts = Post::findBySql($sql, $params);
+        if (!$posts) {
+            $posts = new Rails\ActiveRecord\Collection();
+        }
+
+        $this->posts = new Rails\ActiveRecord\Collection(
+            $posts->members(),
+            ['page' => $page, 'perPage' => $per_page, 'totalRows' => $total_rows]
+        );
+
+        $this->setLayout(false);
+    }
+
+    public function favorites()
+    {
+        $this->post = Post::find($this->params()->id);
+        $favorite_user_ids = [];
+        foreach ($this->post->favorited_by() as $favorited_user) {
+            if (is_array($favorited_user) && isset($favorited_user['id'])) {
+                $favorite_user_ids[] = (int) $favorited_user['id'];
+            }
+        }
+        $favorite_user_ids = array_unique(array_filter($favorite_user_ids));
+
+        if (!$favorite_user_ids) {
+            $this->users = new Rails\ActiveRecord\Collection();
+            return;
+        }
+
+        $this->users = User::where('id IN (?)', $favorite_user_ids)->order('name')->take();
+        if (!$this->users) {
+            $this->users = new Rails\ActiveRecord\Collection();
+        }
+    }
 
     public function show()
     {

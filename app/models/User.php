@@ -628,7 +628,7 @@ class User extends Rails\ActiveRecord\Base
       // tag_subscriptions_text.map(&:tag_query).sort.join(" ")
     // end
 
-    public function tag_subscription_posts($limit, $name)
+    public function tag_subscription_posts($limit, $name = null)
     {
         return TagSubscription::find_posts($this->id, $name, $limit);
     }

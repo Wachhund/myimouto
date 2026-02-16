@@ -164,15 +164,24 @@ trait PostSqlMethods
             $cond_params[] = $q['source'];
         }
 
-        if (isset($q['subscriptions'])) {
-            preg_match('/^(.+?):(.+)$/', $q['subscriptions'], $m);
-            $username = $m[1] ?: $q['subscriptions'];
-            $subscription_name = $m[2];
-            $user = User::find_by_name($username);
+        if (is_string($q['subscriptions'])) {
+            $subscription_filter = trim($q['subscriptions']);
+            $username = $subscription_filter;
+            $subscription_name = null;
 
-            if ($user) {
-                if ($post_ids = TagSubscription::find_post_ids($user->id, $subscription_name)) {
-                    $conds[] = 'p.id IN (?)';
+            if (strpos($subscription_filter, ':') !== false) {
+                list($username, $subscription_name) = explode(':', $subscription_filter, 2);
+            }
+
+            $user = User::find_by_name($username);
+            if (!$user) {
+                $conds[] = "FALSE";
+            } else {
+                $post_ids = TagSubscription::find_post_ids($user->id, $subscription_name);
+                if (!$post_ids) {
+                    $conds[] = "FALSE";
+                } else {
+                    $conds[] = "p.id IN (?)";
                     $cond_params[] = $post_ids;
                 }
             }

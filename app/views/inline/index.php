@@ -3,7 +3,7 @@
     <thead>
       <tr>
         <th width="40px"><?= $this->t('.first_image') ?></th>
-        <th width="60%"><?= $this->t('.description2') ?></th>
+        <th width="60%"><?= $this->t('.description') ?></th>
         <th width="*"><?= $this->t('.user') ?></th>
         <th width="*"><?= $this->t('.images') ?></th>
         <th width="*"><?= $this->t('.created') ?></th>

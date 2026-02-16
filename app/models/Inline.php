@@ -43,7 +43,7 @@ class Inline extends Rails\ActiveRecord\Base
     
     public function pretty_name()
     {
-        return 'x';
+        return "Inline #" . $this->id;
     }
     
     public function crop(array $params = [])
@@ -88,7 +88,7 @@ class Inline extends Rails\ActiveRecord\Base
                     unlink($new_image->tempfile_image_path());
                 }
                 
-                $this->errors()->add('crop', "couldn't be genrated (" . $e->getMessage() . ")");
+                $this->errors()->add('crop', "couldn't be generated (" . $e->getMessage() . ")");
                 return false;
             }
             

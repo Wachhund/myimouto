@@ -157,8 +157,12 @@ class Pool extends Rails\ActiveRecord\Base
         $count = $pp->size();
         
         foreach ($pp as $i => $v) {
-            $v->next_post_id = ($i == $count - 1) ? null : isset($pp[$i + 1]) ? $pp[$i + 1]->post_id : null;
-            $v->prev_post_id = $i == 0 ? null : isset($pp[$i - 1]) ? $pp[$i - 1]->post_id : null;
+            $v->next_post_id = ($i == $count - 1)
+                ? null
+                : (isset($pp[$i + 1]) ? $pp[$i + 1]->post_id : null);
+            $v->prev_post_id = ($i == 0)
+                ? null
+                : (isset($pp[$i - 1]) ? $pp[$i - 1]->post_id : null);
             $pp[$i]->save();
         }
     }
