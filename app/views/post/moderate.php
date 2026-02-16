@@ -1,5 +1,5 @@
 <form method="get" action="/post/moderate">
-  <?= $this->textFieldTag("query", $this->params()->query, ['size' => '40']) ?>
+  <?= $this->textFieldTag("query", $this->h($this->params()->query), ['size' => '40']) ?>
   <?= $this->submitTag($this->t('buttons.search')) ?>
 </form>
 

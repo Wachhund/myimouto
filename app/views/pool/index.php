@@ -4,7 +4,7 @@
       <?php if ($this->params()->order) : ?>
       <?= $this->hiddenFieldTag("order", $this->params()->order) ?>
       <?php endif ?>
-      <?= $this->textFieldTag("query", $this->params()->query, ['size' => 40]) ?>
+      <?= $this->textFieldTag("query", $this->h($this->params()->query), ['size' => 40]) ?>
       <?= $this->submitTag($this->t('.search'), ['name' => '']) ?>
     <?php }) ?>
   </div>

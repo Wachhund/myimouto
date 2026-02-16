@@ -5,7 +5,7 @@ class TagController extends ApplicationController
     {
         return [
             'before' => [
-                'mod_only' => ['only' => ['mass_edit', 'edit_preview']],
+                'mod_only' => ['only' => ['massEdit', 'editPreview']],
                 'member_only' => ['only' => ['update', 'edit']]
             ]
         ];

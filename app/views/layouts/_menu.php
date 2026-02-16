@@ -5,9 +5,9 @@
    * having placeholders for user id and name that will be replaced with current user's
    * data right before echoing the menu.
    */
-  $key  = 'menu.'.current_user()->level;
+  $key  = 'menu.' . Rails::application()->I18n()->locale() . '.'.current_user()->level;
   $menu = Rails::cache()->read($key);
-  
+
   if (!$menu) :
     ob_start();
   ?>
@@ -15,10 +15,10 @@
       <li class="user"><?= $this->linkTo($this->t('.account._'), ['user#home'], ['onclick' => 'if(!User.run_login_onclick(event)) return false;', 'class' => 'login-button']) ?>
         <?= $this->linkTo('■', '#', ['class' => 'submenu-button']) ?>
         <ul class="submenu">
-          <?php if (current_user()->is_anonymous()) : ?> 
+          <?php if (current_user()->is_anonymous()) : ?>
             <li><?= $this->linkTo($this->t('.account.login'), ['controller' => 'user', 'action' => 'login'], ['id' => 'login-link', 'class' => 'login-button']) ?></li>
             <li><?= $this->linkTo($this->t('.account.reset'), ['controller' => 'user', 'action' => 'reset_password']) ?></li>
-          <?php else: ?> 
+          <?php else: ?>
             <li><?= $this->linkTo($this->t('.account.profile'), ['controller' => 'user', 'action' => 'show', 'id' => "-user.id-"]) // MI: -user.id- ?></li>
             <li><?= $this->linkTo($this->t('.account.mail'), ['controller' => 'dmail', 'action' => 'inbox']) ?></li>
             <li><?= $this->linkTo($this->t('.account.favorites'), ['controller' => 'post', 'action' => 'index', 'tags' => "order:vote vote:3:-user.name-"]) // MI: -user.name- ?></li>
@@ -28,15 +28,15 @@
           <?php endif ?>
         </ul>
       </li>
-      <li class="post"><?= $this->linkTo($this->t('.posts._'), ['controller' => 'post', 'action' => 'index']) ?> 
-        <?= $this->linkTo('■', '#', ['class' => 'submenu-button']) ?> 
+      <li class="post"><?= $this->linkTo($this->t('.posts._'), ['controller' => 'post', 'action' => 'index']) ?>
+        <?= $this->linkTo('■', '#', ['class' => 'submenu-button']) ?>
         <ul class="search-box">
           <li>
             <div>
-              <?= $this->formTag('post#', ['method' => 'get'], function(){ ?> 
+              <?= $this->formTag('post#', ['method' => 'get'], function(){ ?>
                 <?= $this->textFieldTag('tags', '', ['id' => '']) ?><br />
-                <?= $this->submitTag($this->t('.posts.search')) ?> 
-              <?php }) ?> 
+                <?= $this->submitTag($this->t('.posts.search')) ?>
+              <?php }) ?>
             </div>
           </li>
         </ul>
@@ -207,10 +207,7 @@
           <li><?= $this->linkTo($this->t('.help.site'), "help#") ?></li>
         </ul>
       </li>
-      
-      
-      
-      
+
       <li class="static"><?= $this->linkTo($this->t('.more'), ['controller' => 'static', 'action' => 'more']) ?>
       </li>
       <li class="has-mail">

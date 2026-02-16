@@ -2,6 +2,6 @@
 <p><?= $this->t(['.confirm', 'name' => $this->artist->name]) ?></p>
 
 <?= $this->formTag([], ['level' => 'privileged'], function(){ ?>
-  <?= $this->submitTag($this->t('buttons._yes')) ?>
-  <?= $this->submitTag($this->t('buttons._no')) ?>
+  <button type="submit" name="commit" value="Yes"><?= $this->t('buttons._yes') ?></button>
+  <button type="submit"><?= $this->t('buttons._no') ?></button>
 <?php }) ?>

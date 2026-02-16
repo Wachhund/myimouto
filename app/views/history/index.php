@@ -111,7 +111,7 @@
   var thumb = $("hover-thumb");
   <?php foreach ($this->changes as $change) : ?>
     History.add_change(<?= $change->id ?>, "<?= $change->get_group_by_controller() ?>", <?= $change->group_by_id ?>, [ <?= implode(', ', $change->history_changes->getAttributes('id')) ?> ], '<?= $this->escapeJavascript($change->author()) ?>')
-    <?php if ($change->group_by_table_class() == "Post") : ?>
+    <?php if ($change->group_by_table_class() == "Post" && CONFIG()->can_see_post(current_user(), $change->group_by_obj())) : ?>
       Post.register(<?= $this->jsonEscape($change->group_by_obj()->toJson()) ?>)
       var hover_row = $("r<?= $change->id ?>");
       var container = hover_row.up("TABLE");
@@ -121,7 +121,7 @@
   Post.init_blacklisted({replace: true});
 
   <?php foreach ($this->changes as $change) : ?>
-    <?php if ($change->group_by_table_class() == "Post") : ?>
+    <?php if ($change->group_by_table_class() == "Post" && CONFIG()->can_see_post(current_user(), $change->group_by_obj())) : ?>
       if(!Post.is_blacklisted(<?= $change->group_by_obj()->id ?>))
         Preload.preload('<?= $this->escapeJavascript($change->group_by_obj()->preview_url()) ?>');
     <?php endif ?>

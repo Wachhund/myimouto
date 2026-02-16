@@ -45,7 +45,7 @@ CREATE TABLE `comments` (
   `post_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `ip_addr` varchar(16) NOT NULL,
-  `created_at` datetime DEFAULT '0000-00-00 00:00:00',
+  `created_at` datetime DEFAULT NULL,
   `body` text NOT NULL,
   `updated_at` datetime NOT NULL,
   `is_spam` tinyint(1) NOT NULL DEFAULT '0',
@@ -73,13 +73,13 @@ CREATE TABLE `favorites` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `post_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `created_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `created_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `post_id__user_id` (`post_id`,`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `flagged_post_details` (
-  `created_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `created_at` datetime DEFAULT NULL,
   `post_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `reason` varchar(512) NOT NULL,
@@ -115,7 +115,7 @@ CREATE TABLE `histories` (
   `group_by_table` varchar(12) NOT NULL,
   `aux_as_json` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `history_changes` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -129,12 +129,12 @@ CREATE TABLE `history_changes` (
   PRIMARY KEY (`id`),
   KEY `previous_id` (`previous_id`),
   KEY `fk_history_changes__history_id` (`history_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `ip_bans` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `created_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `expires_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `created_at` datetime DEFAULT NULL,
+  `expires_at` datetime DEFAULT NULL,
   `ip_addr` varchar(15) NOT NULL,
   `reason` text NOT NULL,
   `banned_by` int(11) NOT NULL,
@@ -152,12 +152,12 @@ CREATE TABLE `job_tasks` (
   `created_at` datetime DEFAULT NULL,
   `updated_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `note_versions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `created_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `updated_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   `x` int(11) NOT NULL,
   `y` int(11) NOT NULL,
   `width` int(11) NOT NULL,
@@ -177,8 +177,8 @@ CREATE TABLE `note_versions` (
 
 CREATE TABLE `notes` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `created_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `updated_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   `user_id` int(11) NOT NULL,
   `x` int(11) NOT NULL,
   `y` int(11) NOT NULL,
@@ -194,21 +194,14 @@ CREATE TABLE `notes` (
   KEY `user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE `pasts` (
-  `id` int(11) NOT NULL,
-  `created_at` datetime NOT NULL,
-  `updated_at` datetime NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
 CREATE TABLE `pools` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(128) NOT NULL,
   `description` text NOT NULL,
   `user_id` int(11) NOT NULL,
   `is_active` tinyint(1) NOT NULL DEFAULT '1',
-  `created_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `updated_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
   `post_count` int(3) NOT NULL DEFAULT '0',
   `is_public` binary(1) NOT NULL DEFAULT '1',
   PRIMARY KEY (`id`),
@@ -239,13 +232,13 @@ CREATE TABLE `post_tag_histories` (
   `created_at` datetime NOT NULL,
   PRIMARY KEY (`id`),
   KEY `fk_post_tag_histories__post_id` (`post_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `post_votes` (
   `post_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
   `score` int(1) DEFAULT '0',
-  `updated_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `updated_at` datetime DEFAULT NULL,
   UNIQUE KEY `post_id` (`post_id`,`user_id`),
   KEY `score` (`score`),
   KEY `fk_user_id__users_id` (`user_id`)
@@ -281,7 +274,7 @@ CREATE TABLE `posts` (
   `sample_width` int(5) DEFAULT NULL,
   `sample_height` int(5) DEFAULT NULL,
   `sample_size` int(11) DEFAULT NULL,
-  `index_timestamp` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `index_timestamp` datetime DEFAULT NULL,
   `jpeg_width` int(11) DEFAULT NULL,
   `jpeg_height` int(11) DEFAULT NULL,
   `jpeg_size` int(11) DEFAULT NULL,
@@ -292,7 +285,7 @@ CREATE TABLE `posts` (
   KEY `fk_posts__parent_id` (`parent_id`),
   KEY `posts__approver_id` (`approver_id`),
   KEY `fk_posts__user_id` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `posts_tags` (
   `post_id` int(11) NOT NULL,
@@ -362,7 +355,7 @@ CREATE TABLE `tags` (
   `is_ambiguous` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `user_blacklisted_tags` (
   `user_id` int(11) NOT NULL,
@@ -386,7 +379,7 @@ CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(32) NOT NULL,
   `password_hash` varchar(40) DEFAULT NULL,
-  `created_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `created_at` datetime DEFAULT NULL,
   `level` int(11) NOT NULL DEFAULT '20',
   `email` varchar(249) DEFAULT NULL,
   `avatar_post_id` int(11) DEFAULT NULL,
@@ -396,7 +389,7 @@ CREATE TABLE `users` (
   `avatar_bottom` double DEFAULT NULL,
   `avatar_left` double DEFAULT NULL,
   `avatar_right` double DEFAULT NULL,
-  `avatar_timestamp` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `avatar_timestamp` datetime DEFAULT NULL,
   `my_tags` text,
   `invite_count` int(11) NOT NULL DEFAULT '0',
   `invited_by` int(11) DEFAULT NULL,
@@ -405,10 +398,10 @@ CREATE TABLE `users` (
   `pool_browse_mode` tinyint(1) NOT NULL DEFAULT '0',
   `use_browser` tinyint(1) NOT NULL DEFAULT '0',
   `always_resize_images` tinyint(1) NOT NULL DEFAULT '0',
-  `last_logged_in_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `last_forum_topic_read_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `last_comment_read_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `last_deleted_post_seen_at` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `last_logged_in_at` datetime DEFAULT NULL,
+  `last_forum_topic_read_at` datetime DEFAULT NULL,
+  `last_comment_read_at` datetime DEFAULT NULL,
+  `last_deleted_post_seen_at` datetime DEFAULT NULL,
   `language` text,
   `secondary_languages` text,
   `receive_dmails` tinyint(1) NOT NULL DEFAULT '1',
@@ -416,7 +409,7 @@ CREATE TABLE `users` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`),
   KEY `fk_users__avatar_post_id` (`avatar_post_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `wiki_page_versions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

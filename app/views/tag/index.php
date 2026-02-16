@@ -7,7 +7,7 @@
             <label for="name"><?= $this->t('tag_name') ?></label>
             <p><?= $this->t('tag_wild') ?></p>
           </th>
-          <td width="85%"><?= $this->textFieldTag("name", $this->params()->name, array('size' => '40')) ?></td>
+          <td width="85%"><?= $this->textFieldTag("name", $this->h($this->params()->name), array('size' => '40')) ?></td>
         </tr>
         <tr>
           <th><label for="type"><?= $this->t('tag_type') ?></label></th>

@@ -11,7 +11,9 @@
 
 <?php $this->contentFor('subnavbar', function(){ ?>
   <li><?= $this->linkTo($this->t(".nav.list"), ['action' => "index"]) ?></li>
-  <?php if ($this->job_task->status == "error") : ?>
+  <?php if (current_user()->is_admin() && $this->job_task->status == "error") : ?>
     <li><?= $this->linkTo($this->t(".nav.restart"), ["#restart", 'id' => $this->job_task->id]) ?></li>
+  <?php elseif (current_user()->is_admin() && $this->job_task->status != 'pending') : ?>
+    <li><?= $this->linkTo('Force restart', ["#restart", 'id' => $this->job_task->id]) ?></li>
   <?php endif ?>
 <?php }) ?>

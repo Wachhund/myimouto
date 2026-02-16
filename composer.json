@@ -9,9 +9,9 @@
     ],
     "require": {
         "php": ">=5.4.0",
-        "railsphp/railsphp": "dev-master",
-        "railsphp/willpaginate": "dev-master",
-        "railsphp/actsasversioned": "dev-master",
+        "railsphp/railsphp": "1.0.*",
+        "railsphp/willpaginate": "1.0.*",
+        "railsphp/actsasversioned": "1.0.*",
         "michelf/php-markdown": "1.3.*"
     }
 }

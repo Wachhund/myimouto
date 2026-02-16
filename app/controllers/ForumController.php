@@ -12,7 +12,7 @@ class ForumController extends ApplicationController
             'before' => [
                 'sanitize_id' => ['only' => ['show']],
                 'mod_only' => ['only' => ['stick', 'unstick', 'lock', 'unlock']],
-                'member_only' => ['only' => ['destroy', 'update', 'edit', 'add', 'mark_all_read', 'preview']],
+                'member_only' => ['only' => ['destroy', 'update', 'edit', 'add', 'markAllRead', 'preview']],
                 'post_member_only' => ['only' => ['create']]
             ]
         ];

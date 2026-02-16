@@ -15,7 +15,7 @@ class PostController extends ApplicationController
     public function upload()
     {
         $this->set_title('Upload');
-        
+
         $this->deleted_posts = FlaggedPostDetail::new_deleted_posts(current_user());
 #        if $this->params()->url
 #            $this->post = Post.find(:first, 'conditions' => ["source = ?", $this->params()->url])
@@ -48,9 +48,9 @@ class PostController extends ApplicationController
         } else {
             $user_id = current_user()->id;
         }
-        
+
         // $is_upload = array_key_exists('post', $_FILES);
-        
+
         # iTODO
         $post_params = array_merge($this->params()->post ?: array(), array(
             'updater_user_id' => current_user()->id,
@@ -65,9 +65,9 @@ class PostController extends ApplicationController
             // 'tempfile_name'   => $is_upload ? $_FILES['post']['name']['file'] : null,
             // 'is_upload'       => $is_upload,
         ));
-        
+
         $this->post = Post::create($post_params);
-        
+
         if ($this->post->errors()->blank()) {
             if ($this->params()->md5 && $this->post->md5 != strtolower($this->params()->md5)) {
                 $this->post->destroy();
@@ -95,7 +95,7 @@ class PostController extends ApplicationController
             }
         } elseif ($this->post->errors()->on('md5')) {
             $p = Post::where(['md5' => $this->post->md5])->first();
-            
+
             $update = array('tags' => $p->cached_tags . " " . (isset($this->params()->post['tags']) ? $this->params()->post['tags'] : ''), 'updater_user_id' => $this->session()->user_id, 'updater_ip_addr' => $this->request()->remoteIp());
             if (!$p->source && $this->post->source)
                 $update['source'] = $this->post->source;
@@ -114,36 +114,36 @@ class PostController extends ApplicationController
     public function moderate()
     {
         $this->set_title('Moderation Queue');
-        
+
         if ($this->request()->isPost()) {
             $posts = new Rails\ActiveRecord\Collection();
-            
+
             if ($this->params()->ids) {
                 foreach (array_keys($this->params()->ids) as $post_id) {
                     $post = Post::find($post_id);
-                    
+
                     if ($this->params()->commit == "Approve")
                         $post->approve(current_user()->id);
                     elseif ($this->params()->commit == "Delete") {
                         $post->destroy_with_reason(($this->params()->reason ? $this->params()->reason : $this->params()->reason2), current_user());
-                        
+
                         # Include post data for the parent: deleted posts aren't counted as children, so
                         # their has_children attribute may change.
                         if ($post->parent_id)
                             $posts[] = $post->get_parent();
                     }
-                    
+
                     # Post may have been permanently deleted.
                     if (!CONFIG()->delete_posts_permanently) {
                         $post->reload();
                     }
-                    
+
                     $posts[] = $post;
                 }
             }
-            
+
             $posts->unique();
-            
+
             if ($this->request()->format() == "json" || $this->request()->format() == "xml")
                 $api_data = Post::batch_api_data($posts->members());
             else
@@ -153,7 +153,7 @@ class PostController extends ApplicationController
                 $this->respond_to_success("Post approved", "#moderate", array('api' => $api_data));
             elseif ($this->params()->commit == "Delete")
                 $this->respond_to_success("Post deleted", "#moderate", array('api' => $api_data));
-            
+
         } else {
             if ($this->params()->query) {
                 list($sql, $params) = Post::generate_sql($this->params()->query, array('pending' => true, 'order' => "id desc"));
@@ -175,13 +175,13 @@ class PostController extends ApplicationController
             return;
         }
         $user_id = current_user()->id;
-        
+
         $post = $this->params()->post;
         Post::filter_api_changes($post);
-        
+
         $post['updater_user_id'] = current_user()->id;
         $post['updater_ip_addr'] = $this->request()->remoteIp();
-        
+
         if ($this->post->updateAttributes($post)) {
             # Reload the post to send the new status back; not all changes will be reflected in
             # $this->post due to after_save changes.
@@ -200,7 +200,7 @@ class PostController extends ApplicationController
     public function updateBatch()
     {
         $user_id = current_user()->id;
-        
+
         $ids = array();
         if (!is_array($this->params()->post))
             $this->params()->post = [];
@@ -217,7 +217,7 @@ class PostController extends ApplicationController
 
             $p = Post::find($post_id);
             $ids[] = $p->id;
-            
+
             # If an entry has only an ID, it was just included in the list to receive changes to
             # a post without changing it (for example, to receive the parent's data after reparenting
             # a post under it).
@@ -226,7 +226,7 @@ class PostController extends ApplicationController
             $old_parent_id = $p->parent_id;
 
             Post::filter_api_changes($post);
-            
+
             if ($p->updateAttributes(array_merge($post, array('updater_user_id' => $user_id, 'updater_ip_addr' => $this->request()->remoteIp())))) {
                 // post.merge(:updater_user_id => user_id, :updater_ip_addr => request.remoteIp))
                 # Reload the post to send the new status back; not all changes will be reflected in
@@ -261,7 +261,7 @@ class PostController extends ApplicationController
         else
             $this->post_parent = null;
     }
-    
+
     public function destroy()
     {
         if ($this->params()->commit == "Cancel") {
@@ -290,7 +290,7 @@ class PostController extends ApplicationController
                     $options = ['api' => Post::batch_api_data([$this->post])];
                 else
                     $options = [];
-                
+
                     $this->respond_to_success($notice, array('#show', 'id' => $this->params()->id), $options);
             }
         } else {
@@ -305,13 +305,13 @@ class PostController extends ApplicationController
         }
 
         $page = $this->page_number();
-        
+
         $query = Post::order("flagged_post_details.created_at DESC")
                     ->select('posts.*')
                     ->group('posts.id')
                     ->joins("JOIN flagged_post_details ON flagged_post_details.post_id = posts.id")
                     ->page($page)->perPage(25);
-        
+
         if ($this->params()->user_id) {
             $user_id = (int)$this->params()->user_id;
             $this->posts = $query->where("posts.status = 'deleted' AND posts.user_id = ? ", $user_id)->paginate();
@@ -319,14 +319,14 @@ class PostController extends ApplicationController
             $this->posts = $query->where("posts.status = 'deleted'")->paginate();
         }
     }
-    
+
     public function acknowledgeNewDeletedPosts()
     {
         if (!current_user()->is_anonymous())
             current_user()->updateAttribute('last_deleted_post_seen_at', date('Y-m-d H:i:s'));
         $this->respond_to_success("Success", array());
     }
-    
+
     public function index()
     {
         $tags = $this->params()->tags;
@@ -334,7 +334,7 @@ class PostController extends ApplicationController
         $page = $this->page_number();
         $this->tag_suggestions = $this->searching_pool = array();
 
-/*        if $this->current_user.is_member_or_lower? && count(split_tags) > 2 
+/*        if $this->current_user.is_member_or_lower? && count(split_tags) > 2
 #            $this->respond_to_error("You can only search up to two tags at once with a basic account", 'action' => "error")
 #            return;
 #        elseif count(split_tags) > 6
@@ -352,9 +352,9 @@ class PostController extends ApplicationController
         $limit > 1000 && $limit = 1000;
 
         $count = 0;
-        
+
         $this->set_title("/" . str_replace("_", " ", $tags));
-        
+
         // try {
         $count = Post::fast_count($tags);
         // vde($count);
@@ -363,7 +363,7 @@ class PostController extends ApplicationController
             // return;
         // }
 
-        
+
         $this->ambiguous_tags = Tag::select_ambiguous($split_tags);
         if (isset($q['pool']) and is_int($q['pool']))
             $this->searching_pool = Pool::where(['id' => $q['pool']])->first();
@@ -372,13 +372,13 @@ class PostController extends ApplicationController
 
         // $this->posts = Post::find_all(array('page' => $page, 'per_page' => $limit, $count));
         // $this->posts = WillPaginate::Collection.new(page, limit, count);
-        
+
         // $offset = $this->posts->offset();
         // $posts_to_load = $this->posts->per_page();
         $per_page = $limit;
         $offset = ($page - 1) * $per_page;
         $posts_to_load = $per_page;
-        
+
         if (!$from_api) {
             # For forward preloading:
             // $posts_to_load += $this->posts->per_page();
@@ -398,16 +398,16 @@ class PostController extends ApplicationController
 
         $this->showing_holds_only = isset($q['show_holds']) && $q['show_holds'] == 'only';
         list ($sql, $params) = Post::generate_sql($q, array('original_query' => $tags, 'from_api' => $from_api, 'order' => "p.id DESC", 'offset' => $offset, 'limit' => $posts_to_load));
-        
+
         $results = Post::findBySql($sql, $params);
-        
+
         $this->preload = new Rails\ActiveRecord\Collection();
         if (!$from_api) {
             if ($page && $page > 1) {
                 $this->preload = $results->slice(0, $limit);
                 $results = $results->slice($limit);
             }
-            
+
             $this->preload->merge($results->slice($limit));
 
             $results = $results->slice(0, $limit);
@@ -425,7 +425,7 @@ class PostController extends ApplicationController
             return;
         }
         $this->posts = new Rails\ActiveRecord\Collection($results->members(), ['page' => $page, 'perPage' => $per_page, 'totalRows' => $count]);
-        
+
         if ($count < CONFIG()->post_index_default_limit && count($split_tags) == 1) {
             $this->tag_suggestions = Tag::find_suggestions($tags);
         }
@@ -448,21 +448,21 @@ class PostController extends ApplicationController
                     $this->render(array('json' => array_map(function($p){return $p->api_attributes();}, $this->posts->members())));
                     return;
                 }
-                
+
                 $api_data = Post::batch_api_data($this->posts->members(), array(
                     'exclude_tags' => $this->params()->include_tags != "1",
                     'exclude_votes' => $this->params()->include_votes != "1",
                     'exclude_pools' => $this->params()->include_pools != "1",
                     'fake_sample_url' => CONFIG()->fake_sample_url
                 ));
-                
+
                 $this->render(array('json' => json_encode($api_data)));
             }
             // ,
             // 'atom'
         ));
     }
-    
+
     // private function is_mobile_browser()
     // {
         // if ($agent = $this->request()->get("HTTP_USER_AGENT")) {
@@ -499,28 +499,28 @@ class PostController extends ApplicationController
     public function show()
     {
         $this->helper('Avatar');
-        
+
         try {
             if ($this->params()->cache)
                 $this->response()->headers()->add("Cache-Control", "max-age=300");
             $this->cache = $this->params()->cache; # temporary
             $this->body_only = (int)$this->params()->body == 1;
-            
+
             if ($this->params()->md5) {
                 if (!$this->post = Post::where(['md5' => strtolower($this->params())])->first())
                     throw Rails\ActiveRecord\Exception\RecordNotFoundException();
             } else {
                 $this->post = Post::find($this->params()->id);
             }
-            
+
             $this->pools = Pool::where("pools_posts.post_id = {$this->post->id} AND pools_posts.active")->joins("JOIN pools_posts ON pools_posts.pool_id = pools.id")->order("pools.name")->select("pools.name, pools.id")->take();
-            
+
              if ($this->params()->pool_id) {
                 $this->following_pool_post = PoolPost::where("pool_id = ? AND post_id = ?", $this->params()->pool_id, $this->post->id)->first();
             } else {
                 $this->following_pool_post = PoolPost::where("post_id = ?", $this->post->id)->first();
             }
-            
+
             $this->tags = array('include' => $this->post->tags());
             $this->include_tag_reverse_aliases = true;
             $this->set_title(str_replace('_', ' ', $this->post->title_tags()));
@@ -570,12 +570,11 @@ class PostController extends ApplicationController
         }
 
         $this->post_params = $this->params()->all();
-        $end = time();
         $this->start = strtotime('-'.$period);
 
         $this->set_title('Exploring ' . $this->period_name);
-        
-        $this->posts = Post::where("status <> 'deleted' AND posts.index_timestamp >= ? AND posts.index_timestamp <= ? ", date('Y-m-d', $this->start), date('Y-m-d', $end))->order("score DESC")->limit(20)->take();
+
+        $this->posts = Post::where("status <> 'deleted' AND posts.index_timestamp >= ? AND posts.index_timestamp <= ? ", date('Y-m-d', $this->start), date('Y-m-d H:i:s'))->order("score DESC")->limit(20)->take();
 
         $this->respond_to_list("posts");
     }
@@ -588,9 +587,9 @@ class PostController extends ApplicationController
         }
 
         $this->set_title('Exploring '.date('Y', $this->day).'/'.date('m', $this->day).'/'.date('d', $this->day));
-        
+
         $this->posts = Post::available()->where('created_at BETWEEN ? AND ?', date('Y-m-d', $this->day), date('Y-m-d', strtotime('+1 day', $this->day)))->order("score DESC")->limit(20)->take();
-        
+
         $this->respond_to_list("posts");
     }
 
@@ -602,7 +601,7 @@ class PostController extends ApplicationController
         }
 
         $this->end = strtotime('next week', $this->start);
-        
+
         $this->set_title('Exploring '.date('Y', $this->start).'/'.date('m', $this->start).'/'.date('d', $this->start) . ' - '.date('Y', $this->end).'/'.date('m', $this->end).'/'.date('d', $this->end));
 
         $this->posts = Post::available()->where('created_at BETWEEN ? AND ?', date('Y-m-d', $this->start), date('Y-m-d', $this->end))->order('score DESC')->limit(20)->take();
@@ -617,7 +616,7 @@ class PostController extends ApplicationController
         }
 
         $this->end = strtotime('+1 month', $this->start);
-        
+
         $this->set_title('Exploring '.date('Y', $this->start).'/'.date('m', $this->start));
 
         $this->posts = Post::available()->where('created_at BETWEEN ? AND ?', date('Y-m-d', $this->start), date('Y-m-d', $this->end))->order('score DESC')->limit(20)->take();
@@ -642,7 +641,7 @@ class PostController extends ApplicationController
             $this->respond_to_success("", array(), array('vote' => $score));
             return;
         }
-        
+
         $p = Post::find($this->params()->id);
         $score = (int)$this->params()->score;
 
@@ -669,7 +668,7 @@ class PostController extends ApplicationController
         if ($this->params()->unflag == '1') {
             # Allow the user who flagged a post to unflag it.
             #
-            # posts 
+            # posts
             # "approve" is used both to mean "unflag post" and "approve pending post".
             if ($post->status != "flagged") {
                 $this->respond_to_error("Can only unflag flagged posts", array("#show", 'id' => $this->params()->id));
@@ -709,13 +708,13 @@ class PostController extends ApplicationController
 
         foreach(range(1, 10) as $i) {
             $post = Post::where("id = ? AND status <> 'deleted'", rand(1, $max_id) + 1)->first();
-            
+
             if ($post && $post->can_be_seen_by(current_user())) {
                 $this->redirectTo(array('#show', 'id' => $post->id, 'tag_title' => $post->tag_title()));
                 return;
             }
         }
-        
+
         $this->notice("Couldn't find a post in 10 tries. Try again.");
         $this->redirectTo("#index");
     }
@@ -734,10 +733,10 @@ class PostController extends ApplicationController
             'width'     => null,
             'height'    => null
         ], $this->params()->toArray());
-        
+
         if (!empty($params['data_search']) && !current_user()->is_mod_or_higher())
             unset($params['data_search']);
-        
+
         if (!SimilarImages::valid_saved_search($params['search_id'])) $params['search_id'] = null;
         if (!empty($params['width'])) $params['width'] = (int)$params['width'];
         if (!empty($params['height'])) $params['height'] = (int)$params['height'];
@@ -748,18 +747,18 @@ class PostController extends ApplicationController
         }
 
         $this->services = SimilarImages::get_services($params['services']);
-        
+
         if ($this->params()->id) {
             $this->compared_post = Post::find($this->params()->id);
         } else {
             $this->compared_post = new Post();
         }
-        
+
         $this->errors  = null;
         $this->posts   = Post::emptyCollection();
         $this->similar = [];
         $similarity    = [];
-        
+
         if ($this->compared_post && $this->compared_post->is_deleted()) {
             $this->respond_to_error("Post deleted", ['post#show', 'id' => $this->params()->id, 'tag_title' => $this->compared_post->tag_title()]);
             return;
@@ -846,11 +845,11 @@ class PostController extends ApplicationController
 
             return SimilarImages::similar_images($options);
         };
-        
+
         $this->searched = false;
         if ($this->params()->url || $this->params()->id || (!empty($_FILES['file']) && empty($_FILES['file']['error'])) || !empty($this->params()->search_id)) {
             $res = $search($params);
-            
+
             # Error when no service was selected and/or local search isn't supported
             if (is_string($res['errors'])) {
                 $this->notice($res['errors']);
@@ -866,13 +865,13 @@ class PostController extends ApplicationController
             $res = [];
             $this->errors = [];
         }
-        
+
         if ($res && $this->searched) {
             !empty($res['posts']) && $this->posts = $res['posts'];
             $this->similar = $res;
             !empty($res['similarity']) && $similarity = $res['similarity'];
         }
-        
+
         if ($this->request()->format() == "json" || $this->request()->format() == "xml") {
             if (!empty($this->errors['error'])) {
                 $this->respond_to_error($this->errors['error'], ['#index'], ['status' => 503]);
@@ -931,7 +930,7 @@ class PostController extends ApplicationController
                     $api_data['source'] = $res['external_source'];
                 else
                     $api_data['source'] = '';
-                
+
                 if (!empty($res['errors'])) {
                     $api_data['error'] = [];
                     foreach ($res['errors'] as $server => $error) {
@@ -939,10 +938,10 @@ class PostController extends ApplicationController
                         $api_data['error'][] = [ 'server' => $server, 'message' => $error['message'], 'services' => $services ];
                     }
                 }
-                
+
                 $this->respond_to_success('', [], ['api' => $api_data]);
             }
-            
+
             // fmt.xml do
                 // x = Builder::XmlMarkup.new('indent' => 2)
                 // x.instruct!
@@ -975,19 +974,19 @@ class PostController extends ApplicationController
                     // }
                 // }
         ]);
-        
+
         $this->params = $params;
     }
 
     public function undelete()
     {
         $post = Post::where(['id' => $this->params()->id])->first();
-        
+
         if (!$post) {
             $this->respond_to_error("Post not found", ['#show', 'id' => $this->params()->id]);
             return;
         }
-        
+
         $post->undelete();
 
         $affected_posts = [$post];
@@ -1008,7 +1007,7 @@ class PostController extends ApplicationController
     {
         throw new Exception();
     }
-    
+
     public function import()
     {
         $import_dir = Rails::publicPath() . '/data/import/';
@@ -1024,18 +1023,18 @@ class PostController extends ApplicationController
                         $error = true;
                     }
                 }
-                
+
                 $resp = !empty($error) ? array('reason' => 'Some files could not be deleted') : array('success' => true);
                 $this->render(array('json' => $resp));
                 return;
             }
-            
+
             $this->setLayout(false);
             $this->errors = $this->dupe = false;
             $post = $this->params()->post;
             $post['filename'] = stripslashes(utf8_decode($post['filename']));
             $filepath = $import_dir . $post['filename'];
-            
+
             # Take folders as tags
             if (is_int(strpos($post['filename'], '/'))) {
                 $folders = str_replace('#', ':', $post['filename']);
@@ -1043,7 +1042,7 @@ class PostController extends ApplicationController
                 array_pop($tags);
                 $post['tags'] = trim($post['tags'].' '.implode(' ', $tags));
             }
-            
+
             $post = array_merge($post, array(
                 'ip_addr'       => $this->request()->remoteIp(),
                 'user_id'       => current_user()->id,
@@ -1053,9 +1052,9 @@ class PostController extends ApplicationController
                 'is_import'     => true,
             ));
             unset($post['filename'], $post['i']);
-            
+
             $this->post = Post::create($post);
-            
+
             if ($this->post->errors()->blank()) {
                 $this->import_status = 'Posted';
             } elseif ($this->post->errors()->invalid('md5')) {
@@ -1070,11 +1069,11 @@ class PostController extends ApplicationController
         } else {
             $this->set_title('Import');
             $this->invalid_files = $this->files = [];
-            
+
             list($this->files, $this->invalid_files, $this->invalid_folders) = Post::get_import_files($import_dir);
-            
+
             $pools = Pool::where('is_active')->take();
-            
+
             if ($pools) {
                 $this->pool_list = '<datalist id="pool_list">';
                 foreach ($pools as $pool)
@@ -1084,12 +1083,12 @@ class PostController extends ApplicationController
                 $this->pool_list = null;
         }
     }
-    
+
     public function searchExternalData()
     {
         if (!CONFIG()->enable_find_external_data)
             throw new Rails\ActiveRecord\Exception\RecordNotFoundException();
-      
+
         if ($this->params()->ids) {
             $ids = $this->params()->ids;
             !is_array($ids) && $ids = [$ids];
@@ -1097,7 +1096,7 @@ class PostController extends ApplicationController
         } else {
             $this->posts = new Rails\ActiveRecord\Collection();
         }
-        
+
         $this->services = SimilarImages::get_services('all');
     }
 
@@ -1124,17 +1123,17 @@ class PostController extends ApplicationController
     {
         $this->helper('Avatar', 'Wiki', 'Tag', 'Comment', 'Pool', 'Favorite', 'Advertisements');
     }
-    
+
     protected function filters()
     {
         return [
             'before' => [
                 'user_can_see_posts' => ['only' => ['show', 'browse']],
-                'member_only' => ['only' => ['create', 'destroy', 'delete', 'flag', 'revert_tags', 'activate', 'update_batch', 'vote']],
+                'member_only' => ['only' => ['create', 'destroy', 'delete', 'flag', 'revertTags', 'activate', 'updateBatch', 'vote']],
                 'post_member_only' => ['only' => ['update', 'upload', 'flag']],
                 'janitor_only' => ['only' => ['moderate', 'undelete']],
                 'admin_only' => ['only' => ['import']],
-                'mod_only' => ['only' => ['search_external_data']]
+                'mod_only' => ['only' => ['searchExternalData']]
             ],
             'after' => [
                 'save_tags_to_cookie' => ['only' => ['update', 'create']]

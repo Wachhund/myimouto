@@ -10,21 +10,21 @@ class TagSubscriptionController extends ApplicationController
             ]
         ];
     }
-    
+
     public function create()
     {
         $this->response()->headers()->setContentType('text/javascript');
         $this->setLayout(false);
-        
+
         if ($this->request()->isPost()) {
             if (current_user()->tag_subscriptions->size() >= CONFIG()->max_tag_subscriptions) {
                 $this->tag_subscription = null;
             } else {
-                $this->tag_subscription = TagSubscription::create(['user_id' => current_user()->id, 'tag_query' => '']);
+                $this->tag_subscription = TagSubscription::create(['user_id' => current_user()->id, 'tag_query' => '', 'name' => 'new tagsub']);
             }
         }
     }
-    
+
     public function update()
     {
         if ($this->request()->isPost()) {
@@ -37,24 +37,24 @@ class TagSubscriptionController extends ApplicationController
                 }
             }
         }
-        
+
         $this->notice("Tag subscriptions updated");
         $this->redirectTo('user#edit');
     }
-    
+
     public function index()
     {
         $this->tag_subscriptions = current_user()->tag_subscriptions;
     }
-    
+
     public function destroy()
     {
         $this->response()->headers()->setContentType('text/javascript');
         $this->setLayout(false);
-        
+
         if ($this->request()->isPost()) {
             $this->tag_subscription = TagSubscription::find($this->params()->id);
-            
+
             if (current_user()->has_permission($this->tag_subscription)) {
                 $this->tag_subscription->destroy();
             }

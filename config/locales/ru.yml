@@ -28,8 +28,7 @@ ru:
     index: {expires_in: 'Истекает в течение %{t}.', permanent: Этот бан навсегда., reason: Вы забанены}
   batch:
     create: {files: Файлы, load_file_index: Загрузить индекс, submit: Начать Закачку, tags: Метки, title: Очередь, url: URL}
-    index: {cancel: Отменить все закачки, clear: Очистить завершённые, completed_html: 'Пост %{id} завершён', exists_html: 'Пост %{id} уже существует', pause: Пауза, paused: Пауза, pending: Ожидает, queue_uploads: Очередь, resume: Возобновить, retry_failed: Повторить сбойные,
-      status: Статус, tags: Метки, title: Очередь Батчей, uploading: Загрузка, url: URL, username: Пользователь}
+    index: {cancel: Отменить все закачки, clear: Очистить завершённые, completed_html: 'Пост %{id} завершён', exists_html: 'Пост %{id} уже существует', pause: Пауза, paused: Пауза, pending: Ожидает, queue_uploads: Очередь, resume: Возобновить, retry_failed: Повторить сбойные, status: Статус, tags: Метки, title: Очередь Батчей, uploading: Загрузка, url: URL, username: Пользователь}
   buttons:
     _no: 'Нет'
     _yes: 'Да'
@@ -81,9 +80,7 @@ ru:
       search: Поиск
     show: {help: Справка, list: Список, locked: Эта темя закрыта., new: Новая тема, parent: Родитель, post: Пост, preview: Предпросмотр, reply: Ответить}
   help:
-    index: {about: О Moebooru, accounts: Учётные Записи, api: API, artists: Художники, bookmarklet: Закладки, bugs: Ошибки, cheat_sheet: Шпаргалка, comments: Комментарии, dtext: DText, faq: Часто Задаваемые Вопросы, firefox_ext: Расширение для Firefox, help: Справка, image_sampling: Образцы
-        Изображений, irc: IRC, mass_tag_edit: Массовая Правка Меток, notes: Заметки, pools: Коллекции, post_relationships: Взаимосвязи Постов, posts: Посты, ratings: Оценки, source: Исходный Код, starting: Вступление, suggestions: Предположения, tag_aliases: Синонимы,
-      tag_implications: Дополнительные Значения, tag_scripts: Сценарии Меток, tags: Метки, voting: Голосование, wiki: Wiki}
+    index: {about: О Moebooru, accounts: Учётные Записи, api: API, artists: Художники, bookmarklet: Закладки, bugs: Ошибки, cheat_sheet: Шпаргалка, comments: Комментарии, dtext: DText, faq: Часто Задаваемые Вопросы, firefox_ext: Расширение для Firefox, help: Справка, image_sampling: Образцы Изображений, irc: IRC, mass_tag_edit: Массовая Правка Меток, notes: Заметки, pools: Коллекции, post_relationships: Взаимосвязи Постов, posts: Посты, ratings: Оценки, source: Исходный Код, starting: Вступление, suggestions: Предположения, tag_aliases: Синонимы, tag_implications: Дополнительные Значения, tag_scripts: Сценарии Меток, tags: Метки, voting: Голосование, wiki: Wiki}
   helpers:
     submit:
       advertisement: {create: Создать, update: Сохранить}
@@ -773,8 +770,7 @@ ru:
   tag_implication:
     index:
       add: Добавить
-      add_new: {title: Добавить Дополнительное Значение, info: 'Предикат - метка, для которой добавляется метка дополнение. Например, дополнительное значение с предикатом=квадрат и дополнением=прямоугольник означает, что для каждого поста, помеченного как квадрат, будет
-          также добавлена метка прямоугольник.', info_moderation: 'Вы можете предложить новое дополнительное значение для метки, но оно должно быть подтверждено модератором.', submit: Отправить}
+      add_new: {title: Добавить Дополнительное Значение, info: 'Предикат - метка, для которой добавляется метка дополнение. Например, дополнительное значение с предикатом=квадрат и дополнением=прямоугольник означает, что для каждого поста, помеченного как квадрат, будет также добавлена метка прямоугольник.', info_moderation: 'Вы можете предложить новое дополнительное значение для метки, но оно должно быть подтверждено модератором.', submit: Отправить}
       approve: Подтвердить
       consequent: Дополнение
       delete: Удалить

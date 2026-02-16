@@ -19,11 +19,15 @@
       </tr>
       <tr>
         <th><label for="dmail_title"><?= $this->t('.form.title') ?></label></th>
-        <td><?= $this->textField('dmail', 'title') ?></td>
+        <td>
+          <input type="text" id="dmail_title" name="dmail[title]" value="<?= $this->h($this->dmail->title) ?>" />
+        </td>
       </tr>
       <tr>
         <th><label for="dmail_body"><?=$this->t('.form.body') ?></label></th>
-        <td><?= $this->textArea('dmail', 'body', ['size' => "50x25", 'class' => "default"]) ?></td>
+        <td>
+          <textarea id="dmail_body" cols="50" name="dmail[body]" rows="25" class="default"><?= $this->h($this->dmail->body) ?></textarea>
+        </td>
       </tr>
     </tbody>
   </table>

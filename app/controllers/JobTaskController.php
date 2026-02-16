@@ -3,7 +3,8 @@ class JobTaskController extends ApplicationController
 {
     public function index()
     {
-        $this->job_tasks = JobTask::order("id DESC")->paginate($this->page_number(), 25);
+        $activeTypes = "'" . implode("', '", CONFIG()->active_job_tasks) . "'";
+        $this->job_tasks = JobTask::order("id DESC")->where("task_type IN ($activeTypes)")->paginate($this->page_number(), 25);
     }
 
     public function show()
@@ -34,7 +35,7 @@ class JobTaskController extends ApplicationController
             $this->redirectTo(['action' => "show", 'id' => $this->job_task->id]);
         }
     }
-    
+
     protected function filters()
     {
         return [

@@ -6,18 +6,21 @@
   <meta name="description" content="<?= CONFIG()->app_name ?>">
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
   <link rel="top" title="<?= CONFIG()->app_name ?>" href="/">
-  <?= $this->stylesheetLinkTag("application") ?> 
-  <?= $this->javascriptIncludeTag('application') ?> 
-  <?= $this->javascriptIncludeTag('moe-legacy/application') ?> 
-  <?= CONFIG()->custom_html_headers ?> 
-  <?= $this->content('html_header') ?> 
+  <?php foreach (CONFIG()->asset_stylesheets as $asset) : ?>
+  <?= $this->stylesheetLinkTag($asset) ?>
+  <?php endforeach ?>
+  <?php foreach (CONFIG()->asset_javascripts as $asset) : ?>
+  <?= $this->javascriptIncludeTag($asset) ?>
+  <?php endforeach ?>
+  <?= CONFIG()->custom_html_headers ?>
+  <?= $this->content('html_header') ?>
 </head>
 <body>
-  <?= $this->partial("layouts/notice") ?> 
+  <?= $this->partial("layouts/notice") ?>
   <div id="content">
-    <?= $this->content() ?> 
+    <?= $this->content() ?>
   </div>
-  <?= $this->content('post_cookie_javascripts') ?> 
+  <?= $this->content('post_cookie_javascripts') ?>
   <?php
   /*
   <script type="text/javascript">
@@ -32,6 +35,6 @@
     })();
   </script>
   */
-  ?> 
+  ?>
 </body>
 </html>

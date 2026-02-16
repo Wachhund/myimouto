@@ -94,25 +94,6 @@ foreach ($dirs as $dir) {
 
 
 /**
- * Compile assets
- */
-$c->put("\n");
-$c->put("Compiling assets", null, Color::BLUE);
-
-# Set console to assets
-Rails::assets()->setConsole($c);
-
-# Compile files
-# CSS minifier Toopay/Assetic-Minifier uses /e modifier in its
-# preg_replace() calls, which is deprecated as of PHP 5.5. Change
-# error_reporting to avoid triggering the deprecation warning.
-set_error_handler('nullErrorHandler');
-Rails::assets()->compileAll();
-
-$c->put("done");
-
-
-/**
  * Finish
  */
 $c->put();

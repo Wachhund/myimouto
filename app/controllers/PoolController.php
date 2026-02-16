@@ -11,9 +11,9 @@ class PoolController extends ApplicationController
         return [
             'before' => [
                 'user_can_see_posts' => ['only' => ['zip']],
-                'member_only' => ['only' => ['destroy', 'update', 'add_post', 'remove_post', 'import', 'zip']],
+                'member_only' => ['only' => ['destroy', 'update', 'addPost', 'removePost', 'import', 'zip']],
                 'post_member_only' => ['only' => ['create']],
-                'contributor_only' => ['only' => ['copy', 'transfer_metadata']]
+                'contributor_only' => ['only' => ['copy', 'transferMetadata']]
             ]
         ];
     }

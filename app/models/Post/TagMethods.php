@@ -84,7 +84,7 @@ trait PostTagMethods
     # * :tag<String>:: the tag to search for
     public function has_tag($tag)
     {
-        return isset($this->tags[$tag]);
+        return array_search($tag, $this->tags) !== false;
     }
 
     # Returns the tags in a URL suitable string
@@ -379,8 +379,8 @@ trait PostTagMethods
             PostTagHistory::create([
                 'post_id' => $this->id,
                 'tags'    => $new_cached_tags,
-                'user_id' => current_user()->id,
-                'ip_addr' => current_user()->ip_addr ?: "127.0.0.1"
+                'user_id' => $this->user_id,
+                'ip_addr' => current_user() && current_user()->ip_addr ? current_user()->ip_addr : "127.0.0.1"
             ]);
         }
     }

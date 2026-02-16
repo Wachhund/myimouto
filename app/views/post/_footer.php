@@ -1,6 +1,6 @@
 <?= $this->contentFor('subnavbar', function() { ?>
   <li><?= $this->linkTo($this->t('.list'), 'post#index') ?></li>
-  <li><?= $this->linkTo($this->t('.browse'), $this->urlFor(['post#browse', 'anchor' => '/']) . str_replace('+', ' ', $this->params()->tags)) ?></li>
+  <li><?= $this->linkTo($this->t('.browse'), $this->urlFor(['post#browse', 'anchor' => '/']) . str_replace('+', ' ', $this->h($this->params()->tags))) ?></li>
   <li><?= $this->linkTo($this->t('.upload'), 'post#upload') ?></li>
   <!-- <li id="my-subscriptions-container"><?php //echo $this->linkTo($this->t('.subs'), "/", 'id' => 'my-subscriptions') ?></li> -->
   <li><?= $this->linkTo($this->t('.random'), array('post#', 'tags' => 'order:random')) ?></li>

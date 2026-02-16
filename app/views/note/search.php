@@ -1,7 +1,7 @@
 <h4><?= $this->t('.title') ?></h4>
 
 <?= $this->formTag(['action' => 'search'], ['method' => 'get'], function(){ ?>
-  <?= $this->textFieldTag("query", $this->params()->query,  ['size' => '40']) ?> <?= $this->submitTag($this->t('.search')) ?>
+  <?= $this->textFieldTag("query", $this->h($this->params()->query),  ['size' => '40']) ?> <?= $this->submitTag($this->t('.search')) ?>
 <?php }) ?>
 
 <?php if ($this->notes) : ?>

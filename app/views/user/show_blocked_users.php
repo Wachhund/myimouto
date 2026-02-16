@@ -82,7 +82,7 @@
           <th>
             <label for="ban_duration"><?= $this->t('user_duration') ?></label>
           </th>
-          <td><?=$this->textField("ban", "duration", ['size' => '10']) ?></td>
+          <td><?=$this->textField("ban", "duration", ['size' => '10', 'required']) ?></td>
         </tr>
       </tbody>
     </table>

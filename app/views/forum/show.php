@@ -1,4 +1,4 @@
-<?php $this->provide('title', $this->forum_post->title) ?>
+<?php $this->provide('title', $this->h($this->forum_post->title)) ?>
 <?php if ($this->forum_post->is_locked) : ?>
   <div class="status-notice">
     <p><?= $this->t('.locked') ?></p>

@@ -66,21 +66,17 @@ class DmailController extends ApplicationController
             $this->dmail->mark_as_read($this->current_user);
         }
     }
-    
+
     public function confirmMarkAllRead()
     {
     }
 
     public function markAllRead()
     {
-        if ($this->params()->commit == "Yes") {
-            foreach (Dmail::where("to_id = ? and has_seen = false", $this->current_user->id)->take() as $dmail)
-                $dmail->updateAttribute('has_seen', true);
+        foreach (Dmail::where("to_id = ? and has_seen = false", $this->current_user->id)->take() as $dmail)
+            $dmail->updateAttribute('has_seen', true);
 
-            $this->current_user->updateAttribute('has_mail', false);
-            $this->respond_to_success("All messages marked as read", ['action' => "inbox"]);
-        } else {
-            $this->redirectTo("#inbox");
-        }
+        $this->current_user->updateAttribute('has_mail', false);
+        $this->respond_to_success("All messages marked as read", ['action' => "inbox"]);
     }
 }

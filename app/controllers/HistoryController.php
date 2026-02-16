@@ -227,4 +227,9 @@ class HistoryController extends ApplicationController
 
         $this->respond_to_success("Changes made.", ['action' => "index"], ['api' => ['successful' => $successful, 'failed' => $failed, 'errors' => $error_texts]]);
     }
+
+    protected function filters()
+    {
+        return ['before' => ['member_only' => ['only' => ['undo']]]];
+    }
 }

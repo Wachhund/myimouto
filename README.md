@@ -1,8 +1,10 @@
 # MyImouto
 
-MyImouto is a port of [Moebooru](https://github.com/moebooru/moebooru) to PHP and MySQL. In order for this to be an actual port (or as close as possible), MyImouto uses a custom framework that is based on Ruby on Rails, thus the code from Moebooru is transcribed to PHP with some modifications here and there to fit the target language and framework.
+##This is mainly here for archiving feel free to fork this repo or send a pull request
 
-MyImouto is still under development, although practically complete. For more information about its features, changes and additions, please refer to the [About MyImouto](https://github.com/myimouto/myimouto/wiki/About-MyImouto) wiki. For news about the booru, you can checkout the [blog](http://pop-works.blogspot.com), where I post from time to time.
+MyImouto is a clone of [Moebooru](https://github.com/moebooru/moebooru) for PHP and MySQL. In order for this clone to be as exact as possible, MyImouto uses a custom framework that is based on Ruby on Rails, thus the code from Moebooru was transcribed to PHP with some small modifications to fit the target language and framework.
+
+MyImouto development stopped around 2014. By then, the port was mostly complete, with some bugs here and there. For more information about its features, changes and additions compared to Moebooru, please refer to the [About MyImouto](https://github.com/myimouto/myimouto/wiki/About-MyImouto) wiki.
 
 
 ## Requirements
@@ -27,7 +29,7 @@ For an explained, step-by-step guide, please check the [How to Install](https://
   * Create a database for the booru.
   * Create `config/config.php` and `config/database.yml` by copying their respective _.example_ files.
   * Set your database configuration in `config/database.yml`.
-  * Configure the booru by editing `config/config.php`. For a minimum configuration, both `server_host` and `url_base` options must be correctly configured.
+  * Configure the booru by editing `config/config.php`. For a minimum configuration, both `server_host` and `url_base` options must be correctly set.
   * Run the installer: `php install.php`. Enter a name and password for the admin account when asked, then wait for the installation to finish.
   * Finally, point the document root of your web server to the `public` folder. That's where the index.php file is.
 
