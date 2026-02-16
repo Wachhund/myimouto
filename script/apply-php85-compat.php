@@ -152,6 +152,10 @@ TXT,
         }
 TXT,
         ],
+        [
+            'find' => '            } catch (Rails\Exception\PHPError\Warning $e) {',
+            'replace' => '            } catch (\Rails\Exception\PHPError\Warning $e) {',
+        ],
     ],
     'vendor/railsphp/railsphp/lib/Rails/ActiveRecord/Base.php' => [
         [
