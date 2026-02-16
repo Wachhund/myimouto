@@ -65,6 +65,31 @@ TXT,
     ],
     'vendor/railsphp/railsphp/lib/Rails/ActionMailer/ActionMailer.php' => [
         [
+            'find' => '    static public function transport(Mail\Transport\TransportInterface $transport = null)',
+            'replace' => '    static public function transport($transport = null)',
+        ],
+        [
+            'find' => <<<'TXT'
+        if (null !== $transport) {
+            self::$transport = $transport;
+        } elseif (!self::$transport) {
+            self::setDefaultTransport();
+        }
+TXT,
+            'replace' => <<<'TXT'
+        if (null !== $transport) {
+            if (!is_object($transport) || !method_exists($transport, 'send')) {
+                throw new Exception\InvalidArgumentException(
+                    'ActionMailer transport must expose a send($message) method'
+                );
+            }
+            self::$transport = $transport;
+        } elseif (!self::$transport) {
+            self::setDefaultTransport();
+        }
+TXT,
+        ],
+        [
             'find' => <<<'TXT'
         switch ($config['delivery_method']) {
 TXT,

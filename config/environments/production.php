@@ -42,6 +42,10 @@ MyImouto\Application::configure(function($config) {
     $smtp_password = $env('MYIMOUTO_SMTP_PASSWORD');
     $smtp_auth = strtolower($env('MYIMOUTO_SMTP_AUTH', 'login'));
     $smtp_transport = strtolower($env('MYIMOUTO_SMTP_TRANSPORT', 'phpmailer'));
+    $smtp_timeout = (int)$env('MYIMOUTO_SMTP_TIMEOUT', '15');
+    if ($smtp_timeout <= 0) {
+        $smtp_timeout = 15;
+    }
 
     $auth_required = !in_array($smtp_auth, ['', 'none'], true);
     $has_credentials = ($smtp_username !== '' && $smtp_password !== '');
@@ -59,24 +63,22 @@ MyImouto\Application::configure(function($config) {
             'authentication' => $auth_required ? $smtp_auth : 'none',
             'user_name' => $smtp_username,
             'password' => $smtp_password,
-            'enable_starttls_auto' => $to_bool($env('MYIMOUTO_SMTP_STARTTLS', '1'), true)
+            'enable_starttls_auto' => $to_bool($env('MYIMOUTO_SMTP_STARTTLS', '1'), true),
+            'timeout' => $smtp_timeout,
+            'transport_label' => 'phpmailer',
         ];
 
-        if ($smtp_transport === 'zend') {
-            $config->action_mailer->delivery_method = 'smtp';
-            $config->action_mailer->smtp_settings->address = $smtp_settings['address'];
-            $config->action_mailer->smtp_settings->port = $smtp_settings['port'];
-            $config->action_mailer->smtp_settings->domain = $smtp_settings['domain'];
-            $config->action_mailer->smtp_settings->authentication = $auth_required ? $smtp_settings['authentication'] : null;
-            $config->action_mailer->smtp_settings->user_name = $smtp_settings['user_name'];
-            $config->action_mailer->smtp_settings->password = $smtp_settings['password'];
-            $config->action_mailer->smtp_settings->enable_starttls_auto = $smtp_settings['enable_starttls_auto'];
-        } else {
-            // Use PHPMailer for SMTP by default, keep "zend" as an explicit opt-out.
-            $config->action_mailer->delivery_method = function() use ($smtp_settings) {
-                return new \MyImouto\Mail\PHPMailerTransport($smtp_settings);
-            };
+        if ($smtp_transport !== 'phpmailer') {
+            if ($smtp_transport === 'zend') {
+                Rails::log()->warning('[mail.transport] MYIMOUTO_SMTP_TRANSPORT=zend is deprecated and ignored; using phpmailer');
+            } else {
+                Rails::log()->warning(sprintf('[mail.transport] Unknown MYIMOUTO_SMTP_TRANSPORT=%s; using phpmailer', $smtp_transport));
+            }
         }
+
+        $config->action_mailer->delivery_method = function() use ($smtp_settings) {
+            return new \MyImouto\Mail\PHPMailerTransport($smtp_settings);
+        };
     } else {
         $config->action_mailer->delivery_method = 'file';
     }
