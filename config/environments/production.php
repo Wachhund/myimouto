@@ -10,23 +10,9 @@ MyImouto\Application::configure(function($config) {
     
     $config->assets->digest = true;
 
-    $env = function($name, $default = '') {
-        $value = getenv($name);
-        if ($value === false) {
-            return $default;
-        }
-        return trim((string)$value);
-    };
+    $mailRuntimeConfig = \MyImouto\Mail\MailRuntimeConfig::fromEnvironment();
 
-    $to_bool = function($value, $default = false) {
-        $normalized = strtolower(trim((string)$value));
-        if ($normalized === '') {
-            return $default;
-        }
-        return !in_array($normalized, ['0', 'false', 'off', 'no'], true);
-    };
-
-    $mail_file_path = $env('MYIMOUTO_MAIL_FILE_PATH', Rails::root() . '/tmp/mail');
+    $mail_file_path = $mailRuntimeConfig['mail_file_path'];
     if (!is_dir($mail_file_path) && !file_exists($mail_file_path)) {
         try {
             mkdir($mail_file_path, 0777, true);
@@ -37,47 +23,14 @@ MyImouto\Application::configure(function($config) {
     $config->action_mailer->file_settings->location = $mail_file_path;
 
     // Never use implicit sendmail in production: prefer explicit SMTP, fallback to file transport.
-    $smtp_address = $env('MYIMOUTO_SMTP_ADDRESS');
-    $smtp_username = $env('MYIMOUTO_SMTP_USERNAME');
-    $smtp_password = $env('MYIMOUTO_SMTP_PASSWORD');
-    $smtp_auth = strtolower($env('MYIMOUTO_SMTP_AUTH', 'login'));
-    $smtp_transport = strtolower($env('MYIMOUTO_SMTP_TRANSPORT', 'phpmailer'));
-    $smtp_timeout = (int)$env('MYIMOUTO_SMTP_TIMEOUT', '15');
-    if ($smtp_timeout <= 0) {
-        $smtp_timeout = 15;
-    }
-
-    $auth_required = !in_array($smtp_auth, ['', 'none'], true);
-    $has_credentials = ($smtp_username !== '' && $smtp_password !== '');
-    $smtp_configured = ($smtp_address !== '') && (!$auth_required || $has_credentials);
-
-    if ($smtp_configured) {
-        $smtp_port = (int)$env('MYIMOUTO_SMTP_PORT', '587');
-        if ($smtp_port <= 0) {
-            $smtp_port = 587;
-        }
-        $smtp_settings = [
-            'address' => $smtp_address,
-            'port' => $smtp_port,
-            'domain' => $env('MYIMOUTO_SMTP_DOMAIN', 'localhost'),
-            'authentication' => $auth_required ? $smtp_auth : 'none',
-            'user_name' => $smtp_username,
-            'password' => $smtp_password,
-            'enable_starttls_auto' => $to_bool($env('MYIMOUTO_SMTP_STARTTLS', '1'), true),
-            'timeout' => $smtp_timeout,
-            'transport_label' => 'phpmailer',
-        ];
-
-        if ($smtp_transport !== 'phpmailer') {
-            if ($smtp_transport === 'zend') {
-                Rails::log()->warning('[mail.transport] MYIMOUTO_SMTP_TRANSPORT=zend is deprecated and ignored; using phpmailer');
-            } else {
-                Rails::log()->warning(sprintf('[mail.transport] Unknown MYIMOUTO_SMTP_TRANSPORT=%s; using phpmailer', $smtp_transport));
-            }
+    if ($mailRuntimeConfig['smtp_configured']) {
+        if (!empty($mailRuntimeConfig['transport_warning'])) {
+            Rails::log()->warning($mailRuntimeConfig['transport_warning']);
         }
 
-        $config->action_mailer->delivery_method = function() use ($smtp_settings) {
-            return new \MyImouto\Mail\PHPMailerTransport($smtp_settings);
+        $smtpSettings = $mailRuntimeConfig['smtp_settings'];
+        $config->action_mailer->delivery_method = function() use ($smtpSettings) {
+            return new \MyImouto\Mail\PHPMailerTransport($smtpSettings);
         };
     } else {
         $config->action_mailer->delivery_method = 'file';

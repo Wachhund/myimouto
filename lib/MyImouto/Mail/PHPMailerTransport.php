@@ -21,23 +21,7 @@ class PHPMailerTransport
 
     public function __construct(array $settings = [])
     {
-        if (!empty($settings['address']) && empty($settings['host'])) {
-            $settings['host'] = $settings['address'];
-        }
-
-        $defaults = [
-            'host' => '127.0.0.1',
-            'port' => 587,
-            'domain' => 'localhost',
-            'authentication' => 'none',
-            'user_name' => '',
-            'password' => '',
-            'enable_starttls_auto' => true,
-            'timeout' => 15,
-            'transport_label' => 'phpmailer',
-        ];
-
-        $this->settings = array_merge($defaults, $settings);
+        $this->settings = MailRuntimeConfig::normalizeSmtpSettings($settings);
     }
 
     public function send($message)
