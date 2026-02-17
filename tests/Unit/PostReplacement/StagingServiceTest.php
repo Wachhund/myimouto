@@ -19,6 +19,7 @@ final class StagingServiceTest extends TestCase
         self::assertFalse(StagingService::isSafeSourceUrl('http://localhost/file.jpg'));
         self::assertFalse(StagingService::isSafeSourceUrl('http://127.0.0.1/file.jpg'));
         self::assertFalse(StagingService::isSafeSourceUrl('http://[::1]/file.jpg'));
+        self::assertFalse(StagingService::isSafeSourceUrl('http://ip6-localhost/file.jpg'));
     }
 
     public function testRejectsPrivateIpv4Range(): void
@@ -29,5 +30,10 @@ final class StagingServiceTest extends TestCase
     public function testAllowsPublicIpv4(): void
     {
         self::assertTrue(StagingService::isSafeSourceUrl('https://1.1.1.1/file.jpg'));
+    }
+
+    public function testRejectsUnresolvedHostnames(): void
+    {
+        self::assertFalse(StagingService::isSafeSourceUrl('https://nonexistent.invalid/file.jpg'));
     }
 }

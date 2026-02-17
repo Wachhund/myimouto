@@ -70,8 +70,12 @@ class PostReplacement extends Rails\ActiveRecord\Base
     {
         $has_file = (bool)$this->replacement_file_path;
         $has_url = (bool)$this->source_url;
+        $status = strtolower(trim((string)$this->status));
+        if ($status === '') {
+            $status = self::STATUS_PENDING;
+        }
 
-        if (!$has_file && !$has_url) {
+        if ($status === self::STATUS_PENDING && !$has_file && !$has_url) {
             $this->errors()->add('base', 'replacement requires either an uploaded file or a source URL');
             return false;
         }

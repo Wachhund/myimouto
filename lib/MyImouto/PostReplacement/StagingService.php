@@ -102,35 +102,77 @@ class StagingService
         }
 
         $host = strtolower((string)$parts['host']);
-        if (in_array($host, ['localhost', '127.0.0.1', '::1'], true)) {
+        if (in_array($host, ['localhost', '127.0.0.1', '::1', 'ip6-localhost', 'ip6-loopback'], true)) {
             return false;
         }
 
         $host_for_ip = trim($host, '[]');
         if (filter_var($host_for_ip, FILTER_VALIDATE_IP)) {
-            return (bool)filter_var(
-                $host_for_ip,
-                FILTER_VALIDATE_IP,
-                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
-            );
+            return self::isPublicIp($host_for_ip);
         }
 
-        $resolved = gethostbynamel($host_for_ip);
+        $resolved = self::resolveHostIps($host_for_ip);
         if (!$resolved) {
-            return true;
+            return false;
         }
 
         foreach ($resolved as $ip) {
-            if (!filter_var($ip, FILTER_VALIDATE_IP)) {
-                continue;
-            }
-
-            if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            if (!self::isPublicIp($ip)) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    private static function isPublicIp($ip)
+    {
+        return (bool)filter_var(
+            $ip,
+            FILTER_VALIDATE_IP,
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+        );
+    }
+
+    private static function resolveHostIps($host)
+    {
+        $ips = [];
+
+        if (function_exists('dns_get_record')) {
+            $types = 0;
+            if (defined('DNS_A')) {
+                $types |= DNS_A;
+            }
+            if (defined('DNS_AAAA')) {
+                $types |= DNS_AAAA;
+            }
+            if ($types > 0) {
+                $records = @dns_get_record($host, $types);
+                if (is_array($records)) {
+                    foreach ($records as $record) {
+                        if (!empty($record['ip'])) {
+                            $ips[] = $record['ip'];
+                        }
+                        if (!empty($record['ipv6'])) {
+                            $ips[] = $record['ipv6'];
+                        }
+                    }
+                }
+            }
+        }
+
+        if (!$ips) {
+            $resolved = @gethostbynamel($host);
+            if (is_array($resolved)) {
+                $ips = array_merge($ips, $resolved);
+            }
+        }
+
+        $ips = array_values(array_unique(array_filter($ips, function($ip) {
+            return (bool)filter_var($ip, FILTER_VALIDATE_IP);
+        })));
+
+        return $ips;
     }
 
     private static function extractFileFromGlobals($field, $file_key)

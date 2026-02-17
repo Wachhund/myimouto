@@ -154,7 +154,7 @@ class PostReplacementController extends ApplicationController
         $approved = null;
         try {
             PostReplacement::transaction(function() use ($replacement, &$approved) {
-                $current = PostReplacement::find((int)$replacement->id);
+                $current = $this->lock_replacement_for_update((int)$replacement->id);
                 if ((string)$current->status !== PostReplacement::STATUS_PENDING) {
                     throw new RuntimeException('Replacement is no longer pending');
                 }
@@ -201,37 +201,66 @@ class PostReplacementController extends ApplicationController
             return;
         }
 
-        if ((string)$replacement->status !== PostReplacement::STATUS_PENDING) {
-            $this->respond_to_error(
-                'Replacement is not in pending state',
-                ['post_replacement#index', 'post_id' => $replacement->post_id],
-                ['status' => 424]
+        $rejected = null;
+        $already_rejected = false;
+        $did_transition = false;
+        $staged_path = null;
+        try {
+            PostReplacement::transaction(function() use ($replacement, &$rejected, &$already_rejected, &$did_transition, &$staged_path) {
+                $current = $this->lock_replacement_for_update((int)$replacement->id);
+
+                if ((string)$current->status === PostReplacement::STATUS_REJECTED) {
+                    $already_rejected = true;
+                    $rejected = $current;
+                    return;
+                }
+
+                if ((string)$current->status !== PostReplacement::STATUS_PENDING) {
+                    throw new RuntimeException('Replacement is not in pending state');
+                }
+
+                $staged_path = !empty($current->replacement_file_path) ? (string)$current->replacement_file_path : null;
+                $current->replacement_file_path = null;
+                $current->replacement_file_name = null;
+                $current->status = PostReplacement::STATUS_REJECTED;
+                $current->reviewed_by_id = current_user()->id;
+                $current->reviewed_at = date('Y-m-d H:i:s');
+                $current->moderation_reason = $this->normalize_optional_text($this->params()->moderation_reason);
+
+                if (!$current->save()) {
+                    throw new RuntimeException($current->errors()->fullMessages(', '));
+                }
+
+                $did_transition = true;
+                $rejected = $current;
+            });
+        } catch (RuntimeException $e) {
+            $this->respond_to_error($e->getMessage(), ['post_replacement#index'], ['status' => 424]);
+            return;
+        } catch (Exception $e) {
+            $this->respond_to_error($e->getMessage(), ['post_replacement#index']);
+            return;
+        }
+
+        if ($already_rejected || !$did_transition) {
+            $this->respond_to_success(
+                'Replacement already rejected',
+                ['post_replacement#index', 'post_id' => $rejected->post_id],
+                ['api' => ['post_replacement' => $rejected->asJson()]]
             );
             return;
         }
 
-        $replacement->status = PostReplacement::STATUS_REJECTED;
-        $replacement->reviewed_by_id = current_user()->id;
-        $replacement->reviewed_at = date('Y-m-d H:i:s');
-        $replacement->moderation_reason = $this->normalize_optional_text($this->params()->moderation_reason);
-
-        if (!empty($replacement->replacement_file_path)) {
-            StagingService::cleanup($replacement->replacement_file_path);
-            $replacement->replacement_file_path = null;
-            $replacement->replacement_file_name = null;
+        if ($staged_path) {
+            StagingService::cleanup($staged_path);
         }
 
-        if (!$replacement->save()) {
-            $this->respond_to_error($replacement, ['post_replacement#index', 'post_id' => $replacement->post_id]);
-            return;
-        }
-
-        NotificationService::emitModerationOutcome($replacement);
+        NotificationService::emitModerationOutcome($rejected);
 
         $this->respond_to_success(
             'Replacement rejected',
-            ['post_replacement#index', 'post_id' => $replacement->post_id],
-            ['api' => ['post_replacement' => $replacement->asJson()]]
+            ['post_replacement#index', 'post_id' => $rejected->post_id],
+            ['api' => ['post_replacement' => $rejected->asJson()]]
         );
     }
 
@@ -256,26 +285,66 @@ class PostReplacementController extends ApplicationController
             return;
         }
 
-        if (!empty($replacement->replacement_file_path)) {
-            StagingService::cleanup($replacement->replacement_file_path);
-            $replacement->replacement_file_path = null;
-            $replacement->replacement_file_name = null;
-        }
+        $deleted = null;
+        $already_deleted = false;
+        $did_transition = false;
+        $staged_path = null;
+        try {
+            PostReplacement::transaction(function() use ($replacement, &$deleted, &$already_deleted, &$did_transition, &$staged_path) {
+                $current = $this->lock_replacement_for_update((int)$replacement->id);
 
-        $replacement->status = PostReplacement::STATUS_DELETED;
-        $replacement->reviewed_by_id = current_user()->id;
-        $replacement->reviewed_at = date('Y-m-d H:i:s');
-        $replacement->moderation_reason = $this->normalize_optional_text($this->params()->moderation_reason);
+                if ((string)$current->status === PostReplacement::STATUS_DELETED) {
+                    $already_deleted = true;
+                    $deleted = $current;
+                    return;
+                }
 
-        if (!$replacement->save()) {
-            $this->respond_to_error($replacement, ['post_replacement#index', 'post_id' => $replacement->post_id]);
+                if ((string)$current->status !== PostReplacement::STATUS_PENDING) {
+                    throw new RuntimeException('Replacement is not in pending state');
+                }
+
+                $staged_path = !empty($current->replacement_file_path) ? (string)$current->replacement_file_path : null;
+                $current->replacement_file_path = null;
+                $current->replacement_file_name = null;
+                $current->status = PostReplacement::STATUS_DELETED;
+                $current->reviewed_by_id = current_user()->id;
+                $current->reviewed_at = date('Y-m-d H:i:s');
+                $current->moderation_reason = $this->normalize_optional_text($this->params()->moderation_reason);
+
+                if (!$current->save()) {
+                    throw new RuntimeException($current->errors()->fullMessages(', '));
+                }
+
+                $did_transition = true;
+                $deleted = $current;
+            });
+        } catch (RuntimeException $e) {
+            $this->respond_to_error($e->getMessage(), ['post_replacement#index'], ['status' => 424]);
+            return;
+        } catch (Exception $e) {
+            $this->respond_to_error($e->getMessage(), ['post_replacement#index']);
             return;
         }
 
+        if ($already_deleted || !$did_transition) {
+            $this->respond_to_success(
+                'Replacement already deleted',
+                ['post_replacement#index', 'post_id' => $deleted->post_id],
+                ['api' => ['post_replacement' => $deleted->asJson()]]
+            );
+            return;
+        }
+
+        if ($staged_path) {
+            StagingService::cleanup($staged_path);
+        }
+
+        NotificationService::emitModerationOutcome($deleted);
+
         $this->respond_to_success(
             'Replacement deleted',
-            ['post_replacement#index', 'post_id' => $replacement->post_id],
-            ['api' => ['post_replacement' => $replacement->asJson()]]
+            ['post_replacement#index', 'post_id' => $deleted->post_id],
+            ['api' => ['post_replacement' => $deleted->asJson()]]
         );
     }
 
@@ -359,6 +428,17 @@ class PostReplacementController extends ApplicationController
             $this->respond_to_error('Replacement not found', ['post_replacement#index'], ['status' => 404]);
             return null;
         }
+    }
+
+    protected function lock_replacement_for_update($replacement_id)
+    {
+        $table = PostReplacement::tableName();
+        PostReplacement::connection()->executeSql(
+            sprintf('SELECT id FROM `%s` WHERE id = ? FOR UPDATE', $table),
+            (int)$replacement_id
+        );
+
+        return PostReplacement::find((int)$replacement_id);
     }
 
     protected function normalize_optional_text($text)
