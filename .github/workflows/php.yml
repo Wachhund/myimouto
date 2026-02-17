@@ -49,4 +49,3 @@ jobs:
 
       - name: PHP CS Fixer (dry-run)
         run: composer run-script cs-check
-
