@@ -106,6 +106,9 @@ abstract class DefaultConfig
     # Members cannot post more than X posts in a day.
     public $member_post_limit = 16;
 
+    # Minimum user level required to submit post replacement requests.
+    public $post_replacement_min_level = 33; # Contributor
+
     # This sets the minimum and maximum value a user can record as a vote.
     public $vote_record_min = 0;
     public $vote_record_max = 3;

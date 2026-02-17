@@ -1,0 +1,396 @@
+<?php
+use MyImouto\PostReplacement\ApplyService;
+use MyImouto\PostReplacement\NotificationService;
+use MyImouto\PostReplacement\StagingService;
+
+class PostReplacementController extends ApplicationController
+{
+    protected function filters()
+    {
+        return [
+            'before' => [
+                'member_only',
+                'verify_post_replacement_csrf' => ['only' => ['create', 'approve', 'reject', 'destroy']]
+            ]
+        ];
+    }
+
+    public function index()
+    {
+        $query = PostReplacement::order('id DESC');
+        if (!$this->is_staff_user(current_user())) {
+            $query->where('creator_id = ?', current_user()->id);
+        }
+
+        $post_id = (int)$this->params()->post_id;
+        if ($post_id > 0) {
+            $query->where('post_id = ?', $post_id);
+        }
+
+        $status = $this->normalize_status($this->params()->status);
+        if ($status) {
+            $query->where('status = ?', $status);
+        }
+
+        $this->post_replacements = $query->paginate($this->page_number(), 25);
+        $this->csrf_token = $this->form_authenticity_token();
+
+        $this->respondTo([
+            'html',
+            'json' => function() {
+                $payload = [];
+                foreach ($this->post_replacements as $replacement) {
+                    $payload[] = $replacement->asJson();
+                }
+                $this->render(['json' => $payload]);
+            },
+            'xml' => function() {
+                $this->render(['xml' => ['count' => $this->post_replacements->size()], 'root' => 'post_replacements']);
+            }
+        ]);
+    }
+
+    public function create()
+    {
+        if (!$this->can_submit_replacements(current_user())) {
+            $this->access_denied();
+            return;
+        }
+
+        $post = $this->find_post_from_params();
+        if (!$post) {
+            return;
+        }
+
+        $payload = $this->replacement_payload();
+        $source_url = trim((string)$payload['source_url']);
+        $reason = trim((string)$payload['reason']);
+        if ($reason === '') {
+            $reason = null;
+        }
+
+        if (PostReplacement::where('post_id = ? AND status = ?', $post->id, PostReplacement::STATUS_PENDING)->exists()) {
+            $this->respond_to_error(
+                'Post already has a pending replacement request',
+                ['post_replacement#index', 'post_id' => $post->id],
+                ['status' => 423]
+            );
+            return;
+        }
+
+        try {
+            $staged_upload = StagingService::stageUploadFromGlobals('post_replacement', 'file');
+        } catch (RuntimeException $e) {
+            $this->respond_to_error($e->getMessage(), ['post#show', 'id' => $post->id], ['status' => 424]);
+            return;
+        }
+
+        if (!$staged_upload && $source_url === '') {
+            $this->respond_to_error(
+                'Replacement requires either an upload file or a source URL',
+                ['post#show', 'id' => $post->id],
+                ['status' => 424]
+            );
+            return;
+        }
+
+        $replacement = PostReplacement::create([
+            'post_id' => $post->id,
+            'creator_id' => current_user()->id,
+            'status' => PostReplacement::STATUS_PENDING,
+            'reason' => $reason,
+            'source_url' => $source_url ?: null,
+            'replacement_file_path' => $staged_upload ? $staged_upload['path'] : null,
+            'replacement_file_name' => $staged_upload ? $staged_upload['name'] : null
+        ]);
+
+        if (!$replacement->errors()->blank()) {
+            if ($staged_upload) {
+                StagingService::cleanup($staged_upload['path']);
+            }
+            $this->respond_to_error($replacement, ['post#show', 'id' => $post->id]);
+            return;
+        }
+
+        NotificationService::emitCreated($replacement);
+
+        $this->respond_to_success(
+            'Replacement request submitted',
+            ['post_replacement#index', 'post_id' => $post->id],
+            ['api' => ['post_replacement' => $replacement->asJson()]]
+        );
+    }
+
+    public function approve()
+    {
+        $replacement = $this->find_replacement_from_params();
+        if (!$replacement) {
+            return;
+        }
+
+        if (!$replacement->can_be_moderated_by(current_user())) {
+            $this->access_denied();
+            return;
+        }
+
+        if ((string)$replacement->status === PostReplacement::STATUS_APPROVED) {
+            $this->respond_to_success(
+                'Replacement already approved',
+                ['post_replacement#index', 'post_id' => $replacement->post_id],
+                ['api' => ['post_replacement' => $replacement->asJson()]]
+            );
+            return;
+        }
+
+        if ((string)$replacement->status !== PostReplacement::STATUS_PENDING) {
+            $this->respond_to_error(
+                'Replacement is not in pending state',
+                ['post_replacement#index', 'post_id' => $replacement->post_id],
+                ['status' => 424]
+            );
+            return;
+        }
+
+        $approved = null;
+        try {
+            PostReplacement::transaction(function() use ($replacement, &$approved) {
+                $current = PostReplacement::find((int)$replacement->id);
+                if ((string)$current->status !== PostReplacement::STATUS_PENDING) {
+                    throw new RuntimeException('Replacement is no longer pending');
+                }
+
+                $approved = ApplyService::approve(
+                    $current,
+                    current_user(),
+                    $this->params()->moderation_reason
+                );
+            });
+        } catch (RuntimeException $e) {
+            $this->respond_to_error($e->getMessage(), ['post_replacement#index'], ['status' => 424]);
+            return;
+        } catch (Exception $e) {
+            $this->respond_to_error($e->getMessage(), ['post_replacement#index']);
+            return;
+        }
+
+        $this->respond_to_success(
+            'Replacement approved',
+            ['post#show', 'id' => $approved->post_id],
+            ['api' => ['post_replacement' => $approved->asJson()]]
+        );
+    }
+
+    public function reject()
+    {
+        $replacement = $this->find_replacement_from_params();
+        if (!$replacement) {
+            return;
+        }
+
+        if (!$replacement->can_be_moderated_by(current_user())) {
+            $this->access_denied();
+            return;
+        }
+
+        if ((string)$replacement->status === PostReplacement::STATUS_REJECTED) {
+            $this->respond_to_success(
+                'Replacement already rejected',
+                ['post_replacement#index', 'post_id' => $replacement->post_id],
+                ['api' => ['post_replacement' => $replacement->asJson()]]
+            );
+            return;
+        }
+
+        if ((string)$replacement->status !== PostReplacement::STATUS_PENDING) {
+            $this->respond_to_error(
+                'Replacement is not in pending state',
+                ['post_replacement#index', 'post_id' => $replacement->post_id],
+                ['status' => 424]
+            );
+            return;
+        }
+
+        $replacement->status = PostReplacement::STATUS_REJECTED;
+        $replacement->reviewed_by_id = current_user()->id;
+        $replacement->reviewed_at = date('Y-m-d H:i:s');
+        $replacement->moderation_reason = $this->normalize_optional_text($this->params()->moderation_reason);
+
+        if (!empty($replacement->replacement_file_path)) {
+            StagingService::cleanup($replacement->replacement_file_path);
+            $replacement->replacement_file_path = null;
+            $replacement->replacement_file_name = null;
+        }
+
+        if (!$replacement->save()) {
+            $this->respond_to_error($replacement, ['post_replacement#index', 'post_id' => $replacement->post_id]);
+            return;
+        }
+
+        NotificationService::emitModerationOutcome($replacement);
+
+        $this->respond_to_success(
+            'Replacement rejected',
+            ['post_replacement#index', 'post_id' => $replacement->post_id],
+            ['api' => ['post_replacement' => $replacement->asJson()]]
+        );
+    }
+
+    public function destroy()
+    {
+        $replacement = $this->find_replacement_from_params();
+        if (!$replacement) {
+            return;
+        }
+
+        if (!$replacement->can_be_moderated_by(current_user())) {
+            $this->access_denied();
+            return;
+        }
+
+        if ((string)$replacement->status === PostReplacement::STATUS_DELETED) {
+            $this->respond_to_success(
+                'Replacement already deleted',
+                ['post_replacement#index', 'post_id' => $replacement->post_id],
+                ['api' => ['post_replacement' => $replacement->asJson()]]
+            );
+            return;
+        }
+
+        if (!empty($replacement->replacement_file_path)) {
+            StagingService::cleanup($replacement->replacement_file_path);
+            $replacement->replacement_file_path = null;
+            $replacement->replacement_file_name = null;
+        }
+
+        $replacement->status = PostReplacement::STATUS_DELETED;
+        $replacement->reviewed_by_id = current_user()->id;
+        $replacement->reviewed_at = date('Y-m-d H:i:s');
+        $replacement->moderation_reason = $this->normalize_optional_text($this->params()->moderation_reason);
+
+        if (!$replacement->save()) {
+            $this->respond_to_error($replacement, ['post_replacement#index', 'post_id' => $replacement->post_id]);
+            return;
+        }
+
+        $this->respond_to_success(
+            'Replacement deleted',
+            ['post_replacement#index', 'post_id' => $replacement->post_id],
+            ['api' => ['post_replacement' => $replacement->asJson()]]
+        );
+    }
+
+    protected function can_submit_replacements(User $user = null)
+    {
+        if (!$user || $user->is_anonymous()) {
+            return false;
+        }
+
+        $min_level = isset(CONFIG()->post_replacement_min_level)
+            ? (int)CONFIG()->post_replacement_min_level
+            : (int)CONFIG()->user_levels['Contributor'];
+
+        return (int)$user->level >= $min_level;
+    }
+
+    protected function is_staff_user(User $user = null)
+    {
+        return $user && !$user->is_anonymous() && $user->is_janitor_or_higher();
+    }
+
+    protected function normalize_status($status)
+    {
+        $status = strtolower(trim((string)$status));
+        if (in_array($status, [
+            PostReplacement::STATUS_PENDING,
+            PostReplacement::STATUS_APPROVED,
+            PostReplacement::STATUS_REJECTED,
+            PostReplacement::STATUS_DELETED
+        ], true)) {
+            return $status;
+        }
+
+        return null;
+    }
+
+    protected function replacement_payload()
+    {
+        $payload = is_array($this->params()->post_replacement) ? $this->params()->post_replacement : [];
+        if (!array_key_exists('reason', $payload)) {
+            $payload['reason'] = $this->params()->reason;
+        }
+        if (!array_key_exists('source_url', $payload)) {
+            $payload['source_url'] = $this->params()->source_url ?: $this->params()->source;
+        }
+        if (!array_key_exists('post_id', $payload)) {
+            $payload['post_id'] = $this->params()->post_id;
+        }
+
+        return $payload;
+    }
+
+    protected function find_post_from_params()
+    {
+        $payload = $this->replacement_payload();
+        $post_id = (int)$payload['post_id'];
+        if ($post_id <= 0) {
+            $this->respond_to_error('Post not found', ['post#index'], ['status' => 404]);
+            return null;
+        }
+
+        try {
+            return Post::find($post_id);
+        } catch (Rails\ActiveRecord\Exception\RecordNotFoundException $e) {
+            $this->respond_to_error('Post not found', ['post#index'], ['status' => 404]);
+            return null;
+        }
+    }
+
+    protected function find_replacement_from_params()
+    {
+        $replacement_id = (int)$this->params()->id;
+        if ($replacement_id <= 0) {
+            $this->respond_to_error('Replacement not found', ['post_replacement#index'], ['status' => 404]);
+            return null;
+        }
+
+        try {
+            return PostReplacement::find($replacement_id);
+        } catch (Rails\ActiveRecord\Exception\RecordNotFoundException $e) {
+            $this->respond_to_error('Replacement not found', ['post_replacement#index'], ['status' => 404]);
+            return null;
+        }
+    }
+
+    protected function normalize_optional_text($text)
+    {
+        $text = trim((string)$text);
+        return $text === '' ? null : $text;
+    }
+
+    protected function verify_post_replacement_csrf()
+    {
+        if (!$this->request()->isPost()) {
+            return;
+        }
+
+        if ($this->authenticated_with_api_key_request()) {
+            return;
+        }
+
+        if ($this->valid_authenticity_token($this->params()->csrf_token)) {
+            return;
+        }
+
+        $this->respondTo([
+            'html' => function() {
+                $this->render(['text' => 'invalid authenticity token', 'status' => 403]);
+            },
+            'json' => function() {
+                $this->render(['json' => ['success' => false, 'reason' => 'invalid authenticity token'], 'status' => 403]);
+            },
+            'xml' => function() {
+                $this->render(['xml' => ['success' => false, 'reason' => 'invalid authenticity token'], 'root' => 'response', 'status' => 403]);
+            }
+        ]);
+    }
+}
