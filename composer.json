@@ -1,6 +1,6 @@
 {
     "name": "myimouto/myimouto",
-    "description": "Image board for PHP 5.4+ and MySQL",
+    "description": "Image board for PHP 8.5 and MySQL",
     "license": "MIT",
     "keywords": [
         "myimouto",
@@ -8,7 +8,7 @@
         "image board"
     ],
     "require": {
-        "php": ">=5.4.0",
+        "php": ">=8.5.0",
         "railsphp/railsphp": "1.0.*",
         "railsphp/willpaginate": "1.0.*",
         "railsphp/actsasversioned": "1.0.*",
