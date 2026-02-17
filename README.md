@@ -1,4 +1,5 @@
 # MyImouto
+[![PHP CI](https://github.com/Wachhund/myimouto/actions/workflows/php.yml/badge.svg)](https://github.com/Wachhund/myimouto/actions/workflows/php.yml)
 
 This repository is actively maintained. Feel free to fork it or open a pull request.
 
