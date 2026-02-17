@@ -19,6 +19,21 @@
         "toopay/assetic-minifier": "*"
     },
     "scripts": {
+        "ci:lint": [
+            "@php script/ci/lint.php"
+        ],
+        "test": [
+            "@php script/ci/phpunit.php"
+        ],
+        "analyse": [
+            "@php script/ci/phpstan.php"
+        ],
+        "cs-check": [
+            "@php script/ci/php_cs_fixer_check.php"
+        ],
+        "cs-fix": [
+            "@php script/ci/php_cs_fixer_fix.php"
+        ],
         "assets:compile": [
             "@php config/boot.php assets compile:all"
         ],
