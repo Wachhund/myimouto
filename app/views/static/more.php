@@ -69,6 +69,10 @@
       <li><h4><?= $this->t('static_t7') ?></h4></li>
       <li><?= $this->linkTo($this->t('static35'), 'help#pools') ?></li>
       <li><?= $this->linkTo($this->t('static36'), 'pool#index') ?></li>
+      <li><?= $this->linkTo('Post Sets', 'post_set#index') ?></li>
+      <?php if (!current_user()->is_anonymous()) : ?>
+        <li><?= $this->linkTo('Maintainer Invites', 'post_set_maintainer#index') ?></li>
+      <?php endif ?>
     </ul>
   </div>
   <div>

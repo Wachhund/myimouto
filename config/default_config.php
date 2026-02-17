@@ -278,6 +278,12 @@ abstract class DefaultConfig
     # Default limit for /pool
     public $pool_index_default_limit = 20;
 
+    # Default limit for /post_set
+    public $post_set_index_default_limit = 20;
+
+    # Maximum number of posts per post set.
+    public $post_set_post_limit = 2000;
+
     # For /post tag left-sidebar, show tags of posts that were posted N days ago.
     # This value will be passed to strtotime(). Check out http://php.net/manual/en/function.strtotime.php
     # for more info.

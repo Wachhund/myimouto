@@ -128,6 +128,28 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('pool/zip/:id', 'pool#zip', ['via' => ['get', 'post']]);
     $this->match('pool/zip/:id/:filename', 'pool#zip', ['constraints' => ['filename' => '/.*/'], 'via' => ['get', 'post']]);
 
+    # PostSet
+    $this->match('post_set(/index)(.:format)', 'post_set#index', ['via' => ['get', 'post']]);
+    $this->match('post_set/show(.:format)(/:id)', 'post_set#show', ['via' => ['get', 'post']]);
+    $this->match('post_set/create(.:format)', 'post_set#create', ['via' => ['get', 'post']]);
+    $this->match('post_set/update(.:format)(/:id)', 'post_set#update', ['via' => ['get', 'post', 'put']]);
+    $this->match('post_set/destroy(.:format)(/:id)', 'post_set#destroy', ['via' => ['post', 'delete']]);
+    $this->match('post_set/post_list(/:id)', 'post_set#post_list', ['via' => ['get', 'post']]);
+    $this->match('post_set/update_posts(/:id)', 'post_set#update_posts', ['via' => ['post', 'put']]);
+    $this->match('post_set/add_post(.:format)', 'post_set#add_post', ['via' => ['post', 'put']]);
+    $this->match('post_set/remove_post(.:format)', 'post_set#remove_post', ['via' => ['post', 'delete']]);
+    $this->match('post_set/maintainers(/:id)', 'post_set#maintainers', ['via' => ['get', 'post']]);
+
+    # PostSetMaintainer
+    $this->match('post_set_maintainer(/index)(.:format)', 'post_set_maintainer#index', ['via' => ['get', 'post']]);
+    $this->match('post_set_maintainer/create(.:format)', 'post_set_maintainer#create', ['via' => ['post']]);
+    $this->match('post_set_maintainer/request(.:format)', 'post_set_maintainer#request_access', ['via' => ['post']]);
+    $this->match('post_set_maintainer/approve(.:format)(/:id)', 'post_set_maintainer#approve', ['via' => ['post', 'put']]);
+    $this->match('post_set_maintainer/deny(.:format)(/:id)', 'post_set_maintainer#deny', ['via' => ['post', 'put']]);
+    $this->match('post_set_maintainer/block(.:format)(/:id)', 'post_set_maintainer#block', ['via' => ['post', 'put']]);
+    $this->match('post_set_maintainer/revoke(.:format)(/:id)', 'post_set_maintainer#revoke', ['via' => ['post', 'delete']]);
+    $this->match('post_set_maintainer/destroy(.:format)(/:id)', 'post_set_maintainer#destroy', ['via' => ['post', 'delete']]);
+
     # Post
     $this->match('post(/index)(.:format)', 'post#index', ['via' => ['get', 'post']]);
     $this->match('post/acknowledge_new_deleted_posts', ['via' => ['get', 'post']]);

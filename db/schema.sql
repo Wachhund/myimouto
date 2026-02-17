@@ -223,6 +223,44 @@ CREATE TABLE `pools_posts` (
   KEY `fk_pools_posts__pool_id` (`pool_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE `post_sets` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `creator_id` int(11) NOT NULL,
+  `name` varchar(128) NOT NULL,
+  `shortname` varchar(128) NOT NULL,
+  `description` text,
+  `is_public` tinyint(1) NOT NULL DEFAULT '1',
+  `post_count` int(11) NOT NULL DEFAULT '0',
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `post_sets_shortname_unique` (`shortname`),
+  KEY `post_sets_creator_public_id` (`creator_id`,`is_public`,`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `post_set_posts` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `post_set_id` int(11) NOT NULL,
+  `post_id` int(11) NOT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `post_set_posts_post_set_id_post_id_unique` (`post_set_id`,`post_id`),
+  KEY `post_set_posts_post_id_post_set_id` (`post_id`,`post_set_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `post_set_maintainers` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `post_set_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'pending',
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `post_set_maintainers_post_set_id_user_id_unique` (`post_set_id`,`user_id`),
+  KEY `post_set_maintainers_user_status_set` (`user_id`,`status`,`post_set_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 CREATE TABLE `post_tag_histories` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `post_id` int(11) NOT NULL,
@@ -494,6 +532,17 @@ ALTER TABLE `pools_posts`
   ADD CONSTRAINT `fk_pools_posts__pool_id` FOREIGN KEY (`pool_id`) REFERENCES `pools` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_pools_posts__post_id` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_pools_posts__prev_post_id` FOREIGN KEY (`prev_post_id`) REFERENCES `posts` (`id`) ON DELETE SET NULL;
+
+ALTER TABLE `post_sets`
+  ADD CONSTRAINT `fk_post_sets__creator_id` FOREIGN KEY (`creator_id`) REFERENCES `users` (`id`) ON DELETE RESTRICT;
+
+ALTER TABLE `post_set_posts`
+  ADD CONSTRAINT `fk_post_set_posts__post_set_id` FOREIGN KEY (`post_set_id`) REFERENCES `post_sets` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_post_set_posts__post_id` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE `post_set_maintainers`
+  ADD CONSTRAINT `fk_post_set_maintainers__post_set_id` FOREIGN KEY (`post_set_id`) REFERENCES `post_sets` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_post_set_maintainers__user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 ALTER TABLE `post_tag_histories`
   ADD CONSTRAINT `fk_post_tag_histories__post_id` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE;
