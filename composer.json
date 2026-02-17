@@ -16,7 +16,15 @@
         "phpmailer/phpmailer": "^6.10"
     },
     "replace": {
-        "toopay/assetic-minifier": "*"
+        "toopay/assetic-minifier": "*",
+        "zendframework/zend-mail": "*",
+        "zendframework/zend-crypt": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "MyImouto\\": "lib/MyImouto/",
+            "Zend\\": "lib/Zend/"
+        }
     },
     "scripts": {
         "ci:lint": [

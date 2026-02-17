@@ -12,7 +12,8 @@ For project updates and source code, see:
 ## Requirements
 
   * PHP 8.5.
-  * MySQL v5.5 or higher.
+  * MySQL 8.0+ (recommended baseline) or MariaDB 10.6+.
+  * Legacy DB compatibility note: most schema/migrations remain compatible with MySQL 5.5.3+, but this is not a tested/supported target anymore.
   * PHP libraries:
     * GD2
     * PDO
