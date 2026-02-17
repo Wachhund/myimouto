@@ -96,7 +96,7 @@
     </ul>
     <ul>
       <li><h4><?= $this->t('static_t11') ?></h4></li>
-      <li><?= $this->linkTo($this->t('static46'), 'https://github.com/myimouto/myimouto') ?></li>
+      <li><?= $this->linkTo($this->t('static46'), 'https://github.com/Wachhund/myimouto') ?></li>
       <li><?= $this->linkTo(str_replace('Danbooru', 'Moebooru', $this->t('static47')), 'https://github.com/moebooru/moebooru') ?></li>
     </ul>
   </div>

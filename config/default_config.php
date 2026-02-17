@@ -17,7 +17,7 @@ abstract class DefaultConfig
     public $url_base    = 'http://127.0.0.1:3000';
 
     # The version of this MyImouto
-    public $version = '1.0.8';
+    public $version = '1.1.0';
 
     # This is a salt used to make dictionary attacks on account passwords harder.
     public $user_password_salt = 'choujin-steiner';
