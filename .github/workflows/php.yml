@@ -22,7 +22,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.5"
-          coverage: none
+          coverage: pcov
 
       - name: Validate composer files
         run: composer validate --strict
@@ -48,8 +48,17 @@ jobs:
       - name: PHP lint
         run: composer run-script ci:lint
 
-      - name: PHPUnit
-        run: composer run-script test
+      - name: PHPUnit + Coverage
+        run: |
+          mkdir -p coverage
+          composer run-script test:coverage
+
+      - name: Upload Coverage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: phpunit-coverage
+          path: coverage/clover.xml
+          if-no-files-found: error
 
       - name: PHPStan
         run: composer run-script analyse

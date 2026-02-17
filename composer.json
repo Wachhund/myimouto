@@ -33,6 +33,9 @@
         "test": [
             "@php script/ci/phpunit.php"
         ],
+        "test:coverage": [
+            "@php script/ci/phpunit.php --coverage-clover coverage/clover.xml --coverage-text"
+        ],
         "analyse": [
             "@php script/ci/phpstan.php"
         ],

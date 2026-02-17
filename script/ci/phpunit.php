@@ -15,6 +15,7 @@ $phpunitBin = $root . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'bi
 $phpunitConfig = $root . DIRECTORY_SEPARATOR . 'phpunit.xml';
 $phpunitConfigDist = $root . DIRECTORY_SEPARATOR . 'phpunit.xml.dist';
 $testsDir = $root . DIRECTORY_SEPARATOR . 'tests';
+$extraArgs = array_values(array_slice($argv ?? [], 1));
 
 if (!is_file($phpunitBin)) {
     fwrite(STDERR, "[test] skipped: vendor/bin/phpunit not found\n");
@@ -55,6 +56,7 @@ if (is_file($phpunitConfig)) {
 }
 
 $command[] = '--do-not-fail-on-empty-test-suite';
+$command = array_merge($command, $extraArgs);
 if (!$hasConfig && is_dir($testsDir)) {
     $command[] = $testsDir;
 }
