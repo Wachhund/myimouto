@@ -17,43 +17,58 @@ class EnsureLegacyIpAddrColumnsExist extends Rails\ActiveRecord\Migration\Base
 
     private function ensureNullableVarcharColumn($tableName, $columnName, $limit)
     {
-        if (!$this->dbTableExists($tableName) || $this->columnExists($tableName, $columnName)) {
+        if (!$this->tableExists($tableName)) {
             return;
         }
 
-        $tableName = $this->quoteIdentifier($tableName);
-        $columnName = $this->quoteIdentifier($columnName);
+        $metadata = $this->fetchColumnMetadata($tableName, $columnName);
+        if (!$metadata) {
+            $this->execute(
+                sprintf(
+                    "ALTER TABLE `%s` ADD `%s` VARCHAR(%d) NULL",
+                    $this->quoteIdentifier($tableName),
+                    $this->quoteIdentifier($columnName),
+                    (int)$limit
+                )
+            );
+            return;
+        }
 
-        $sql = sprintf(
-            "ALTER TABLE `%s` ADD `%s` VARCHAR(%d) NULL",
-            $tableName,
-            $columnName,
-            (int)$limit
+        if ($this->columnMatchesExpected($metadata, $limit)) {
+            return;
+        }
+
+        $this->execute(
+            sprintf(
+                "ALTER TABLE `%s` MODIFY `%s` VARCHAR(%d) NULL",
+                $this->quoteIdentifier($tableName),
+                $this->quoteIdentifier($columnName),
+                (int)$limit
+            )
         );
-
-        $this->execute($sql);
     }
 
-    private function dbTableExists($tableName)
+    private function fetchColumnMetadata($tableName, $columnName)
     {
         $stmt = $this->connection->executeSql(
-            "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?",
-            $tableName
-        );
-
-        return (int)$stmt->fetchColumn() > 0;
-    }
-
-    private function columnExists($tableName, $columnName)
-    {
-        $stmt = $this->connection->executeSql(
-            "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?",
+            "SELECT COLUMN_TYPE, CHARACTER_MAXIMUM_LENGTH, IS_NULLABLE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1",
             $tableName,
             $columnName
         );
-        $count = (int)$stmt->fetchColumn();
 
-        return $count > 0;
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
+    private function columnMatchesExpected(array $metadata, $limit)
+    {
+        $columnType = strtolower((string)$metadata['COLUMN_TYPE']);
+        $length = (int)$metadata['CHARACTER_MAXIMUM_LENGTH'];
+        $isNullable = strtoupper((string)$metadata['IS_NULLABLE']) === 'YES';
+
+        return strpos($columnType, 'varchar(') === 0
+            && $length === (int)$limit
+            && $isNullable;
     }
 
     private function quoteIdentifier($identifier)
