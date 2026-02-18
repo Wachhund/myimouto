@@ -159,6 +159,7 @@ MyImouto\Application::routes()->draw(function() {
 
     # Post
     $this->match('post(/index)(.:format)', 'post#index', ['via' => ['get', 'post']]);
+    $this->match('post/count(.:format)', 'post#count', ['via' => ['get', 'post']]);
     $this->match('post/acknowledge_new_deleted_posts', ['via' => ['get', 'post']]);
     $this->match('post/activate', ['via' => ['get', 'post']]);
     $this->match('post/atom(.:format)', 'post#atom', ['format' => 'atom', 'via' => ['get', 'post']]);

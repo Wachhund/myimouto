@@ -111,7 +111,27 @@
         <li><strong>limit</strong> How many posts you want to retrieve. There is a hard limit of 100 posts per request.</li>
         <li><strong>page</strong> The page number.</li>
         <li><strong>tags</strong> The tags to search for. Any tag combination that works on the web site will work here. This includes all the meta-tags.</li>
+        <li><strong>api_version</strong> Set to <code>2</code> for the stable JSON envelope. Legacy JSON array mode remains available when <code>api_version</code> is omitted.</li>
+        <li><strong>filter</strong> Set to <code>1</code> for API responses that only include posts visible to the current user.</li>
       </ul>
+      <p>Stable JSON envelope example (<code>/post/index.json?api_version=2&amp;tags=rating:safe</code>):</p>
+      <div class="code">
+        {success: true, query: "rating:safe", count: 123, page: 1, per_page: 20, meta: {api_version: "2", response_version: 1}, posts: [...], tags: [...], pools: [...], pool_posts: [...], votes: {...}}
+      </div>
+    </div>
+
+    <div class="section">
+      <h4>Count</h4>
+      <p>The base URL is /post/count.json (or .xml). This endpoint returns count metadata only and uses the same search parser as <code>/post/index</code>.</p>
+      <ul>
+        <li><strong>tags</strong> The search query.</li>
+        <li><strong>api_version</strong> Optional API version string for response metadata.</li>
+        <li><strong>filter</strong> Set to <code>1</code> to apply API visibility filtering before counting.</li>
+      </ul>
+      <p>JSON count example (<code>/post/count.json?tags=rating:safe</code>):</p>
+      <div class="code">
+        {success: true, query: "rating:safe", count: 123, meta: {api_version: "1", response_version: 1, filter: false}}
+      </div>
     </div>
   
     <div class="section">

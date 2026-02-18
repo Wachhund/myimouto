@@ -333,6 +333,7 @@ class PostController extends ApplicationController
         $split_tags = $tags ? array_filter(explode(' ', $tags)) : array();
         $page = $this->page_number();
         $this->tag_suggestions = $this->searching_pool = array();
+        $from_api = $this->is_search_api_request();
 
 /*        if $this->current_user.is_member_or_lower? && count(split_tags) > 2
 #            $this->respond_to_error("You can only search up to two tags at once with a basic account", 'action' => "error")
@@ -344,7 +345,12 @@ class PostController extends ApplicationController
             return;
         }
 
-        $q = Tag::parse_query($tags);
+        try {
+            $q = Tag::parse_query($tags);
+        } catch (\Throwable $e) {
+            $this->respond_to_search_error("Invalid search query", 424, $tags);
+            return;
+        }
 
         $limit = (int)$this->params()->limit;
         isset($q['limit']) && $limit = (int)$q['limit'];
@@ -355,20 +361,17 @@ class PostController extends ApplicationController
 
         $this->set_title("/" . str_replace("_", " ", $tags));
 
-        // try {
-        $count = Post::fast_count($tags);
-        // vde($count);
-        // } catch(Exception $x) {
-            // $this->respond_to_error("Error: " . $x->getMessage(), "#error");
-            // return;
-        // }
+        try {
+            $count = $this->calculate_search_count($q, $tags, $from_api);
+        } catch (\Throwable $e) {
+            $this->respond_to_search_error($e->getMessage(), 424, $tags);
+            return;
+        }
 
 
         $this->ambiguous_tags = Tag::select_ambiguous($split_tags);
         if (isset($q['pool']) and is_int($q['pool']))
             $this->searching_pool = Pool::where(['id' => $q['pool']])->first();
-
-        $from_api = ($this->params()->format == "json" || $this->params()->format == "xml");
 
         // $this->posts = Post::find_all(array('page' => $page, 'per_page' => $limit, $count));
         // $this->posts = WillPaginate::Collection.new(page, limit, count);
@@ -397,7 +400,12 @@ class PostController extends ApplicationController
         }
 
         $this->showing_holds_only = isset($q['show_holds']) && $q['show_holds'] == 'only';
-        list ($sql, $params) = Post::generate_sql($q, array('original_query' => $tags, 'from_api' => $from_api, 'order' => "p.id DESC", 'offset' => $offset, 'limit' => $posts_to_load));
+        try {
+            list ($sql, $params) = Post::generate_sql($q, array('original_query' => $tags, 'from_api' => $from_api, 'order' => "p.id DESC", 'offset' => $offset, 'limit' => $posts_to_load));
+        } catch (\Throwable $e) {
+            $this->respond_to_search_error($e->getMessage(), 424, $tags);
+            return;
+        }
 
         $results = Post::findBySql($sql, $params);
 
@@ -415,7 +423,8 @@ class PostController extends ApplicationController
 
         # Apply can_be_seen_by filtering to the results.    For API calls this is optional, and
         # can be enabled by specifying filter=1.
-        if (!$from_api or $this->params()->filter) {
+        $apply_visibility_filter = $this->should_filter_search_results($from_api);
+        if ($apply_visibility_filter) {
             $results->deleteIf(function($post){return !$post->can_be_seen_by(current_user(), array('show_deleted' => true));});
             $this->preload->deleteIf(function($post){return !$post->can_be_seen_by(current_user());});
         }
@@ -444,7 +453,8 @@ class PostController extends ApplicationController
                 $this->setLayout(false);
             },
             'json' => function() {
-                if ($this->params()->api_version != "2") {
+                $api_version = (string)$this->params()->api_version;
+                if ($api_version !== "2" && $this->params()->search_envelope != "1") {
                     $this->render(array('json' => array_map(function($p){return $p->api_attributes();}, $this->posts->members())));
                     return;
                 }
@@ -456,11 +466,48 @@ class PostController extends ApplicationController
                     'fake_sample_url' => CONFIG()->fake_sample_url
                 ));
 
-                $this->render(array('json' => json_encode($api_data)));
+                $this->render(array('json' => $this->build_search_json_envelope($api_data)));
             }
             // ,
             // 'atom'
         ));
+    }
+
+    public function count()
+    {
+        if (!$this->is_search_api_request()) {
+            $this->respond_to_search_error("Count endpoint is API-only", 424, $this->params()->tags);
+            return;
+        }
+
+        $tags = $this->params()->tags;
+        $split_tags = $tags ? array_filter(explode(' ', $tags)) : array();
+        if (count($split_tags) > CONFIG()->tag_query_limit) {
+            $this->respond_to_search_error("You can only search up to ".CONFIG()->tag_query_limit." tags at once", 424, $tags);
+            return;
+        }
+
+        try {
+            $q = Tag::parse_query($tags);
+            $count = $this->calculate_search_count($q, $tags, true);
+        } catch (\Throwable $e) {
+            $this->respond_to_search_error($e->getMessage(), 424, $tags);
+            return;
+        }
+
+        $payload = \MyImouto\PostSearch\ApiContract::buildCountEnvelope($tags, $count, [
+            'api_version' => (string)$this->params()->api_version,
+            'filter' => $this->should_filter_search_results(true),
+        ]);
+
+        $this->respondTo([
+            'json' => function() use ($payload) {
+                $this->render(['json' => $payload]);
+            },
+            'xml' => function() use ($payload) {
+                $this->render(['xml' => $payload, 'root' => 'response']);
+            },
+        ]);
     }
 
     // private function is_mobile_browser()
@@ -1138,6 +1185,86 @@ class PostController extends ApplicationController
         }
 
         $this->services = SimilarImages::get_services('all');
+    }
+
+    private function is_search_api_request()
+    {
+        return ($this->params()->format == "json" || $this->params()->format == "xml");
+    }
+
+    private function should_filter_search_results($from_api)
+    {
+        return (!$from_api || $this->params()->filter);
+    }
+
+    private function calculate_search_count(array $query, $rawTags, $from_api)
+    {
+        if ($from_api && $this->should_filter_search_results($from_api)) {
+            list($sql, $params) = Post::generate_sql($query, array(
+                'original_query' => $rawTags,
+                'from_api' => $from_api,
+                'select' => 'p.*',
+            ));
+
+            $posts = Post::findBySql($sql, $params);
+            if (!$posts) {
+                return 0;
+            }
+
+            $posts->deleteIf(function($post) {
+                return !$post->can_be_seen_by(current_user(), array('show_deleted' => true));
+            });
+
+            return $posts->size();
+        }
+
+        list($sql, $params) = Post::generate_sql($query, array(
+            'original_query' => $rawTags,
+            'from_api' => $from_api,
+            'count' => true,
+        ));
+        array_unshift($params, $sql);
+
+        return (int)Post::countBySql($params);
+    }
+
+    private function build_search_json_envelope(array $batchData)
+    {
+        $query = (string)$this->params()->tags;
+        $posts = isset($batchData['posts']) && is_array($batchData['posts']) ? $batchData['posts'] : [];
+        $total_rows = isset($this->posts) && method_exists($this->posts, 'totalRows') ? (int)$this->posts->totalRows() : count($posts);
+        $per_page = isset($this->posts) && method_exists($this->posts, 'perPage') ? (int)$this->posts->perPage() : count($posts);
+        $page = isset($this->posts) && method_exists($this->posts, 'currentPage') ? (int)$this->posts->currentPage() : (int)$this->page_number();
+
+        return \MyImouto\PostSearch\ApiContract::buildSearchEnvelope($posts, [
+            'batch_data' => $batchData,
+            'query' => $query,
+            'count' => $total_rows,
+            'page' => $page,
+            'per_page' => $per_page,
+            'api_version' => (string)$this->params()->api_version,
+        ]);
+    }
+
+    private function respond_to_search_error($message, $status = 424, $query = null)
+    {
+        $payload = [
+            'success' => false,
+            'reason' => (string)$message,
+            'query' => (string)$query,
+        ];
+
+        $this->respondTo([
+            'html' => function() use ($payload, $status) {
+                $this->respond_to_error($payload['reason'], '#error', ['status' => $status]);
+            },
+            'json' => function() use ($payload, $status) {
+                $this->render(['json' => $payload, 'status' => $status]);
+            },
+            'xml' => function() use ($payload, $status) {
+                $this->render(['xml' => $payload, 'root' => 'response', 'status' => $status]);
+            },
+        ]);
     }
 
     // public function download()
