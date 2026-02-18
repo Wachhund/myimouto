@@ -153,6 +153,14 @@ trait PostApiMethods
     static public function batch_api_data(array $posts, $options = array())
     {
         self::$create_fake_sample_url = !empty($options['fake_sample_url']);
+
+        $result = [
+            'posts' => [],
+            'tags' => [],
+            'pools' => [],
+            'pool_posts' => [],
+            'votes' => [],
+        ];
         
         foreach ($posts as $post)
             $result['posts'][] = $post->api_attributes();
