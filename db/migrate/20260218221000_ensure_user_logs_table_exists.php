@@ -27,13 +27,10 @@ SQL
 
     private function tableExists($tableName)
     {
-        $stmt = $this->connection->executeSql(
-            "SELECT COUNT(*) AS count_value FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?",
-            $tableName
-        );
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $stmt = $this->connection->executeSql("SHOW TABLES LIKE ?", $tableName);
+        $row = $stmt->fetch(\PDO::FETCH_NUM);
 
-        return $row && (int)$row['count_value'] > 0;
+        return $row !== false;
     }
 
     private function foreignKeyExists($tableName, $constraintName)
