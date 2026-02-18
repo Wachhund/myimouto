@@ -2,17 +2,6 @@
 
 namespace Zend\Mail\Transport;
 
-class SmtpOptions
+class SmtpOptions extends \MyImouto\Mail\Transport\SmtpOptions
 {
-    private $options = [];
-
-    public function __construct(array $options = [])
-    {
-        $this->options = $options;
-    }
-
-    public function toArray()
-    {
-        return $this->options;
-    }
 }
