@@ -4,7 +4,7 @@ abstract class Danbooru
     static public function http_get_streaming($source, array $options = [], $block = null)
     {
         $max_size = !empty($options['max_size']) ? $options['max_size'] : CONFIG()->max_image_size;
-        if (!$max_size == 0) # unlimited
+        if ((int)$max_size === 0) # unlimited
             $max_size = null;
 
         # Decode data: URLs.

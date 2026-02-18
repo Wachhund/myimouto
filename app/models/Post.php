@@ -210,6 +210,112 @@ class Post extends Rails\ActiveRecord\Base
             self::connection()->executeSql("DELETE FROM posts WHERE id = ?", $this->id);
         });
     }
+
+    public function replace_file_from_path($file_path, $original_name = null, &$replacement_context = null)
+    {
+        $file_path = (string)$file_path;
+        $replacement_context = [
+            'old_paths' => [],
+            'new_paths' => []
+        ];
+
+        if ($file_path === '' || !is_file($file_path)) {
+            $this->errors()->add('file', 'replacement file not found');
+            return false;
+        }
+
+        $old_md5 = (string)$this->md5;
+        $old_paths = $this->replacement_storage_paths();
+
+        $this->tempfile_path = $file_path;
+        $this->tempfile_name = $original_name ?: basename($file_path);
+        $this->is_import = true;
+
+        if (!$this->ensure_tempfile_exists()) {
+            return false;
+        }
+        if (!$this->determine_content_type()) {
+            return false;
+        }
+        if (!$this->validate_content_type()) {
+            return false;
+        }
+
+        $this->set_image_dimensions();
+        if (!$this->regenerate_hash()) {
+            return false;
+        }
+
+        if ((string)$this->md5 === $old_md5) {
+            $this->errors()->add('md5', 'matches current post file');
+            return false;
+        }
+
+        if (self::where('md5 = ? AND id <> ?', $this->md5, $this->id)->exists()) {
+            $this->errors()->add('md5', 'already exists');
+            return false;
+        }
+
+        $this->sample_width = null;
+        $this->sample_height = null;
+        $this->sample_size = null;
+        $this->jpeg_width = null;
+        $this->jpeg_height = null;
+        $this->jpeg_size = null;
+
+        if (!$this->generate_sample(true)) {
+            return false;
+        }
+        if (!$this->generate_jpeg(true)) {
+            return false;
+        }
+        if (!$this->generate_preview(true)) {
+            return false;
+        }
+
+        try {
+            $this->move_file();
+        } catch (Exception $e) {
+            $this->errors()->add('file', 'replacement move failed: ' . $e->getMessage());
+            return false;
+        }
+
+        $new_paths = $this->replacement_storage_paths();
+        $replacement_context = [
+            'old_paths' => $old_paths,
+            'new_paths' => $new_paths
+        ];
+
+        $actor = function_exists('current_user') ? current_user() : null;
+        $update = [
+            'md5' => $this->md5,
+            'file_ext' => $this->file_ext,
+            'file_size' => $this->file_size,
+            'width' => $this->width,
+            'height' => $this->height,
+            'sample_width' => $this->sample_width,
+            'sample_height' => $this->sample_height,
+            'sample_size' => $this->sample_size,
+            'jpeg_width' => $this->jpeg_width,
+            'jpeg_height' => $this->jpeg_height,
+            'jpeg_size' => $this->jpeg_size,
+            'preview_width' => $this->preview_width,
+            'preview_height' => $this->preview_height,
+            'actual_preview_width' => $this->actual_preview_width,
+            'actual_preview_height' => $this->actual_preview_height,
+            'updater_user_id' => $actor ? $actor->id : $this->updater_user_id,
+            'updater_ip_addr' => ($actor && !empty($actor->ip_addr)) ? $actor->ip_addr : $this->updater_ip_addr
+        ];
+
+        if (!$this->updateAttributes($update)) {
+            $this->cleanup_staged_replacement_paths($old_paths, $new_paths);
+            return false;
+        }
+
+        $this->cleanup_replaced_files($old_paths);
+        $this->delete_tempfile();
+        return true;
+    }
     
     public function undelete()
     {
@@ -327,6 +433,41 @@ class Post extends Rails\ActiveRecord\Base
     protected function set_index_timestamp()
     {
         $this->index_timestamp = date('Y-m-d H:i:s');
+    }
+
+    private function replacement_storage_paths()
+    {
+        return array_unique(array_filter([
+            $this->file_path(),
+            $this->preview_path(),
+            $this->sample_path(),
+            $this->jpeg_path()
+        ]));
+    }
+
+    private function cleanup_replaced_files(array $old_paths)
+    {
+        $current_paths = $this->replacement_storage_paths();
+        foreach ($old_paths as $path) {
+            if (in_array($path, $current_paths, true)) {
+                continue;
+            }
+            if (is_file($path)) {
+                @unlink($path);
+            }
+        }
+    }
+
+    private function cleanup_staged_replacement_paths(array $old_paths, array $new_paths)
+    {
+        foreach ($new_paths as $path) {
+            if (in_array($path, $old_paths, true)) {
+                continue;
+            }
+            if (is_file($path)) {
+                @unlink($path);
+            }
+        }
     }
     
     # Added to avoid SQL constraint errors if parent_id passed isn't a valid post.

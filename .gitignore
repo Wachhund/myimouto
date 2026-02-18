@@ -4,6 +4,7 @@
 /public/assets
 /public/data
 /tmp/*
+/coverage/*
 /.phpunit.cache/
 /vendor/*
 !/vendor/assets

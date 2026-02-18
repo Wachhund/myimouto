@@ -261,6 +261,28 @@ CREATE TABLE `post_set_maintainers` (
   KEY `post_set_maintainers_user_status_set` (`user_id`,`status`,`post_set_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE `post_replacements` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `post_id` int(11) NOT NULL,
+  `creator_id` int(11) NOT NULL,
+  `reviewed_by_id` int(11) DEFAULT NULL,
+  `status` varchar(16) NOT NULL DEFAULT 'pending',
+  `reason` text,
+  `moderation_reason` text,
+  `source_url` varchar(1024) DEFAULT NULL,
+  `replacement_file_path` varchar(255) DEFAULT NULL,
+  `replacement_file_name` varchar(255) DEFAULT NULL,
+  `replacement_md5` varchar(32) DEFAULT NULL,
+  `reviewed_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT NULL,
+  `updated_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `post_replacements_post_status_id` (`post_id`,`status`,`id`),
+  KEY `post_replacements_creator_created_at` (`creator_id`,`created_at`),
+  KEY `post_replacements_status_updated_at` (`status`,`updated_at`),
+  KEY `post_replacements_reviewed_by_id` (`reviewed_by_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 CREATE TABLE `post_tag_histories` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `post_id` int(11) NOT NULL,
@@ -543,6 +565,11 @@ ALTER TABLE `post_set_posts`
 ALTER TABLE `post_set_maintainers`
   ADD CONSTRAINT `fk_post_set_maintainers__post_set_id` FOREIGN KEY (`post_set_id`) REFERENCES `post_sets` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `fk_post_set_maintainers__user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE `post_replacements`
+  ADD CONSTRAINT `fk_post_replacements__creator_id` FOREIGN KEY (`creator_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_post_replacements__post_id` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `fk_post_replacements__reviewed_by_id` FOREIGN KEY (`reviewed_by_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 ALTER TABLE `post_tag_histories`
   ADD CONSTRAINT `fk_post_tag_histories__post_id` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`) ON DELETE CASCADE;

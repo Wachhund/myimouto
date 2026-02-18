@@ -22,7 +22,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: "8.5"
-          coverage: none
+          coverage: pcov
 
       - name: Validate composer files
         run: composer validate --strict
@@ -48,8 +48,33 @@ jobs:
       - name: PHP lint
         run: composer run-script ci:lint
 
-      - name: PHPUnit
+      - name: Detect code coverage driver
+        id: coverage-driver
+        run: |
+          if php -r "exit((extension_loaded('pcov') || extension_loaded('xdebug') || PHP_SAPI === 'phpdbg') ? 0 : 1);"; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "No coverage driver available; running PHPUnit without coverage."
+          fi
+
+      - name: PHPUnit + Coverage
+        if: ${{ steps.coverage-driver.outputs.enabled == 'true' }}
+        run: |
+          mkdir -p coverage
+          composer run-script test:coverage
+
+      - name: PHPUnit (without coverage fallback)
+        if: ${{ steps.coverage-driver.outputs.enabled != 'true' }}
         run: composer run-script test
+
+      - name: Upload Coverage Artifact
+        if: ${{ steps.coverage-driver.outputs.enabled == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: phpunit-coverage
+          path: coverage/clover.xml
+          if-no-files-found: error
 
       - name: PHPStan
         run: composer run-script analyse

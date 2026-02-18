@@ -150,6 +150,13 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('post_set_maintainer/revoke(.:format)(/:id)', 'post_set_maintainer#revoke', ['via' => ['post', 'delete']]);
     $this->match('post_set_maintainer/destroy(.:format)(/:id)', 'post_set_maintainer#destroy', ['via' => ['post', 'delete']]);
 
+    # PostReplacement
+    $this->match('post_replacement(/index)(.:format)', 'post_replacement#index', ['via' => ['get', 'post']]);
+    $this->match('post_replacement/create(.:format)', 'post_replacement#create', ['via' => ['post']]);
+    $this->match('post_replacement/approve(.:format)(/:id)', 'post_replacement#approve', ['via' => ['post', 'put']]);
+    $this->match('post_replacement/reject(.:format)(/:id)', 'post_replacement#reject', ['via' => ['post', 'put']]);
+    $this->match('post_replacement/destroy(.:format)(/:id)', 'post_replacement#destroy', ['via' => ['post', 'delete']]);
+
     # Post
     $this->match('post(/index)(.:format)', 'post#index', ['via' => ['get', 'post']]);
     $this->match('post/acknowledge_new_deleted_posts', ['via' => ['get', 'post']]);
