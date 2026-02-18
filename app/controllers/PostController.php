@@ -341,7 +341,12 @@ class PostController extends ApplicationController
 #        elseif count(split_tags) > 6
 */
         if (count($split_tags) > CONFIG()->tag_query_limit) {
-            $this->respond_to_error("You can only search up to ".CONFIG()->tag_query_limit." tags at once", "#error");
+            $message = "You can only search up to ".CONFIG()->tag_query_limit." tags at once";
+            if ($from_api) {
+                $this->respond_to_search_error($message, 424, $tags);
+            } else {
+                $this->respond_to_error($message, "#error");
+            }
             return;
         }
 
@@ -1200,22 +1205,41 @@ class PostController extends ApplicationController
     private function calculate_search_count(array $query, $rawTags, $from_api)
     {
         if ($from_api && $this->should_filter_search_results($from_api)) {
-            list($sql, $params) = Post::generate_sql($query, array(
-                'original_query' => $rawTags,
-                'from_api' => $from_api,
-                'select' => 'p.*',
-            ));
+            $chunk_query = $query;
+            $chunk_query['order'] = 'id_desc';
 
-            $posts = Post::findBySql($sql, $params);
-            if (!$posts) {
-                return 0;
+            $chunk_size = 500;
+            $offset = 0;
+            $visible_count = 0;
+
+            while (true) {
+                list($sql, $params) = Post::generate_sql($chunk_query, array(
+                    'original_query' => $rawTags,
+                    'from_api' => $from_api,
+                    'offset' => $offset,
+                    'limit' => $chunk_size,
+                ));
+
+                $posts = Post::findBySql($sql, $params);
+                if (!$posts || $posts->size() === 0) {
+                    break;
+                }
+
+                $loaded_count = $posts->size();
+
+                $posts->deleteIf(function($post) {
+                    return !$post->can_be_seen_by(current_user(), array('show_deleted' => true));
+                });
+                $visible_count += $posts->size();
+
+                if ($loaded_count < $chunk_size) {
+                    break;
+                }
+
+                $offset += $chunk_size;
             }
 
-            $posts->deleteIf(function($post) {
-                return !$post->can_be_seen_by(current_user(), array('show_deleted' => true));
-            });
-
-            return $posts->size();
+            return $visible_count;
         }
 
         list($sql, $params) = Post::generate_sql($query, array(
