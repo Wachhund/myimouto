@@ -136,6 +136,14 @@ class Comment extends Rails\ActiveRecord\Base
 
     protected function is_valid_utf8($value)
     {
+        if (!is_string($value)) {
+            if (is_int($value) || is_float($value)) {
+                $value = (string) $value;
+            } else {
+                return false;
+            }
+        }
+
         if (function_exists('mb_check_encoding')) {
             return mb_check_encoding($value, 'UTF-8');
         }
