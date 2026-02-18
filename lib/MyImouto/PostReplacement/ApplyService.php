@@ -76,12 +76,7 @@ class ApplyService
         }
 
         if (!empty($replacement->source_url)) {
-            $staged = StagingService::downloadFromSource($replacement->source_url);
-            return [
-                'path' => $staged['path'],
-                'name' => $staged['name'],
-                'from_record' => false
-            ];
+            throw new \RuntimeException('Source URL replacement must be preloaded before approval');
         }
 
         throw new \RuntimeException('No replacement payload available');

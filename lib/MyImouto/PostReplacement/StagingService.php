@@ -127,6 +127,36 @@ class StagingService
 
     private static function isPublicIp($ip)
     {
+        if (!filter_var($ip, FILTER_VALIDATE_IP)) {
+            return false;
+        }
+
+        $packed = @inet_pton($ip);
+        if ($packed === false) {
+            return false;
+        }
+
+        if (strlen($packed) === 16
+            && substr($packed, 0, 10) === str_repeat("\x00", 10)
+            && substr($packed, 10, 2) === "\xff\xff"
+        ) {
+            $parts = unpack('N', substr($packed, 12, 4));
+            if (!is_array($parts) || !isset($parts[1])) {
+                return false;
+            }
+
+            $ipv4 = long2ip((int)$parts[1]);
+            if (!$ipv4) {
+                return false;
+            }
+
+            return (bool)filter_var(
+                $ipv4,
+                FILTER_VALIDATE_IP,
+                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+            );
+        }
+
         return (bool)filter_var(
             $ip,
             FILTER_VALIDATE_IP,

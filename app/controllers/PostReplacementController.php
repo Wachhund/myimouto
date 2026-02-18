@@ -313,7 +313,11 @@ class PostReplacementController extends ApplicationController
             return;
         }
 
-        if (!$replacement->can_be_moderated_by(current_user())) {
+        $can_cancel_own_pending = ((string)$replacement->status === PostReplacement::STATUS_PENDING)
+            && isset($replacement->creator_id)
+            && ((int)$replacement->creator_id === (int)current_user()->id);
+
+        if (!$replacement->can_be_moderated_by(current_user()) && !$can_cancel_own_pending) {
             $this->access_denied();
             return;
         }
@@ -381,7 +385,10 @@ class PostReplacementController extends ApplicationController
             StagingService::cleanup($staged_path);
         }
 
-        NotificationService::emitModerationOutcome($deleted);
+        $moderator_id = (int)current_user()->id;
+        if ((int)$deleted->creator_id !== $moderator_id) {
+            NotificationService::emitModerationOutcome($deleted);
+        }
 
         $this->respond_to_success(
             'Replacement deleted',
