@@ -43,3 +43,18 @@ Otherwise, here's the quick guide for advanced users:
 ## Updating
 
 Every time you update the files, don't forget to run `composer update` to update dependencies, specially for the framework, and also run `php config/boot.php db:migrate` to run database migrations (if any).
+
+## Mail Namespace Migration Notes
+
+MyImouto now treats `MyImouto\\Mail\\*` and `MyImouto\\Mime\\*` as the canonical runtime namespace for mail/message behavior.
+
+`Zend\\Mail\\*` and `Zend\\Mime\\*` are compatibility shims only.
+
+Shim removal criteria:
+- no first-party code depends on `Zend\\*` internals beyond compatibility entrypoints.
+- mail regression tests (password reset + dmail notification paths) pass on canonical classes.
+- no unresolved external/runtime references to `Zend\\*` mail classes are observed during rollout.
+
+Rollback guidance:
+- keep `lib/Zend/*` wrappers in place for mixed-version deploy windows.
+- if mail regressions occur after migration, roll back to previous release and keep shim wrappers enabled while restoring canonical behavior under `MyImouto\\*`.
