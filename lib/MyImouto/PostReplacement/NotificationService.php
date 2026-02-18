@@ -64,14 +64,11 @@ class NotificationService
             return;
         }
 
-        $title = sprintf(
-            'Post replacement #%d %s',
-            (int)$replacement->id,
-            strtoupper((string)$replacement->status)
-        );
+        $status_label = self::normalizedStatusLabel((string)$replacement->status);
+        $title = sprintf('Post replacement #%d %s', (int)$replacement->id, ucfirst($status_label));
 
         $body_lines = [
-            sprintf('Your replacement request for post #%d is now %s.', (int)$replacement->post_id, (string)$replacement->status)
+            sprintf('Your replacement request for post #%d is now %s.', (int)$replacement->post_id, $status_label)
         ];
 
         if (!empty($replacement->moderation_reason)) {
@@ -142,5 +139,14 @@ class NotificationService
                 // Ignore nested logger failures.
             }
         }
+    }
+
+    private static function normalizedStatusLabel($status)
+    {
+        $status = strtolower(trim((string)$status));
+        if ($status === '') {
+            return 'updated';
+        }
+        return $status;
     }
 }

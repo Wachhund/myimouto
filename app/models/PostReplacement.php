@@ -84,6 +84,11 @@ class PostReplacement extends Rails\ActiveRecord\Base
             $this->errors()->add('source_url', 'must be HTTP or HTTPS');
             return false;
         }
+
+        if ($has_url && !\MyImouto\PostReplacement\StagingService::isSafeSourceUrl((string)$this->source_url)) {
+            $this->errors()->add('source_url', 'is not allowed');
+            return false;
+        }
     }
 
     public function validate_pending_uniqueness()

@@ -34,6 +34,12 @@ final class StagingServiceTest extends TestCase
 
     public function testRejectsUnresolvedHostnames(): void
     {
-        self::assertFalse(StagingService::isSafeSourceUrl('https://nonexistent.invalid/file.jpg'));
+        self::assertFalse(StagingService::isSafeSourceUrl('https://test.invalid/file.jpg'));
+    }
+
+    public function testRejectsIpv4MappedIpv6PrivateTargets(): void
+    {
+        self::assertFalse(StagingService::isSafeSourceUrl('http://[::ffff:127.0.0.1]/file.jpg'));
+        self::assertFalse(StagingService::isSafeSourceUrl('http://[::ffff:10.0.0.1]/file.jpg'));
     }
 }

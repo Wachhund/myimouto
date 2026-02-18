@@ -475,12 +475,22 @@ class PostReplacementController extends ApplicationController
     protected function lock_replacement_for_update($replacement_id)
     {
         $table = PostReplacement::tableName();
-        PostReplacement::connection()->executeSql(
-            sprintf('SELECT id FROM `%s` WHERE id = ? FOR UPDATE', $table),
-            (int)$replacement_id
+        $rows = PostReplacement::findBySql(
+            sprintf('SELECT * FROM `%s` WHERE id = ? FOR UPDATE', $table),
+            [(int)$replacement_id]
         );
 
-        return PostReplacement::find((int)$replacement_id);
+        $members = is_object($rows) && method_exists($rows, 'members')
+            ? $rows->members()
+            : (is_array($rows) ? $rows : []);
+
+        if (empty($members)) {
+            throw new Rails\ActiveRecord\Exception\RecordNotFoundException(
+                'Could not find PostReplacement with ID ' . (int)$replacement_id
+            );
+        }
+
+        return $members[0];
     }
 
     protected function lock_post_for_update($post_id)
