@@ -423,6 +423,16 @@ CREATE TABLE `user_blacklisted_tags` (
   UNIQUE KEY `user_id` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE `user_logs` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `ip_addr` varchar(46) NOT NULL,
+  `created_at` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `created_at` (`created_at`),
+  KEY `user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
 CREATE TABLE `user_records` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
@@ -599,6 +609,9 @@ ALTER TABLE `tag_implications`
 
 ALTER TABLE `user_blacklisted_tags`
   ADD CONSTRAINT `fk_user_bl_tags__user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+ALTER TABLE `user_logs`
+  ADD CONSTRAINT `fk_user_logs__user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 ALTER TABLE `user_records`
   ADD CONSTRAINT `fk_user_records__reported_by` FOREIGN KEY (`reported_by`) REFERENCES `users` (`id`) ON DELETE CASCADE,
