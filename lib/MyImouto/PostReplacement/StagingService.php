@@ -246,7 +246,7 @@ class StagingService
     {
         $path = \Rails::root() . self::STAGING_DIR;
         if (!is_dir($path)) {
-            @mkdir($path, 0775, true);
+            @mkdir($path, 0700, true);
         }
 
         if (!is_dir($path)) {

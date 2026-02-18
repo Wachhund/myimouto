@@ -211,9 +211,14 @@ class Post extends Rails\ActiveRecord\Base
         });
     }
 
-    public function replace_file_from_path($file_path, $original_name = null)
+    public function replace_file_from_path($file_path, $original_name = null, &$replacement_context = null)
     {
         $file_path = (string)$file_path;
+        $replacement_context = [
+            'old_paths' => [],
+            'new_paths' => []
+        ];
+
         if ($file_path === '' || !is_file($file_path)) {
             $this->errors()->add('file', 'replacement file not found');
             return false;
@@ -275,6 +280,12 @@ class Post extends Rails\ActiveRecord\Base
             return false;
         }
 
+        $new_paths = $this->replacement_storage_paths();
+        $replacement_context = [
+            'old_paths' => $old_paths,
+            'new_paths' => $new_paths
+        ];
+
         $actor = function_exists('current_user') ? current_user() : null;
         $update = [
             'md5' => $this->md5,
@@ -297,6 +308,7 @@ class Post extends Rails\ActiveRecord\Base
         ];
 
         if (!$this->updateAttributes($update)) {
+            $this->cleanup_staged_replacement_paths($old_paths, $new_paths);
             return false;
         }
 
@@ -438,6 +450,18 @@ class Post extends Rails\ActiveRecord\Base
         $current_paths = $this->replacement_storage_paths();
         foreach ($old_paths as $path) {
             if (in_array($path, $current_paths, true)) {
+                continue;
+            }
+            if (is_file($path)) {
+                @unlink($path);
+            }
+        }
+    }
+
+    private function cleanup_staged_replacement_paths(array $old_paths, array $new_paths)
+    {
+        foreach ($new_paths as $path) {
+            if (in_array($path, $old_paths, true)) {
                 continue;
             }
             if (is_file($path)) {

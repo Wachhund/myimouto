@@ -69,15 +69,6 @@ class PostReplacementController extends ApplicationController
             $reason = null;
         }
 
-        if (PostReplacement::where('post_id = ? AND status = ?', $post->id, PostReplacement::STATUS_PENDING)->exists()) {
-            $this->respond_to_error(
-                'Post already has a pending replacement request',
-                ['post_replacement#index', 'post_id' => $post->id],
-                ['status' => 423]
-            );
-            return;
-        }
-
         try {
             $staged_upload = StagingService::stageUploadFromGlobals('post_replacement', 'file');
         } catch (RuntimeException $e) {
@@ -94,15 +85,46 @@ class PostReplacementController extends ApplicationController
             return;
         }
 
-        $replacement = PostReplacement::create([
-            'post_id' => $post->id,
-            'creator_id' => current_user()->id,
-            'status' => PostReplacement::STATUS_PENDING,
-            'reason' => $reason,
-            'source_url' => $source_url ?: null,
-            'replacement_file_path' => $staged_upload ? $staged_upload['path'] : null,
-            'replacement_file_name' => $staged_upload ? $staged_upload['name'] : null
-        ]);
+        $replacement = null;
+        $duplicate_message = 'Post already has a pending replacement request';
+        try {
+            PostReplacement::transaction(function() use ($post, $reason, $source_url, $staged_upload, &$replacement, $duplicate_message) {
+                $this->lock_post_for_update((int)$post->id);
+                if (PostReplacement::where('post_id = ? AND status = ?', $post->id, PostReplacement::STATUS_PENDING)->exists()) {
+                    throw new RuntimeException($duplicate_message);
+                }
+
+                $replacement = PostReplacement::create([
+                    'post_id' => $post->id,
+                    'creator_id' => current_user()->id,
+                    'status' => PostReplacement::STATUS_PENDING,
+                    'reason' => $reason,
+                    'source_url' => $source_url ?: null,
+                    'replacement_file_path' => $staged_upload ? $staged_upload['path'] : null,
+                    'replacement_file_name' => $staged_upload ? $staged_upload['name'] : null
+                ]);
+            });
+        } catch (RuntimeException $e) {
+            if ($staged_upload) {
+                StagingService::cleanup($staged_upload['path']);
+            }
+
+            $status_code = ((string)$e->getMessage() === $duplicate_message) ? 423 : 424;
+            $this->respond_to_error(
+                $e->getMessage(),
+                ['post_replacement#index', 'post_id' => $post->id],
+                ['status' => $status_code]
+            );
+            return;
+        }
+
+        if (!$replacement) {
+            if ($staged_upload) {
+                StagingService::cleanup($staged_upload['path']);
+            }
+            $this->respond_to_error('Unable to create replacement request', ['post#show', 'id' => $post->id], ['status' => 500]);
+            return;
+        }
 
         if (!$replacement->errors()->blank()) {
             if ($staged_upload) {
@@ -152,8 +174,23 @@ class PostReplacementController extends ApplicationController
         }
 
         $approved = null;
+        $preloaded_source_path = null;
+        $resolved_upload = null;
+        if (empty($replacement->replacement_file_path) && !empty($replacement->source_url)) {
+            try {
+                $resolved_upload = StagingService::downloadFromSource($replacement->source_url);
+                $preloaded_source_path = $resolved_upload['path'];
+            } catch (RuntimeException $e) {
+                $this->respond_to_error($e->getMessage(), ['post_replacement#index'], ['status' => 424]);
+                return;
+            } catch (Exception $e) {
+                $this->respond_to_error($e->getMessage(), ['post_replacement#index']);
+                return;
+            }
+        }
+
         try {
-            PostReplacement::transaction(function() use ($replacement, &$approved) {
+            PostReplacement::transaction(function() use ($replacement, &$approved, $resolved_upload) {
                 $current = $this->lock_replacement_for_update((int)$replacement->id);
                 if ((string)$current->status !== PostReplacement::STATUS_PENDING) {
                     throw new RuntimeException('Replacement is no longer pending');
@@ -162,7 +199,8 @@ class PostReplacementController extends ApplicationController
                 $approved = ApplyService::approve(
                     $current,
                     current_user(),
-                    $this->params()->moderation_reason
+                    $this->params()->moderation_reason,
+                    $resolved_upload
                 );
             });
         } catch (RuntimeException $e) {
@@ -171,6 +209,10 @@ class PostReplacementController extends ApplicationController
         } catch (Exception $e) {
             $this->respond_to_error($e->getMessage(), ['post_replacement#index']);
             return;
+        } finally {
+            if ($preloaded_source_path) {
+                StagingService::cleanup($preloaded_source_path);
+            }
         }
 
         $this->respond_to_success(
@@ -439,6 +481,15 @@ class PostReplacementController extends ApplicationController
         );
 
         return PostReplacement::find((int)$replacement_id);
+    }
+
+    protected function lock_post_for_update($post_id)
+    {
+        $table = Post::tableName();
+        Post::connection()->executeSql(
+            sprintf('SELECT id FROM `%s` WHERE id = ? FOR UPDATE', $table),
+            (int)$post_id
+        );
     }
 
     protected function normalize_optional_text($text)
