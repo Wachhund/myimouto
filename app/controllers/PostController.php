@@ -353,7 +353,7 @@ class PostController extends ApplicationController
         try {
             $q = Tag::parse_query($tags);
         } catch (\Throwable $e) {
-            $this->respond_to_search_error("Invalid search query", 424, $tags);
+            $this->respond_to_search_error("Invalid search query: " . $e->getMessage(), 424, $tags);
             return;
         }
 
@@ -459,7 +459,7 @@ class PostController extends ApplicationController
             },
             'json' => function() {
                 $api_version = (string)$this->params()->api_version;
-                if ($api_version !== "2" && $this->params()->search_envelope != "1") {
+                if ($api_version !== "2") {
                     $this->render(array('json' => array_map(function($p){return $p->api_attributes();}, $this->posts->members())));
                     return;
                 }
@@ -481,8 +481,7 @@ class PostController extends ApplicationController
     public function count()
     {
         if (!$this->is_search_api_request()) {
-            $this->respond_to_search_error("Count endpoint is API-only", 424, $this->params()->tags);
-            return;
+            throw new \Rails\ActiveRecord\Exception\RecordNotFoundException();
         }
 
         $tags = $this->params()->tags;
@@ -1208,11 +1207,21 @@ class PostController extends ApplicationController
             $chunk_query = $query;
             $chunk_query['order'] = 'id_desc';
 
+            list($count_sql, $count_params) = Post::generate_sql($chunk_query, array(
+                'original_query' => $rawTags,
+                'from_api' => $from_api,
+                'count' => true,
+            ));
+            array_unshift($count_params, $count_sql);
+            $total_rows = (int)Post::countBySql($count_params);
+            if ($total_rows === 0) {
+                return 0;
+            }
+
             $chunk_size = 500;
-            $offset = 0;
             $visible_count = 0;
 
-            while (true) {
+            for ($offset = 0; $offset < $total_rows; $offset += $chunk_size) {
                 list($sql, $params) = Post::generate_sql($chunk_query, array(
                     'original_query' => $rawTags,
                     'from_api' => $from_api,
@@ -1225,18 +1234,10 @@ class PostController extends ApplicationController
                     break;
                 }
 
-                $loaded_count = $posts->size();
-
                 $posts->deleteIf(function($post) {
                     return !$post->can_be_seen_by(current_user(), array('show_deleted' => true));
                 });
                 $visible_count += $posts->size();
-
-                if ($loaded_count < $chunk_size) {
-                    break;
-                }
-
-                $offset += $chunk_size;
             }
 
             return $visible_count;
