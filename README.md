@@ -1,60 +1,108 @@
 # MyImouto
 [![PHP CI](https://github.com/Wachhund/myimouto/actions/workflows/php.yml/badge.svg)](https://github.com/Wachhund/myimouto/actions/workflows/php.yml)
 
-This repository is actively maintained. Feel free to fork it or open a pull request.
+MyImouto is an actively maintained Moebooru port for PHP and MySQL.
 
-MyImouto is a clone of [Moebooru](https://github.com/moebooru/moebooru) for PHP and MySQL. In order for this clone to be as exact as possible, MyImouto uses a custom framework that is based on Ruby on Rails, thus the code from Moebooru was transcribed to PHP with some small modifications to fit the target language and framework.
+It runs on a custom Rails-inspired PHP framework and aims to stay close to Moebooru behavior while keeping a modern runtime baseline.
 
-For project updates and source code, see:
-- https://github.com/Wachhund/myimouto
-
+## What Is Included
+- Image upload and management
+- Tagging with aliases and implications
+- Search and filter endpoints
+- User accounts, moderation tools, and staff workflows
+- Community features (comments, forum, dmail)
 
 ## Requirements
 
-  * PHP 8.5.
-  * MySQL 8.0+ (recommended baseline) or MariaDB 10.6+.
-  * Legacy DB compatibility note: most schema/migrations remain compatible with MySQL 5.5.3+, but this is not a tested/supported target anymore.
-  * PHP libraries:
-    * GD2
-    * PDO
-    * cURL
-    * Imagick (recommended)
-    * Memcached (recommended)
-  * Composer (Dependency Management for PHP).
-  * If running under Apache, the Rewrite mod must be enabled. Also, to serve gzipped CSS and JS files, the Headers mod is needed.
+| Component | Baseline |
+| --- | --- |
+| PHP | 8.5+ |
+| MySQL | 8.0+ |
+| MariaDB | 10.6+ |
+| Composer | 2.x |
 
+Legacy note: many migrations remain compatible with MySQL 5.5.3+, but this is no longer a tested/supported target.
+
+PHP extensions:
+- GD2
+- PDO
+- cURL
+- Imagick (recommended)
+- Memcached (recommended)
+
+Web server:
+- Apache with `mod_rewrite` (and `mod_headers` for gzipped assets), or
+- Nginx with URL rewriting configured.
 
 ## Installation
 
-For an explained, step-by-step guide, please check:
-- [Server Setup (Ubuntu 24.04 + PHP 8.5 + Nginx)](docs/SERVER_SETUP_UBUNTU_24_04_PHP85.md)
+Step-by-step server setup (Wiki):
+- [Server Setup Guide (EN)](https://github.com/Wachhund/myimouto/wiki/Server-Setup-Guide-EN)
+- [Server Setup Guide (DE)](https://github.com/Wachhund/myimouto/wiki/Server-Setup-Guide-DE)
 
-Otherwise, here's the quick guide for advanced users:
+Quick install:
 
-  * Install system dependencies: `composer install`.
-  * Create a database for the booru.
-  * Create `config/config.php` and `config/database.yml` by copying their respective _.example_ files.
-  * Set your database configuration in `config/database.yml`.
-  * Configure the booru by editing `config/config.php`. For a minimum configuration, both `server_host` and `url_base` options must be correctly set.
-  * Run the installer: `php install.php`. Enter a name and password for the admin account when asked, then wait for the installation to finish.
-  * Finally, point the document root of your web server to the `public` folder. That's where the index.php file is.
+```bash
+git clone https://github.com/Wachhund/myimouto.git
+cd myimouto
 
+composer install
+
+# Create your database first, then configure:
+cp config/config.php.example config/config.php
+cp config/database.yml.example config/database.yml
+
+# Run installer (creates base data/admin prompt):
+php install.php
+```
+
+Then point your web server document root to `public/`.
 
 ## Updating
 
-Every time you update the files, don't forget to run `composer update` to update dependencies, specially for the framework, and also run `php config/boot.php db:migrate` to run database migrations (if any).
+```bash
+git pull origin master
+composer update
+php config/boot.php db:migrate
+```
+
+## Documentation And Support
+- Repository: https://github.com/Wachhund/myimouto
+- Issues: https://github.com/Wachhund/myimouto/issues
+- Discussions: https://github.com/Wachhund/myimouto/discussions
+
+## Contributing
+1. Fork the repository.
+2. Create a feature branch.
+3. Commit your changes.
+4. Push your branch.
+5. Open a pull request.
+
+## Troubleshooting
+
+Database connection failed:
+- Check `config/database.yml`.
+- Confirm MySQL/MariaDB is running and reachable.
+
+Images not uploading:
+- Verify GD2 or Imagick is installed.
+- Check PHP upload limits (`upload_max_filesize`, `post_max_size`).
+- Ensure upload directories are writable.
+
+Permission errors under `public/`:
+- Verify ownership and permissions for your web server user.
 
 ## Mail Namespace Migration Notes
 
-MyImouto now treats `MyImouto\\Mail\\*` and `MyImouto\\Mime\\*` as the canonical runtime namespace for mail/message behavior.
+MyImouto treats `MyImouto\\Mail\\*` and `MyImouto\\Mime\\*` as canonical runtime namespaces.
 
 `Zend\\Mail\\*` and `Zend\\Mime\\*` are compatibility shims only.
 
 Shim removal criteria:
-- no first-party code depends on `Zend\\*` internals beyond compatibility entrypoints.
-- mail regression tests (password reset + dmail notification paths) pass on canonical classes.
-- no unresolved external/runtime references to `Zend\\*` mail classes are observed during rollout.
+- no first-party code depends on `Zend\\*` internals beyond compatibility entrypoints
+- mail regression tests (password reset + dmail notification paths) pass on canonical classes
+- no unresolved external/runtime references to `Zend\\*` mail classes are observed during rollout
 
 Rollback guidance:
-- keep `lib/Zend/*` wrappers in place for mixed-version deploy windows.
-- if mail regressions occur after migration, roll back to previous release and keep shim wrappers enabled while restoring canonical behavior under `MyImouto\\*`.
+- keep `lib/Zend/*` wrappers in place for mixed-version deploy windows
+- if regressions occur, roll back to the previous release and keep wrappers enabled while restoring canonical behavior
