@@ -260,7 +260,9 @@ class UserController extends ApplicationController
             return;
         }
 
-        if (current_user()->updateAttributes($this->params()->user)) {
+        $update_params = $this->sanitized_user_update_params();
+
+        if (current_user()->updateAttributes($update_params)) {
             $this->respond_to_success("Account settings saved", '#edit');
         } else {
             if ($this->params()->render and $this->params()->render['view']) {
@@ -497,6 +499,63 @@ class UserController extends ApplicationController
         $this->cookies()->pass_hash = ['value' => $user->password_hash, 'expires' => strtotime('+1 year')];
         $this->cookies()->user_id = ['value' => $user->id, 'expires' => strtotime('+1 year')];
         $this->session()->user_id = $user->id;
+    }
+
+    protected function sanitized_user_update_params()
+    {
+        $user_params = $this->params()->user;
+        if (!is_array($user_params)) {
+            return [];
+        }
+
+        $allowed_fields = [
+            'blacklisted_tags',
+            'my_tags',
+            'always_resize_images',
+            'receive_dmails',
+            'show_samples',
+            'use_browser',
+            'show_advanced_editing',
+            'pool_browse_mode',
+            'language',
+            'secondary_languages'
+        ];
+
+        $boolean_fields = [
+            'always_resize_images',
+            'receive_dmails',
+            'show_samples',
+            'use_browser',
+            'show_advanced_editing',
+            'pool_browse_mode'
+        ];
+
+        $sanitized = [];
+        foreach ($allowed_fields as $field) {
+            if (!array_key_exists($field, $user_params)) {
+                continue;
+            }
+            $sanitized[$field] = $user_params[$field];
+        }
+
+        foreach ($boolean_fields as $field) {
+            if (!array_key_exists($field, $sanitized)) {
+                continue;
+            }
+            $sanitized[$field] = $this->to_boolean_int($sanitized[$field]);
+        }
+
+        return $sanitized;
+    }
+
+    protected function to_boolean_int($value)
+    {
+        if (is_bool($value)) {
+            return $value ? 1 : 0;
+        }
+
+        $value = strtolower(trim((string) $value));
+        return in_array($value, ['1', 'true', 'on', 'yes'], true) ? 1 : 0;
     }
     
     protected function _get_view_name_for_edit($param)

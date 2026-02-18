@@ -14,8 +14,8 @@
 <h3>
   <?=
     $this->t('.title_html', [
-      'from' => $this->linkTo($this->from->pretty_name(), ['#show', 'id' => $this->from->id]),
-      'to' => $this->linkTo($this->to->pretty_name(), ['#show', 'id' => $this->to->id])
+      'from' => $this->linkTo($this->h($this->from->pretty_name()), ['#show', 'id' => $this->from->id]),
+      'to' => $this->linkTo($this->h($this->to->pretty_name()), ['#show', 'id' => $this->to->id])
     ])
   ?>
 </h3>

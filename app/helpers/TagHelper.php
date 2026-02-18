@@ -85,20 +85,26 @@ class TagHelper extends Rails\ActionView\Helper
             $count    = array_shift($t);
             $id       = array_shift($t);
             !$name && $name = 'UNKNOWN';
+
+            $safe_tag_type = preg_replace('/[^a-z0-9_-]/i', '', (string) $tag_type);
+            $safe_name_attr = $this->h($name);
+            $safe_name_label = $this->h(str_replace("_", " ", $name));
+            $safe_count = (int) $count;
+            $query_name = $this->u($name);
             
             // $tag_type = Tag::type_name($name);
             
             // $html .= '<li class="tag-type-' . $tag_type . '">';
-            $html .= '<li class="tag-link tag-type-' . $tag_type . '" data-name="' . $name . '" data-type="' . $tag_type . '">';
+            $html .= '<li class="tag-link tag-type-' . $safe_tag_type . '" data-name="' . $safe_name_attr . '" data-type="' . $safe_tag_type . '">';
             
             if (CONFIG()->enable_artists && $tag_type == 'artist')
-                $html .= '<a href="/artist/show?name=' . $this->u($name) . '">?</a> ';
+                $html .= '<a href="/artist/show?name=' . $query_name . '">?</a> ';
             else
-                $html .= '<a href="/wiki/show?title=' . $this->u($name) . '">?</a> ';
+                $html .= '<a href="/wiki/show?title=' . $query_name . '">?</a> ';
             
             if (current_user()->is_privileged_or_higher()) {
-                $html .= '<a href="/post?tags=' . $this->u($name) . '+' . $this->u($this->params()->tags) . '" class="no-browser-link">+</a> ';
-                $html .= '<a href="/post?tags=-' . $this->u($name) . '+' .$this->u($this->params()->tags) . '" class="no-browser-link">&ndash;</a> ';
+                $html .= '<a href="/post?tags=' . $query_name . '+' . $this->u($this->params()->tags) . '" class="no-browser-link">+</a> ';
+                $html .= '<a href="/post?tags=-' . $query_name . '+' .$this->u($this->params()->tags) . '" class="no-browser-link">&ndash;</a> ';
             }
             
             if (!empty($options['with_hover_highlight'])) {
@@ -107,8 +113,8 @@ class TagHelper extends Rails\ActionView\Helper
             } else
                 $mouseover = $mouseout = '';
             
-            $html .= '<a href="/post?tags=' . $this->u($name) . '"' . $mouseover . $mouseout . '>' . (str_replace("_", " ", $name)) . '</a> ';
-            $html .= '<span class="post-count">' . $count . '</span> ';
+            $html .= '<a href="/post?tags=' . $query_name . '"' . $mouseover . $mouseout . '>' . $safe_name_label . '</a> ';
+            $html .= '<span class="post-count">' . $safe_count . '</span> ';
             $html .= '</li>';
         }
         

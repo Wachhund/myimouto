@@ -1,4 +1,4 @@
-<h4><?= $this->t(['.title', 'name' => $this->pool->pretty_name()]) ?></h4>
+<h4><?= $this->t(['.title', 'name' => $this->h($this->pool->pretty_name())]) ?></h4>
 
 <p><?= $this->t('.info') ?></p>
 

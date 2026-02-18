@@ -85,8 +85,65 @@ trait PostApiMethods
     # Remove attribute from params that shouldn't be changed through the API.
     static public function filter_api_changes(&$params)
     {
-        unset($params['frames']);
-        unset($params['frames_warehoused']);
+        if (!is_array($params)) {
+            $params = [];
+            return;
+        }
+
+        $always_blocked = [
+            'id',
+            'user_id',
+            'ip_addr',
+            'created_at',
+            'file_size',
+            'md5',
+            'file_ext',
+            'width',
+            'height',
+            'preview_width',
+            'preview_height',
+            'actual_preview_width',
+            'actual_preview_height',
+            'sample_width',
+            'sample_height',
+            'sample_size',
+            'jpeg_width',
+            'jpeg_height',
+            'jpeg_size',
+            'score',
+            'cached_tags',
+            'last_commented_at',
+            'last_noted_at',
+            'index_timestamp',
+            'random',
+            'approver_id',
+            'has_children',
+            'updater_user_id',
+            'updater_ip_addr',
+            'frames',
+            'frames_warehoused'
+        ];
+
+        foreach ($always_blocked as $field) {
+            unset($params[$field]);
+        }
+
+        $user = current_user();
+        $is_mod_or_higher = $user && $user->is_mod_or_higher();
+
+        if (!$is_mod_or_higher) {
+            $moderation_only = [
+                'status',
+                'is_held',
+                'is_shown_in_index',
+                'is_note_locked',
+                'is_rating_locked'
+            ];
+
+            foreach ($moderation_only as $field) {
+                unset($params[$field]);
+            }
+        }
     }
 
     /**

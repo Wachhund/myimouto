@@ -4,6 +4,7 @@
 /public/assets
 /public/data
 /tmp/*
+/.phpunit.cache/
 /vendor/*
 !/vendor/assets
 !/vendor/Horde
