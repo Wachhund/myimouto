@@ -26,8 +26,9 @@ For project updates and source code, see:
 
 ## Installation
 
-For an explained, step-by-step guide, please check:
-- [Server Setup (Ubuntu 24.04 + PHP 8.5 + Nginx)](docs/SERVER_SETUP_UBUNTU_24_04_PHP85.md)
+For an explained, step-by-step guide, please check the project wiki:
+- [Server Setup Guide (EN)](https://github.com/Wachhund/myimouto/wiki/Server-Setup-Guide-EN)
+- [Server Setup Guide (DE)](https://github.com/Wachhund/myimouto/wiki/Server-Setup-Guide-DE)
 
 Otherwise, here's the quick guide for advanced users:
 
