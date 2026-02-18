@@ -190,12 +190,18 @@ class PostReplacementController extends ApplicationController
         }
 
         try {
-            PostReplacement::transaction(function() use ($replacement, &$approved, $resolved_upload) {
-                $current = $this->lock_replacement_for_update((int)$replacement->id);
-                if ((string)$current->status !== PostReplacement::STATUS_PENDING) {
-                    throw new RuntimeException('Replacement is no longer pending');
-                }
+            $this->with_replacement_mutex((int)$replacement->id, function() use ($replacement, &$approved, $resolved_upload) {
+                $current = null;
 
+                // Keep the DB transaction short: only lock/check current state.
+                PostReplacement::transaction(function() use ($replacement, &$current) {
+                    $current = $this->lock_replacement_for_update((int)$replacement->id);
+                    if ((string)$current->status !== PostReplacement::STATUS_PENDING) {
+                        throw new RuntimeException('Replacement is no longer pending');
+                    }
+                });
+
+                // Apply file operations outside the row-lock transaction.
                 $approved = ApplyService::approve(
                     $current,
                     current_user(),
@@ -248,33 +254,35 @@ class PostReplacementController extends ApplicationController
         $did_transition = false;
         $staged_path = null;
         try {
-            PostReplacement::transaction(function() use ($replacement, &$rejected, &$already_rejected, &$did_transition, &$staged_path) {
-                $current = $this->lock_replacement_for_update((int)$replacement->id);
+            $this->with_replacement_mutex((int)$replacement->id, function() use ($replacement, &$rejected, &$already_rejected, &$did_transition, &$staged_path) {
+                PostReplacement::transaction(function() use ($replacement, &$rejected, &$already_rejected, &$did_transition, &$staged_path) {
+                    $current = $this->lock_replacement_for_update((int)$replacement->id);
 
-                if ((string)$current->status === PostReplacement::STATUS_REJECTED) {
-                    $already_rejected = true;
+                    if ((string)$current->status === PostReplacement::STATUS_REJECTED) {
+                        $already_rejected = true;
+                        $rejected = $current;
+                        return;
+                    }
+
+                    if ((string)$current->status !== PostReplacement::STATUS_PENDING) {
+                        throw new RuntimeException('Replacement is not in pending state');
+                    }
+
+                    $staged_path = !empty($current->replacement_file_path) ? (string)$current->replacement_file_path : null;
+                    $current->replacement_file_path = null;
+                    $current->replacement_file_name = null;
+                    $current->status = PostReplacement::STATUS_REJECTED;
+                    $current->reviewed_by_id = current_user()->id;
+                    $current->reviewed_at = date('Y-m-d H:i:s');
+                    $current->moderation_reason = $this->normalize_optional_text($this->params()->moderation_reason);
+
+                    if (!$current->save()) {
+                        throw new RuntimeException($current->errors()->fullMessages(', '));
+                    }
+
+                    $did_transition = true;
                     $rejected = $current;
-                    return;
-                }
-
-                if ((string)$current->status !== PostReplacement::STATUS_PENDING) {
-                    throw new RuntimeException('Replacement is not in pending state');
-                }
-
-                $staged_path = !empty($current->replacement_file_path) ? (string)$current->replacement_file_path : null;
-                $current->replacement_file_path = null;
-                $current->replacement_file_name = null;
-                $current->status = PostReplacement::STATUS_REJECTED;
-                $current->reviewed_by_id = current_user()->id;
-                $current->reviewed_at = date('Y-m-d H:i:s');
-                $current->moderation_reason = $this->normalize_optional_text($this->params()->moderation_reason);
-
-                if (!$current->save()) {
-                    throw new RuntimeException($current->errors()->fullMessages(', '));
-                }
-
-                $did_transition = true;
-                $rejected = $current;
+                });
             });
         } catch (RuntimeException $e) {
             $this->respond_to_error($e->getMessage(), ['post_replacement#index'], ['status' => 424]);
@@ -336,33 +344,35 @@ class PostReplacementController extends ApplicationController
         $did_transition = false;
         $staged_path = null;
         try {
-            PostReplacement::transaction(function() use ($replacement, &$deleted, &$already_deleted, &$did_transition, &$staged_path) {
-                $current = $this->lock_replacement_for_update((int)$replacement->id);
+            $this->with_replacement_mutex((int)$replacement->id, function() use ($replacement, &$deleted, &$already_deleted, &$did_transition, &$staged_path) {
+                PostReplacement::transaction(function() use ($replacement, &$deleted, &$already_deleted, &$did_transition, &$staged_path) {
+                    $current = $this->lock_replacement_for_update((int)$replacement->id);
 
-                if ((string)$current->status === PostReplacement::STATUS_DELETED) {
-                    $already_deleted = true;
+                    if ((string)$current->status === PostReplacement::STATUS_DELETED) {
+                        $already_deleted = true;
+                        $deleted = $current;
+                        return;
+                    }
+
+                    if ((string)$current->status !== PostReplacement::STATUS_PENDING) {
+                        throw new RuntimeException('Replacement is not in pending state');
+                    }
+
+                    $staged_path = !empty($current->replacement_file_path) ? (string)$current->replacement_file_path : null;
+                    $current->replacement_file_path = null;
+                    $current->replacement_file_name = null;
+                    $current->status = PostReplacement::STATUS_DELETED;
+                    $current->reviewed_by_id = current_user()->id;
+                    $current->reviewed_at = date('Y-m-d H:i:s');
+                    $current->moderation_reason = $this->normalize_optional_text($this->params()->moderation_reason);
+
+                    if (!$current->save()) {
+                        throw new RuntimeException($current->errors()->fullMessages(', '));
+                    }
+
+                    $did_transition = true;
                     $deleted = $current;
-                    return;
-                }
-
-                if ((string)$current->status !== PostReplacement::STATUS_PENDING) {
-                    throw new RuntimeException('Replacement is not in pending state');
-                }
-
-                $staged_path = !empty($current->replacement_file_path) ? (string)$current->replacement_file_path : null;
-                $current->replacement_file_path = null;
-                $current->replacement_file_name = null;
-                $current->status = PostReplacement::STATUS_DELETED;
-                $current->reviewed_by_id = current_user()->id;
-                $current->reviewed_at = date('Y-m-d H:i:s');
-                $current->moderation_reason = $this->normalize_optional_text($this->params()->moderation_reason);
-
-                if (!$current->save()) {
-                    throw new RuntimeException($current->errors()->fullMessages(', '));
-                }
-
-                $did_transition = true;
-                $deleted = $current;
+                });
             });
         } catch (RuntimeException $e) {
             $this->respond_to_error($e->getMessage(), ['post_replacement#index'], ['status' => 424]);
@@ -507,6 +517,39 @@ class PostReplacementController extends ApplicationController
             sprintf('SELECT id FROM `%s` WHERE id = ? FOR UPDATE', $table),
             (int)$post_id
         );
+    }
+
+    protected function with_replacement_mutex($replacement_id, callable $callback)
+    {
+        $lock_name = 'post_replacement:' . (int)$replacement_id;
+        if (!$this->acquire_advisory_lock($lock_name)) {
+            throw new RuntimeException('Replacement is currently being processed');
+        }
+
+        try {
+            return $callback();
+        } finally {
+            $this->release_advisory_lock($lock_name);
+        }
+    }
+
+    protected function acquire_advisory_lock($lock_name, $timeout_seconds = 10)
+    {
+        try {
+            $result = PostReplacement::connection()->selectValue('SELECT GET_LOCK(?, ?)', (string)$lock_name, (int)$timeout_seconds);
+            return ((string)$result === '1' || (int)$result === 1);
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    protected function release_advisory_lock($lock_name)
+    {
+        try {
+            PostReplacement::connection()->selectValue('SELECT RELEASE_LOCK(?)', (string)$lock_name);
+        } catch (Exception $e) {
+            // Best-effort unlock.
+        }
     }
 
     protected function normalize_optional_text($text)

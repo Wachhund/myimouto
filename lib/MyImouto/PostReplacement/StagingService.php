@@ -80,7 +80,8 @@ class StagingService
             return;
         }
 
-        if (strpos($real_path, $real_staging) !== 0) {
+        $staging_prefix = rtrim($real_staging, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+        if ($real_path !== $real_staging && strpos($real_path, $staging_prefix) !== 0) {
             return;
         }
 
