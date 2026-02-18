@@ -8,6 +8,7 @@ You are working in a legacy PHP application (custom RailsPHP-style framework), t
 - For pull request reviews, classify findings by severity: Critical, High, Medium, Low.
 - Report only actionable findings with concrete file/line context.
 - Do not suggest framework migrations or architecture rewrites unless the PR scope explicitly asks for it.
+- If evidence is inconclusive, mark feedback as a question or risk hypothesis, not as a confirmed defect.
 
 ## Security Expectations
 - Check authentication and authorization boundaries on all state-changing endpoints.
@@ -27,3 +28,4 @@ You are working in a legacy PHP application (custom RailsPHP-style framework), t
   - `composer run test`
   - `composer run analyse`
   - `composer run cs-check`
+- For CI feedback, prefer fixes that align with existing wrappers/config (`script/ci/*`, `phpunit.xml.dist`, `.github/workflows/php.yml`).
