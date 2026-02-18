@@ -13,7 +13,7 @@ class EnsureUserLogsTableExists extends Rails\ActiveRecord\Migration\Base
                   PRIMARY KEY (`id`),
                   KEY `created_at` (`created_at`),
                   KEY `user_id` (`user_id`)
-                ) ENGINE=InnoDB
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8
 SQL
             );
         }
