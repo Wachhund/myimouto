@@ -24,9 +24,13 @@ class CommentController extends ApplicationController
     public function update()
     {
         $comment = Comment::find($this->params()->id);
+        $comment_params = $this->normalized_comment_params();
         if (current_user()->has_permission($comment)) {
-            $comment->updateAttributes(array_merge($this->params()->comment, ['updater_ip_addr' => $this->request()->remoteIp()]));
-            $this->respond_to_success("Comment updated", '#index');
+            if ($comment->updateAttributes(array_merge($comment_params, ['updater_ip_addr' => $this->request()->remoteIp()]))) {
+                $this->respond_to_success("Comment updated", '#index');
+            } else {
+                $this->respond_to_error($comment, '#index');
+            }
         } else {
             $this->access_denied();
         }
@@ -52,8 +56,9 @@ class CommentController extends ApplicationController
         }
 
         $user_id = current_user()->id;
+        $comment_params = $this->normalized_comment_params();
         
-        $comment = new Comment(array_merge($this->params()->comment, array('ip_addr' => $this->request()->remoteIp(), 'user_id' => $user_id)));
+        $comment = new Comment(array_merge($comment_params, array('ip_addr' => $this->request()->remoteIp(), 'user_id' => $user_id)));
         if ($this->params()->commit == "Post without bumping") {
             $comment->do_not_bump_post = true;
         }
@@ -155,5 +160,11 @@ class CommentController extends ApplicationController
         $this->comment = Comment::find($this->params()->id);
         $this->comment->updateAttributes(array('is_spam' => true));
         $this->respond_to_success("Comment marked as spam", '#index');
+    }
+
+    protected function normalized_comment_params()
+    {
+        $comment_params = $this->params()->comment;
+        return is_array($comment_params) ? $comment_params : array();
     }
 }

@@ -3,6 +3,7 @@
 //
 //= require prefix
 //= require jquery
+//= require jquery.migrate
 //= require jquery_ujs
 //= require jquery.cookie
 //= require jquery.ui.autocomplete

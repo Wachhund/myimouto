@@ -5,7 +5,7 @@
 /public/data
 /tmp/*
 /coverage/*
-/.phpunit.cache/*
+/.phpunit.cache/
 /vendor/*
 !/vendor/assets
 !/vendor/Horde
