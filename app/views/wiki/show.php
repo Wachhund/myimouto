@@ -77,7 +77,7 @@
   <?php endif ?>
 
   <?php if ($this->page) : ?>
-    <div id="byline" style="clear: both;">Updated by <?= $this->linkTo($this->page->author(), ['controller' => "user", 'action' => "show", 'id' => $this->page->user_id]) ?> <?= $this->timeAgoInWords($this->page->updated_at) ?> ago</div>
+    <div id="byline" style="clear: both;">Updated by <?= $this->linkTo($this->h($this->page->author()), ['controller' => "user", 'action' => "show", 'id' => $this->page->user_id]) ?> <?= $this->timeAgoInWords($this->page->updated_at) ?> ago</div>
   <?php endif ?>
   </div>
 

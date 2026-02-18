@@ -118,8 +118,29 @@ class Comment extends Rails\ActiveRecord\Base
         return array(
             'body' => array(
                 'format' => array('with' => '/\S/', 'message' => 'has no content')
-            )
+            ),
+            'validate_utf8_body'
         );
+    }
+
+    protected function validate_utf8_body()
+    {
+        if ($this->body === null || $this->body === '') {
+            return;
+        }
+
+        if (!$this->is_valid_utf8($this->body)) {
+            $this->errors()->add('body', 'contains invalid UTF-8');
+        }
+    }
+
+    protected function is_valid_utf8($value)
+    {
+        if (function_exists('mb_check_encoding')) {
+            return mb_check_encoding($value, 'UTF-8');
+        }
+
+        return preg_match('//u', $value) === 1;
     }
     
     protected function associations()

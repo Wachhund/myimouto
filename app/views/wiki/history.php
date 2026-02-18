@@ -25,7 +25,7 @@
             <td><?= $this->radioButtonTag("from", $wiki_page->version, $i == 1, ['id' => "from_".$wiki_page->version]) ?></td>
             <td><?= $this->radioButtonTag("to", $wiki_page->version, $i == 0, ['id' => "to_".$wiki_page->version]) ?></td>
             <td><?= $this->linkTo(date("Y-m-d H:i", strtotime($wiki_page->updated_at)), ['action' => "show", 'title' => $wiki_page->title, 'version' => $wiki_page->version]) ?></td>
-            <td><?= $this->linkTo($wiki_page->author(), ['controller' => 'user', 'action' => 'show', 'id' => $wiki_page->user_id]) ?></td>
+            <td><?= $this->linkTo($this->h($wiki_page->author()), ['controller' => 'user', 'action' => 'show', 'id' => $wiki_page->user_id]) ?></td>
             <td class="change"><?= $this->page_change($wiki_page, $this->wiki_pages[$i + 1]) ?></td>
           </tr>
         <?php endforeach ?>

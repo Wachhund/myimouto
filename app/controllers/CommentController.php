@@ -25,8 +25,11 @@ class CommentController extends ApplicationController
     {
         $comment = Comment::find($this->params()->id);
         if (current_user()->has_permission($comment)) {
-            $comment->updateAttributes(array_merge($this->params()->comment, ['updater_ip_addr' => $this->request()->remoteIp()]));
-            $this->respond_to_success("Comment updated", '#index');
+            if ($comment->updateAttributes(array_merge($this->params()->comment, ['updater_ip_addr' => $this->request()->remoteIp()]))) {
+                $this->respond_to_success("Comment updated", '#index');
+            } else {
+                $this->respond_to_error($comment, '#index');
+            }
         } else {
             $this->access_denied();
         }

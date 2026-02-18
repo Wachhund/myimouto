@@ -186,8 +186,11 @@ class PoolController extends ApplicationController
         }
 
         if ($this->request()->isPost()) {
-            $this->pool->updateAttributes($this->params()->pool);
-            $this->respond_to_success("Pool updated", array(array('#show', 'id' => $this->params()->id)));
+            if ($this->pool->updateAttributes($this->params()->pool)) {
+                $this->respond_to_success("Pool updated", array(array('#show', 'id' => $this->params()->id)));
+            } else {
+                $this->respond_to_error($this->pool, array('#show', 'id' => $this->params()->id));
+            }
         }
     }
 

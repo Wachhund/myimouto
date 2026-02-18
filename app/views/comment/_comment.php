@@ -1,9 +1,9 @@
 <div class="comment avatar-container" id="c<?= $this->comment->id ?>">
   <div class="author">
     <?php if ($this->comment->user_id) : ?>
-      <h6><?= $this->linkTo($this->comment->pretty_author2(), array('controller' => 'user', 'action' => 'show', 'id' => $this->comment->user_id)) ?></h6>
+      <h6><?= $this->linkTo($this->h($this->comment->pretty_author2()), array('controller' => 'user', 'action' => 'show', 'id' => $this->comment->user_id)) ?></h6>
     <?php else: ?>
-      <h6><?= $this->comment->pretty_author2() ?></h6>
+      <h6><?= $this->h($this->comment->pretty_author2()) ?></h6>
     <?php endif ?>
     <span class="date" title="Posted at <?= date('r', strtotime($this->comment->created_at)) ?>">
       <?= $this->linkTo($this->t(array('time.x_ago', 't' => $this->timeAgoInWords($this->comment->created_at))), array('post#show', 'id' => $this->comment->post_id, 'anchor' => "c".$this->comment->id)) ?>

@@ -1,4 +1,4 @@
-<h3><?=$this->t(['.title_html', 'name' => $this->linkTo($this->pool->pretty_name(), ['action' => 'show', 'id' => $this->pool->id])]) ?></h3>
+<h3><?=$this->t(['.title_html', 'name' => $this->linkTo($this->h($this->pool->pretty_name()), ['action' => 'show', 'id' => $this->pool->id])]) ?></h3>
 <p><?=$this->t('.info') ?></p>
 
 <script type="text/javascript">

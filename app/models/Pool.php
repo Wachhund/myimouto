@@ -360,8 +360,41 @@ class Pool extends Rails\ActiveRecord\Base
             'name' => [
                 'presence' => true,
                 'uniqueness' => true
-            ]
+            ],
+            'validate_utf8_name',
+            'validate_utf8_description'
         ];
+    }
+
+    protected function validate_utf8_name()
+    {
+        if ($this->name === null || $this->name === '') {
+            return;
+        }
+
+        if (!$this->is_valid_utf8($this->name)) {
+            $this->errors()->add('name', 'contains invalid UTF-8');
+        }
+    }
+
+    protected function validate_utf8_description()
+    {
+        if ($this->description === null || $this->description === '') {
+            return;
+        }
+
+        if (!$this->is_valid_utf8($this->description)) {
+            $this->errors()->add('description', 'contains invalid UTF-8');
+        }
+    }
+
+    protected function is_valid_utf8($value)
+    {
+        if (function_exists('mb_check_encoding')) {
+            return mb_check_encoding($value, 'UTF-8');
+        }
+
+        return preg_match('//u', $value) === 1;
     }
     
     protected function callbacks()
