@@ -3,10 +3,16 @@ class EnsureLegacyIpAddrColumnsExist extends Rails\ActiveRecord\Migration\Base
 {
     public function up()
     {
-        $this->ensureNullableVarcharColumn('dmails', 'ip_addr', 46);
-        $this->ensureNullableVarcharColumn('forum_posts', 'ip_addr', 46);
-        $this->ensureNullableVarcharColumn('forum_posts', 'updater_ip_addr', 46);
-        $this->ensureNullableVarcharColumn('comments', 'updater_ip_addr', 46);
+        $targets = [
+            ['table' => 'dmails', 'column' => 'ip_addr', 'limit' => 46],
+            ['table' => 'forum_posts', 'column' => 'ip_addr', 'limit' => 46],
+            ['table' => 'forum_posts', 'column' => 'updater_ip_addr', 'limit' => 46],
+            ['table' => 'comments', 'column' => 'updater_ip_addr', 'limit' => 46],
+        ];
+
+        foreach ($targets as $target) {
+            $this->ensureNullableVarcharColumn($target['table'], $target['column'], $target['limit']);
+        }
     }
 
     private function ensureNullableVarcharColumn($tableName, $columnName, $limit)
@@ -14,6 +20,9 @@ class EnsureLegacyIpAddrColumnsExist extends Rails\ActiveRecord\Migration\Base
         if (!$this->dbTableExists($tableName) || $this->columnExists($tableName, $columnName)) {
             return;
         }
+
+        $tableName = $this->quoteIdentifier($tableName);
+        $columnName = $this->quoteIdentifier($columnName);
 
         $sql = sprintf(
             "ALTER TABLE `%s` ADD `%s` VARCHAR(%d) NULL",
@@ -45,5 +54,14 @@ class EnsureLegacyIpAddrColumnsExist extends Rails\ActiveRecord\Migration\Base
         $count = (int)$stmt->fetchColumn();
 
         return $count > 0;
+    }
+
+    private function quoteIdentifier($identifier)
+    {
+        if (!preg_match('/^[a-z_][a-z0-9_]*$/', $identifier)) {
+            throw new \InvalidArgumentException('Invalid SQL identifier: ' . $identifier);
+        }
+
+        return str_replace('`', '``', $identifier);
     }
 }
