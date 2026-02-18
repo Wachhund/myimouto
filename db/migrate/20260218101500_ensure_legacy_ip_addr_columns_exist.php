@@ -73,7 +73,7 @@ class EnsureLegacyIpAddrColumnsExist extends Rails\ActiveRecord\Migration\Base
 
     private function quoteIdentifier($identifier)
     {
-        if (!preg_match('/^[a-z_][a-z0-9_]*$/', $identifier)) {
+        if (!preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $identifier)) {
             throw new \InvalidArgumentException('Invalid SQL identifier: ' . $identifier);
         }
 
