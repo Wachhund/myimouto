@@ -5,12 +5,30 @@
  *
  * Usage:
  *   RAILS_ENV=production php script/qa/cleanup-proj16-testdata.php --dry-run
- *   RAILS_ENV=production php script/qa/cleanup-proj16-testdata.php
+ *   PROJ16_CLEANUP_TOKEN=your-secret RAILS_ENV=production php script/qa/cleanup-proj16-testdata.php --token=your-secret
  */
 
 require dirname(__DIR__, 2) . '/config/boot.php';
 
 $dryRun = in_array('--dry-run', $argv, true);
+$runtimeToken = null;
+$dmailCondition = '(from_id IN (?) OR to_id IN (?)) AND title LIKE ?';
+
+foreach ($argv as $arg) {
+    if (str_starts_with($arg, '--token=')) {
+        $runtimeToken = substr($arg, 8);
+    }
+}
+
+if (!$dryRun) {
+    $requiredToken = getenv('PROJ16_CLEANUP_TOKEN');
+
+    if ($requiredToken === false || $requiredToken === '' || $runtimeToken === null || !hash_equals($requiredToken, $runtimeToken)) {
+        fwrite(STDERR, "Refusing destructive cleanup: set PROJ16_CLEANUP_TOKEN and pass matching --token=<value>." . PHP_EOL);
+        exit(2);
+    }
+}
+
 $targetNames = ['qa_proj16_sender', 'qa_proj16_recipient'];
 
 $users = User::where('name IN (?, ?)', $targetNames[0], $targetNames[1])->take();
@@ -25,13 +43,13 @@ if (empty($userIds)) {
     exit(0);
 }
 
-$idList = implode(',', array_map('intval', $userIds));
-
 $summary = [
     'user_ids' => $userIds,
-    'user_count' => User::where('id IN (' . $idList . ')')->count(),
+    'user_count' => User::where('id IN (?)', $userIds)->count(),
     'dmail_count' => Dmail::where(
-        '(from_id IN (' . $idList . ') OR to_id IN (' . $idList . ')) OR title LIKE ?',
+        $dmailCondition,
+        $userIds,
+        $userIds,
         'PROJ16 QA%'
     )->count(),
 ];
@@ -44,33 +62,23 @@ if ($dryRun) {
     exit(0);
 }
 
-// Remove QA dmails first to avoid orphaned rows.
-Dmail::destroyAll(
-    '(from_id IN (' . $idList . ') OR to_id IN (' . $idList . ')) OR title LIKE ?',
-    'PROJ16 QA%'
-);
+try {
+    User::transaction(function() use ($userIds, $dmailCondition) {
+        // Remove QA dmails first to avoid orphaned rows.
+        Dmail::destroyAll($dmailCondition, $userIds, $userIds, 'PROJ16 QA%');
 
-// Remove user-related rows if present in this environment.
-if (class_exists('UserBlacklistedTag', false) || class_exists('UserBlacklistedTag')) {
-    UserBlacklistedTag::destroyAll('user_id IN (' . $idList . ')');
+        // Remove user-related rows if present in this environment.
+        foreach (['UserBlacklistedTag', 'UserLog', 'PostVote', 'Favorite', 'Ban'] as $optionalModelClass) {
+            if (class_exists($optionalModelClass)) {
+                $optionalModelClass::destroyAll('user_id IN (?)', $userIds);
+            }
+        }
+
+        User::destroyAll('id IN (?)', $userIds);
+    });
+} catch (Throwable $e) {
+    fwrite(STDERR, "Cleanup failed: " . $e->getMessage() . PHP_EOL);
+    exit(1);
 }
-
-if (class_exists('UserLog', false) || class_exists('UserLog')) {
-    UserLog::destroyAll('user_id IN (' . $idList . ')');
-}
-
-if (class_exists('PostVote', false) || class_exists('PostVote')) {
-    PostVote::destroyAll('user_id IN (' . $idList . ')');
-}
-
-if (class_exists('Favorite', false) || class_exists('Favorite')) {
-    Favorite::destroyAll('user_id IN (' . $idList . ')');
-}
-
-if (class_exists('Ban', false) || class_exists('Ban')) {
-    Ban::destroyAll('user_id IN (' . $idList . ')');
-}
-
-User::destroyAll('id IN (' . $idList . ')');
 
 echo "Cleanup completed." . PHP_EOL;
