@@ -45,7 +45,8 @@
     </style>
     <script src="<?= $this->request()->protocol() ?>ie7-js.googlecode.com/svn/trunk/lib/IE7.js" type="text/javascript"></script>
   <![endif]-->
-  <?php //csrf_meta_tag ?>
+  <meta name="csrf-param" content="csrf_token">
+  <meta name="csrf-token" content="<?= $this->h($this->csrf_token) ?>">
 </head>
 <body>
   <?= $this->partial('layouts/notice') ?>

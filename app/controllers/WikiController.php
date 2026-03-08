@@ -81,7 +81,8 @@ class WikiController extends ApplicationController
 
     public function create()
     {
-        $page = WikiPage::create(array_merge($this->params()->wiki_page, ['ip_addr' => $this->request()->remoteIp(), 'user_id' => $this->current_user->id]));
+        $permitted = array_intersect_key($this->params()->wiki_page ?: [], array_flip(['title', 'body']));
+        $page = WikiPage::create(array_merge($permitted, ['ip_addr' => $this->request()->remoteIp(), 'user_id' => $this->current_user->id]));
 
         if ($page->errors()->blank()) {
             $this->respond_to_success("Page created", ["#show", 'title' => $page->title], ['location' => $this->urlFor(["#show", 'title' => $page->title])]);
@@ -110,7 +111,8 @@ class WikiController extends ApplicationController
         if ($this->page->is_locked) {
             $this->respond_to_error("Page is locked", ['action' => "show", 'title' => $this->page->title], ['status' => 422]);
         } else {
-            if ($this->page->updateAttributes(array_merge($this->params()->wiki_page, ['ip_addr' => $this->request()->remoteIp(), 'user_id' => $this->current_user->id]))) {
+            $permitted = array_intersect_key($this->params()->wiki_page ?: [], array_flip(['title', 'body']));
+            if ($this->page->updateAttributes(array_merge($permitted, ['ip_addr' => $this->request()->remoteIp(), 'user_id' => $this->current_user->id]))) {
                 $this->respond_to_success("Page updated", ['action' => "show", 'title' => $this->page->title]);
             } else {
                 $this->respond_to_error($this->page, ['action' => "show", 'title' => $this->page->title]);

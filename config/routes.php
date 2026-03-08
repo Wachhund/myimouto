@@ -20,10 +20,10 @@ MyImouto\Application::routes()->draw(function() {
     # Artist
     $this->match('artist(/index)(.:format)', 'artist#index', ['via' => ['get', 'post']]);
     $this->match('artist/create(.:format)', ['via' => ['get', 'post']]);
-    $this->match('artist/destroy(.:format)(/:id)', 'artist#destroy', ['via' => ['get', 'post']]);
+    $this->match('artist/destroy(.:format)(/:id)', 'artist#destroy', ['via' => ['get', 'post']]);  # GET shows confirmation page, POST deletes (controller checks isPost)
     $this->match('artist/preview', ['via' => ['get', 'post']]);
     $this->match('artist/show(/:id)', 'artist#show', ['via' => ['get', 'post']]);
-    $this->match('artist/update(.:format)(/:id)', 'artist#update', ['via' => ['get', 'post']]);
+    $this->match('artist/update(.:format)(/:id)', 'artist#update', ['via' => ['post', 'put']]);
 
     # Banned
     $this->match('banned(/index)', 'banned#index', ['via' => ['get', 'post']]);
@@ -101,8 +101,8 @@ MyImouto\Application::routes()->draw(function() {
 
     # JobTask
     $this->match('job_task(/index)', 'job_task#index', ['via' => ['get', 'post']]);
-    $this->match('job_task/destroy(/:id)', 'job_task#destroy', ['via' => ['get', 'post']]);
-    $this->match('job_task/restart(/:id)', 'job_task#restart', ['via' => ['get', 'post']]);
+    $this->match('job_task/destroy(/:id)', 'job_task#destroy', ['via' => ['get', 'post']]);  # GET shows confirmation, POST deletes (controller checks isPost)
+    $this->match('job_task/restart(/:id)', 'job_task#restart', ['via' => ['get', 'post']]);  # GET shows confirmation, POST restarts (controller checks isPost)
     $this->match('job_task/show(/:id)', 'job_task#show', ['via' => ['get', 'post']]);
 
     # Note
@@ -117,14 +117,14 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('pool/add_post(.:format)', 'pool#add_post', ['via' => ['get', 'post']]);
     $this->match('pool/copy(/:id)', 'pool#copy', ['via' => ['get', 'post']]);
     $this->match('pool/create(.:format)', 'pool#create', ['via' => ['get', 'post']]);
-    $this->match('pool/destroy(.:format)(/:id)', 'pool#destroy', ['via' => ['get', 'post']]);
+    $this->match('pool/destroy(.:format)(/:id)', 'pool#destroy', ['via' => ['get', 'post']]);  # GET shows confirmation page, POST deletes (controller checks isPost)
     $this->match('pool/import(/:id)', 'pool#import', ['via' => ['get', 'post']]);
     $this->match('pool/order(/:id)', 'pool#order', ['via' => ['get', 'post']]);
-    $this->match('pool/remove_post(.:format)', 'pool#remove_post', ['via' => ['get', 'post']]);
+    $this->match('pool/remove_post(.:format)', 'pool#remove_post', ['via' => 'post']);
     $this->match('pool/select', ['via' => ['get', 'post']]);
     $this->match('pool/show(.:format)(/:id)', 'pool#show', ['via' => ['get', 'post']]);
     $this->match('pool/transfer_metadata', ['via' => ['get', 'post']]);
-    $this->match('pool/update(.:format)(/:id)', 'pool#update', ['via' => ['get', 'post']]);
+    $this->match('pool/update(.:format)(/:id)', 'pool#update', ['via' => ['post', 'put']]);
     $this->match('pool/zip/:id', 'pool#zip', ['via' => ['get', 'post']]);
     $this->match('pool/zip/:id/:filename', 'pool#zip', ['constraints' => ['filename' => '/.*/'], 'via' => ['get', 'post']]);
 
@@ -161,7 +161,7 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('post(/index)(.:format)', 'post#index', ['via' => ['get', 'post']]);
     $this->match('post/count(.:format)', 'post#count', ['via' => ['get', 'post']]);
     $this->match('post/acknowledge_new_deleted_posts', ['via' => ['get', 'post']]);
-    $this->match('post/activate', ['via' => ['get', 'post']]);
+    $this->match('post/activate', ['via' => 'post']);
     $this->match('post/atom(.:format)', 'post#atom', ['format' => 'atom', 'via' => ['get', 'post']]);
     $this->match('post/browse', ['via' => ['get', 'post']]);
     $this->match('post/delete(/:id)', 'post#delete', ['via' => ['get', 'post']]);
@@ -180,8 +180,8 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('post/random(/:id)', 'post#random', ['via' => ['get', 'post']]);
     $this->match('post/show(/:id)(/*tag_title)', 'post#show', ['constraints' => ['id' => '/^\d+$/'], 'format' => false, 'via' => ['get', 'post']]);
     $this->match('post/similar(/:id)', 'post#similar', ['via' => ['get', 'post']]);
-    $this->match('post/undelete(/:id)', 'post#undelete', ['via' => ['get', 'post']]);
-    $this->match('post/update_batch', ['via' => ['get', 'post']]);
+    $this->match('post/undelete(/:id)', 'post#undelete', ['via' => 'post']);
+    $this->match('post/update_batch', ['via' => 'post']);
     $this->match('post/upload', ['via' => ['get', 'post']]);
     $this->match('post/upload_problem', ['via' => ['get', 'post']]);
     $this->match('post/view(/:id)', 'post#view', ['via' => ['get', 'post']]);
@@ -237,9 +237,9 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('tag/related(.:format)', 'tag#related', ['via' => ['get', 'post']]);
     $this->match('tag/show(/:id)', 'tag#show', ['via' => ['get', 'post']]);
     $this->match('tag/summary', ['via' => ['get', 'post']]);
-    $this->match('tag/update(.:format)', 'tag#update', ['via' => ['get', 'post']]);
-    $this->match('tag/fix_count', ['via' => ['get', 'post']]);
-    $this->match('tag/delete', ['via' => ['get', 'post']]);
+    $this->match('tag/update(.:format)', 'tag#update', ['via' => ['post', 'put']]);
+    $this->match('tag/fix_count', ['via' => 'post']);
+    $this->match('tag/delete', ['via' => ['post', 'delete']]);
 
     # TagImplication
     $this->match('tag_implication(/index)', 'tag_implication#index', ['via' => ['get', 'post']]);
@@ -248,9 +248,9 @@ MyImouto\Application::routes()->draw(function() {
 
     # TagSubscription
     $this->match('tag_subscription(/index)', 'tag_subscription#index', ['via' => ['get', 'post']]);
-    $this->match('tag_subscription/create(.:format)', ['via' => ['get', 'post']]);
-    $this->match('tag_subscription/update', ['via' => ['get', 'post']]);
-    $this->match('tag_subscription/destroy(/:id)(.:format)', 'tag_subscription#destroy', ['via' => ['get', 'post']]);
+    $this->post('tag_subscription/create(.:format)');
+    $this->match('tag_subscription/update', ['via' => ['post', 'put']]);
+    $this->match('tag_subscription/destroy(/:id)(.:format)', 'tag_subscription#destroy', ['via' => ['post', 'delete']]);
 
     # User
     $this->get('user/autocomplete_name', ['as' => 'ac_user_name']);
@@ -265,7 +265,7 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('user/home', ['via' => ['get', 'post']]);
     $this->match('user/invites', ['via' => ['get', 'post']]);
     $this->match('user/login', ['via' => ['get', 'post']]);
-    $this->match('user/logout', ['via' => ['get', 'post']]);
+    $this->match('user/logout', ['via' => ['get', 'post']]);  # GET shows confirmation, POST executes
     $this->match('user/remove_from_blacklist', ['via' => ['get', 'post']]);
     $this->match('user/resend_confirmation', ['via' => ['get', 'post']]);
     $this->match('user/reset_password', ['via' => ['get', 'post']]);

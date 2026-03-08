@@ -13992,6 +13992,26 @@ function createElement(type, className, html)
   return element;
 }
 
+/* Inject CSRF token into all non-GET Prototype AJAX requests via X-CSRF-Token header. */
+(function() {
+  var originalRequest = Ajax.Request.prototype.request;
+  Ajax.Request.prototype.request = function(url) {
+    var method = (this.options.method || 'post').toLowerCase();
+    if (method !== 'get') {
+      var tokenMeta = $$('meta[name=csrf-token]')[0];
+      if (tokenMeta) {
+        if (!this.options.requestHeaders) {
+          this.options.requestHeaders = [];
+        }
+        if (Object.isArray(this.options.requestHeaders)) {
+          this.options.requestHeaders.push('X-CSRF-Token', tokenMeta.getAttribute('content'));
+        }
+      }
+    }
+    return originalRequest.call(this, url);
+  };
+})();
+
 /* Prototype calls onSuccess instead of onFailure when the user cancelled the AJAX
  * request.  Fix that with a monkey patch, so we don't have to track changes inside
  * prototype.js. */

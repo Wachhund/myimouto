@@ -5,15 +5,13 @@ class PostSetMaintainerController extends ApplicationController
     {
         return [
             'before' => [
-                'member_only',
-                'verify_post_set_maintainer_csrf' => ['only' => ['create', 'requestAccess', 'approve', 'deny', 'block', 'revoke', 'destroy']]
+                'member_only'
             ]
         ];
     }
 
     public function index()
     {
-        $this->csrf_token = $this->form_authenticity_token();
         $this->maintainer_invites = PostSetMaintainer::where('user_id = ?', current_user()->id)
             ->order('updated_at DESC')
             ->take();
@@ -313,28 +311,4 @@ class PostSetMaintainerController extends ApplicationController
         }
     }
 
-    protected function verify_post_set_maintainer_csrf()
-    {
-        if (!$this->request()->isPost()) {
-            return;
-        }
-
-        if ($this->authenticated_with_api_key_request()) {
-            return;
-        }
-
-        if (!$this->valid_authenticity_token($this->params()->csrf_token)) {
-            $this->respondTo([
-                'html' => function() {
-                    $this->render(['text' => 'invalid authenticity token', 'status' => 403]);
-                },
-                'json' => function() {
-                    $this->render(['json' => ['success' => false, 'reason' => 'invalid authenticity token'], 'status' => 403]);
-                },
-                'xml' => function() {
-                    $this->render(['xml' => ['success' => false, 'reason' => 'invalid authenticity token'], 'root' => 'response', 'status' => 403]);
-                }
-            ]);
-        }
-    }
 }

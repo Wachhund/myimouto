@@ -15,6 +15,7 @@
 </script>
 
 <form method="post" action="/comment/moderate">
+  <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token, ['id' => '']) ?>
   <table>
     <thead>
       <tr>

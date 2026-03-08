@@ -114,7 +114,7 @@ class ApplicationController extends Rails\ActionController\Base
         if ($user) {
             if ($user->is_blocked() && $user->ban && $user->ban->expires_at < date('Y-m-d H:i:s')) {
                 $user->updateAttribute('level', CONFIG()->starting_level);
-                Ban::destroyAll("user_id = ".$user->id);
+                Ban::destroyAll("user_id = ?", $user->id);
             }
             $this->session()->user_id = $user->id;
         } else {
@@ -249,7 +249,7 @@ class ApplicationController extends Rails\ActionController\Base
         }
 
         if ($ban->expires_at && $ban->expires_at < date('Y-m-d H:i:s')) {
-            IpBans::destroyAll("ip_addr = '{$this->request()->remoteIp()}'");
+            IpBans::destroyAll("ip_addr = ?", $this->request()->remoteIp());
             return;
         }
 
@@ -444,11 +444,7 @@ class ApplicationController extends Rails\ActionController\Base
             return false;
         }
 
-        if (function_exists('hash_equals')) {
-            return hash_equals($expected, $provided);
-        }
-
-        return $expected === $provided;
+        return hash_equals($expected, $provided);
     }
 
     protected function authenticated_with_api_key_request()
@@ -456,16 +452,63 @@ class ApplicationController extends Rails\ActionController\Base
         return !empty($this->authenticated_with_api_key);
     }
 
-    private function generate_csrf_token()
+    /**
+     * Makes the CSRF token available to all views as $this->csrf_token.
+     */
+    protected function set_csrf_token()
     {
-        if (function_exists('random_bytes')) {
-            return bin2hex(random_bytes(32));
+        $this->csrf_token = $this->form_authenticity_token();
+    }
+
+    /**
+     * Global CSRF verification before-filter.
+     * Skips safe HTTP methods (GET, HEAD, OPTIONS) and API-key-authenticated requests.
+     * Checks token from: params (csrf_token / authenticity_token) and X-CSRF-Token header.
+     */
+    protected function verify_authenticity_token()
+    {
+        $requestMethod = $this->request()->get('REQUEST_METHOD') ?: 'GET';
+        if (in_array($requestMethod, ['GET', 'HEAD', 'OPTIONS'], true)) {
+            return;
         }
 
-        return sha1(uniqid(mt_rand(), true));
+        if ($this->authenticated_with_api_key_request()) {
+            return;
+        }
+
+        $token = $this->params()->csrf_token
+            ?? $this->params()->authenticity_token
+            ?? '';
+
+        if ($token === '') {
+            $headerToken = $this->request()->get('HTTP_X_CSRF_TOKEN');
+            if ($headerToken) {
+                $token = $headerToken;
+            }
+        }
+
+        if ($this->valid_authenticity_token($token)) {
+            return;
+        }
+
+        $this->respondTo([
+            'html' => function () {
+                $this->render(['text' => 'Invalid authenticity token', 'status' => 403]);
+            },
+            'json' => function () {
+                $this->render(['json' => ['success' => false, 'reason' => 'invalid authenticity token'], 'status' => 403]);
+            },
+            'xml' => function () {
+                $this->render(['xml' => ['success' => false, 'reason' => 'invalid authenticity token'], 'root' => 'response', 'status' => 403]);
+            }
+        ]);
     }
-    
-    # iTODO:
+
+    private function generate_csrf_token()
+    {
+        return bin2hex(random_bytes(32));
+    }
+
     protected function filters()
     {
         return [
@@ -475,7 +518,9 @@ class ApplicationController extends Rails\ActionController\Base
                 'set_locale',
                 'set_title',
                 'sanitize_params',
-                'check_ip_ban'
+                'check_ip_ban',
+                'set_csrf_token',
+                'verify_authenticity_token'
             ],
             'after' => [
                 'init_cookies'

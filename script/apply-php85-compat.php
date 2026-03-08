@@ -246,6 +246,28 @@ TXT,
 TXT,
         ],
     ],
+    'vendor/railsphp/railsphp/lib/Rails/ActionView/Helper/Methods/FormTag.php' => [
+        [
+            'find' => <<<'TXT'
+        ob_start();
+        if ($method != 'get' && $method != 'post')
+            echo $this->hiddenFieldTag('_method', $method, ['id' => '']);
+        $block();
+TXT,
+            'replace' => <<<'TXT'
+        ob_start();
+        if ($method != 'get' && $method != 'post')
+            echo $this->hiddenFieldTag('_method', $method, ['id' => '']);
+        if ($method != 'get') {
+            $csrfToken = $this->session()->csrf_token ?? '';
+            if ($csrfToken !== '') {
+                echo $this->hiddenFieldTag('csrf_token', $csrfToken, ['id' => '']);
+            }
+        }
+        $block();
+TXT,
+        ],
+    ],
     'vendor/zendframework/zend-db/src/Sql/AbstractSql.php' => [
         [
             'find' => <<<'TXT'

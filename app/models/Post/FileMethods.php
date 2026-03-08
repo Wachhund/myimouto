@@ -14,7 +14,7 @@ trait PostFileMethods
         'image/gif'  => 'gif',
         'video/webm' => 'webm',
         'video/mp4'  => 'mp4',
-        'application/x-shockwave-flash' => 'swf'
+        // SWF uploads disabled (stored XSS risk via Flash)
     ];
     
     /**
@@ -410,10 +410,10 @@ trait PostFileMethods
         return in_array($this->file_ext, array('jpg', 'jpeg', 'gif', 'png'));
     }
 
-    # Returns true if the post is a Flash movie.
+    # Returns true if the post is a Flash movie. (SWF uploads disabled; kept for legacy posts)
     public function flash()
     {
-        return $this->file_ext == "swf";
+        return false;
     }
     
     public function gif()

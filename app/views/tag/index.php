@@ -49,7 +49,7 @@
         <td width="<?= $this->can_delete_tags ? '80' : '60' ?>px">
             <?= $this->linkTo($this->t('tag_edit'), array('action' => 'edit', 'id' => $tag->id)) ?>
             <?php if ($this->can_delete_tags) : ?>
-            (<?= $this->linkTo('d', array_merge(array('#delete', 'id' => $tag->id), $this->params()->get()), array('title' => 'Delete tag')) ?>)
+            (<form method="post" action="<?= $this->urlFor(array_merge(['#delete', 'id' => $tag->id], $this->params()->get())) ?>" style="display:inline"><?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?><button type="submit" style="background:none;border:none;padding:0;color:inherit;cursor:pointer;text-decoration:underline;font:inherit" title="Delete tag">d</button></form>)
             <?php endif ?>
         </td>
         <td width="60px"><?= $this->linkTo($this->t('tag_history'), array('controller' => 'history', 'search' => 'tag:'.$tag->id)) ?></td>

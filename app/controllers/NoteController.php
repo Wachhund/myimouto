@@ -101,7 +101,8 @@ class NoteController extends ApplicationController
             return;
         }
 
-        $note->assignAttributes($this->params()->note);
+        $permitted = array_intersect_key($this->params()->note ?: [], array_flip(['body', 'x', 'y', 'width', 'height']));
+        $note->assignAttributes($permitted);
         $note->user_id = current_user()->id;
         $note->ip_addr = $this->request()->remoteIp();
         # iTODO:

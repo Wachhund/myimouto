@@ -21,6 +21,7 @@
 <div style="margin-bottom: 2em;">
   <h2><?= $this->t('.pending') ?></h2>
   <form method="post" action="/post/moderate">
+    <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token, ['id' => '']) ?>
     <?= $this->hiddenFieldTag("reason", "") ?>
 
     <table width="100%">
@@ -66,6 +67,7 @@
 <div>
   <h2><?= $this->t('.flagged') ?></h2>
   <form method="post" action="/post/moderate">
+    <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token, ['id' => '']) ?>
     <?= $this->hiddenFieldTag("reason2", "") ?>
 
     <table width="100%">

@@ -127,7 +127,7 @@ class Artist extends Rails\ActiveRecord\Base
     /* Alias Methods */
     protected function commit_aliases()
     {
-        self::connection()->executeSql("UPDATE artists SET alias_id = NULL WHERE alias_id = ".$this->id);
+        self::connection()->executeSql("UPDATE artists SET alias_id = NULL WHERE alias_id = ?", $this->id);
         
         if ($this->alias_names) {
             foreach ($this->alias_names as $name) {
@@ -146,7 +146,7 @@ class Artist extends Rails\ActiveRecord\Base
         if ($this->isNewRecord())
             return new Rails\ActiveRecord\Collection();
         else
-            return Artist::where("alias_id = ".$this->id)->order("name")->take();
+            return Artist::where("alias_id = ?", $this->id)->order("name")->take();
     }
 
     public function alias_name()
@@ -167,7 +167,7 @@ class Artist extends Rails\ActiveRecord\Base
     
     protected function commit_members()
     {
-        self::connection()->executeSql("UPDATE artists SET group_id = NULL WHERE group_id = ".$this->id);
+        self::connection()->executeSql("UPDATE artists SET group_id = NULL WHERE group_id = ?", $this->id);
 
         if ($this->member_names) {
             foreach ($this->member_names as $name) {
@@ -180,7 +180,7 @@ class Artist extends Rails\ActiveRecord\Base
     public function group_name()
     {
         if ($this->group_id) {
-            $artist = Artist::where('id = ' . $this->group_id)->first();
+            $artist = Artist::where('id = ?', $this->group_id)->first();
             return $artist ? $artist->name : '';
         }
     }
@@ -190,7 +190,7 @@ class Artist extends Rails\ActiveRecord\Base
         if ($this->isNewRecord())
             return new Rails\ActiveRecord\Collection();
         else
-            return Artist::where("group_id = ".$this->id)->order("name")->take();
+            return Artist::where("group_id = ?", $this->id)->order("name")->take();
     }
     
     public function member_names()

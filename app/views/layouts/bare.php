@@ -13,6 +13,8 @@
   <?= $this->javascriptIncludeTag($asset) ?>
   <?php endforeach ?>
   <?= CONFIG()->custom_html_headers ?>
+  <meta name="csrf-param" content="csrf_token">
+  <meta name="csrf-token" content="<?= $this->h($this->csrf_token) ?>">
   <?= $this->content('html_header') ?>
 </head>
 <body>

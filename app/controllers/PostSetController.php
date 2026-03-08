@@ -5,8 +5,7 @@ class PostSetController extends ApplicationController
     {
         return [
             'before' => [
-                'member_only' => ['only' => ['create', 'update', 'destroy', 'postList', 'updatePosts', 'addPost', 'removePost']],
-                'verify_post_set_csrf' => ['only' => ['create', 'update', 'destroy', 'updatePosts', 'addPost', 'removePost']]
+                'member_only' => ['only' => ['create', 'update', 'destroy', 'postList', 'updatePosts', 'addPost', 'removePost']]
             ]
         ];
     }
@@ -26,7 +25,6 @@ class PostSetController extends ApplicationController
             ->perPage($limit)
             ->paginate();
 
-        $this->csrf_token = $this->form_authenticity_token();
         $this->respond_to_list('post_sets');
     }
 
@@ -70,7 +68,6 @@ class PostSetController extends ApplicationController
 
         $this->post_ids = $visible_post_ids;
         $this->posts = new Rails\ActiveRecord\Collection($visible_posts);
-        $this->csrf_token = $this->form_authenticity_token();
 
         $this->set_title($this->post_set->name . ' - Sets');
 
@@ -91,7 +88,6 @@ class PostSetController extends ApplicationController
 
     public function create()
     {
-        $this->csrf_token = $this->form_authenticity_token();
 
         if (!$this->request()->isPost()) {
             $this->post_set = new PostSet();
@@ -124,7 +120,6 @@ class PostSetController extends ApplicationController
             return;
         }
 
-        $this->csrf_token = $this->form_authenticity_token();
         if (!$this->request()->isPost()) {
             return;
         }
@@ -172,7 +167,6 @@ class PostSetController extends ApplicationController
             return;
         }
 
-        $this->csrf_token = $this->form_authenticity_token();
         $this->post_ids_text = implode(' ', $this->post_set->post_ids());
     }
 
@@ -282,7 +276,6 @@ class PostSetController extends ApplicationController
             return;
         }
 
-        $this->csrf_token = $this->form_authenticity_token();
         $this->pending_maintainers = $this->post_set->pending_maintainers();
         $this->approved_maintainers = $this->post_set->approved_maintainers();
 
@@ -383,28 +376,4 @@ class PostSetController extends ApplicationController
         return in_array($normalized, ['1', 'true', 'yes', 'on'], true);
     }
 
-    protected function verify_post_set_csrf()
-    {
-        if (!$this->request()->isPost()) {
-            return;
-        }
-
-        if ($this->authenticated_with_api_key_request()) {
-            return;
-        }
-
-        if (!$this->valid_authenticity_token($this->params()->csrf_token)) {
-            $this->respondTo([
-                'html' => function() {
-                    $this->render(['text' => 'invalid authenticity token', 'status' => 403]);
-                },
-                'json' => function() {
-                    $this->render(['json' => ['success' => false, 'reason' => 'invalid authenticity token'], 'status' => 403]);
-                },
-                'xml' => function() {
-                    $this->render(['xml' => ['success' => false, 'reason' => 'invalid authenticity token'], 'root' => 'response', 'status' => 403]);
-                }
-            ]);
-        }
-    }
 }

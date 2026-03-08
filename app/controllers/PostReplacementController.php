@@ -9,8 +9,7 @@ class PostReplacementController extends ApplicationController
     {
         return [
             'before' => [
-                'member_only',
-                'verify_post_replacement_csrf' => ['only' => ['create', 'approve', 'reject', 'destroy']]
+                'member_only'
             ]
         ];
     }
@@ -33,7 +32,6 @@ class PostReplacementController extends ApplicationController
         }
 
         $this->post_replacements = $query->paginate($this->page_number(), 25);
-        $this->csrf_token = $this->form_authenticity_token();
 
         $this->respondTo([
             'html',
@@ -558,30 +556,4 @@ class PostReplacementController extends ApplicationController
         return $text === '' ? null : $text;
     }
 
-    protected function verify_post_replacement_csrf()
-    {
-        if (!$this->request()->isPost()) {
-            return;
-        }
-
-        if ($this->authenticated_with_api_key_request()) {
-            return;
-        }
-
-        if ($this->valid_authenticity_token($this->params()->csrf_token)) {
-            return;
-        }
-
-        $this->respondTo([
-            'html' => function() {
-                $this->render(['text' => 'invalid authenticity token', 'status' => 403]);
-            },
-            'json' => function() {
-                $this->render(['json' => ['success' => false, 'reason' => 'invalid authenticity token'], 'status' => 403]);
-            },
-            'xml' => function() {
-                $this->render(['xml' => ['success' => false, 'reason' => 'invalid authenticity token'], 'root' => 'response', 'status' => 403]);
-            }
-        ]);
-    }
 }

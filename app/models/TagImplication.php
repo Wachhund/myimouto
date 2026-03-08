@@ -69,7 +69,7 @@ class TagImplication extends Rails\ActiveRecord\Base
     
     public function approve($user_id, $ip_addr)
     {
-        self::connection()->executeSql("UPDATE tag_implications SET is_pending = FALSE WHERE id = " . $this->id);
+        self::connection()->executeSql("UPDATE tag_implications SET is_pending = FALSE WHERE id = ?", $this->id);
         
         $t = Tag::find($this->predicate_id);
         $implied_tags = implode(' ', self::with_implied(array($t->name)));

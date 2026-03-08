@@ -291,42 +291,51 @@ class User extends Rails\ActiveRecord\Base
         }
 
         if (Rails::env() == "test") {
-            # disable filtering in test mode to simplify tests
-            $popular_tags = "";
+            $popular_tags_clause = "";
+            $popular_tags_ids = [];
         } else {
-            $popular_tags = implode(', ', self::connection()->selectValues("SELECT id FROM tags WHERE tag_type = " . CONFIG()->tag_types['General'] . " ORDER BY post_count DESC LIMIT 8"));
-            if ($popular_tags)
-                $popular_tags = "AND pt.tag_id NOT IN (${popular_tags})";
+            $popular_tags_ids = self::connection()->selectValues("SELECT id FROM tags WHERE tag_type = ? ORDER BY post_count DESC LIMIT 8", CONFIG()->tag_types['General']);
+            if ($popular_tags_ids) {
+                $popular_tags_clause = "AND pt.tag_id NOT IN (?)";
+            } else {
+                $popular_tags_clause = "";
+                $popular_tags_ids = [];
+            }
         }
 
         if ($type) {
             $type = (int)$type;
-            $sql = "SELECT 
+            $sql = "SELECT
                 (SELECT name FROM tags WHERE id = pt.tag_id) AS tag, COUNT(*) AS count
                 FROM posts_tags pt, tags t, posts p
-                WHERE p.user_id = {$this->id}
+                WHERE p.user_id = ?
                 AND p.id = pt.post_id
                 AND pt.tag_id = t.id
-                {$popular_tags}
-                AND t.tag_type = {$type}
+                {$popular_tags_clause}
+                AND t.tag_type = ?
                 GROUP BY pt.tag_id
                 ORDER BY count DESC
                 LIMIT 6
             ";
+            $params = [$this->id];
+            if ($popular_tags_ids) { $params[] = $popular_tags_ids; }
+            $params[] = $type;
         } else {
-            $sql = "SELECT 
+            $sql = "SELECT
                 (SELECT name FROM tags WHERE id = pt.tag_id) AS tag, COUNT(*) AS count
                 FROM posts_tags pt, posts p
-                WHERE p.user_id = {$this->id}
+                WHERE p.user_id = ?
                 AND p.id = pt.post_id
-                ${popular_tags}
+                {$popular_tags_clause}
                 GROUP BY pt.tag_id
                 ORDER BY count DESC
                 LIMIT 6
             ";
+            $params = [$this->id];
+            if ($popular_tags_ids) { $params[] = $popular_tags_ids; }
         }
 
-        $uploaded_tags = self::connection()->select($sql);
+        $uploaded_tags = self::connection()->select($sql, ...$params);
 
         Rails::cache()->write("uploaded_tags/" . $this->id . "/" . $type, $uploaded_tags, ['expires_in' => '1 day']);
 
@@ -343,12 +352,16 @@ class User extends Rails\ActiveRecord\Base
         }
 
         if (Rails::env() == "test") {
-            # disable filtering in test mode to simplify tests
-            $popular_tags = "";
+            $popular_tags_clause = "";
+            $popular_tags_ids = [];
         } else {
-            $popular_tags = implode(', ', self::connection()->selectValues("SELECT id FROM tags WHERE tag_type = " . CONFIG()->tag_types['General'] . " ORDER BY post_count DESC LIMIT 8"));
-            if ($popular_tags)
-                $popular_tags = "AND pt.tag_id NOT IN (${popular_tags})";
+            $popular_tags_ids = self::connection()->selectValues("SELECT id FROM tags WHERE tag_type = ? ORDER BY post_count DESC LIMIT 8", CONFIG()->tag_types['General']);
+            if ($popular_tags_ids) {
+                $popular_tags_clause = "AND pt.tag_id NOT IN (?)";
+            } else {
+                $popular_tags_clause = "";
+                $popular_tags_ids = [];
+            }
         }
 
         if ($type) {
@@ -356,29 +369,34 @@ class User extends Rails\ActiveRecord\Base
             $sql = "SELECT
                 (SELECT name FROM tags WHERE id = pt.tag_id) AS tag, SUM(v.score) AS sum
                 FROM posts_tags pt, tags t, post_votes v
-                WHERE v.user_id = {$this->id}
+                WHERE v.user_id = ?
                 AND v.post_id = pt.post_id
                 AND pt.tag_id = t.id
-                {$popular_tags}
-                AND t.tag_type = {$type}
+                {$popular_tags_clause}
+                AND t.tag_type = ?
                 GROUP BY pt.tag_id
                 ORDER BY sum DESC
                 LIMIT 6
             ";
+            $params = [$this->id];
+            if ($popular_tags_ids) { $params[] = $popular_tags_ids; }
+            $params[] = $type;
         } else {
             $sql = "SELECT
                 (SELECT name FROM tags WHERE id = pt.tag_id) AS tag, SUM(v.score) AS sum
                 FROM posts_tags pt, post_votes v
-                WHERE v.user_id = {$this->id}
+                WHERE v.user_id = ?
                 AND v.post_id = pt.post_id
-                ${popular_tags}
+                {$popular_tags_clause}
                 GROUP BY pt.tag_id
                 ORDER BY sum DESC
                 LIMIT 6
             ";
+            $params = [$this->id];
+            if ($popular_tags_ids) { $params[] = $popular_tags_ids; }
         }
 
-        $favorite_tags = self::connection()->select($sql);
+        $favorite_tags = self::connection()->select($sql, ...$params);
 
         Rails::cache()->write("favorite_tags/" . $this->id . "/" . $type, $favorite_tags, ['expires_in' => '1 day']);
 
@@ -389,18 +407,18 @@ class User extends Rails\ActiveRecord\Base
     # UserPostMethods {
     public function recent_uploaded_posts()
     {
-        $posts = Post::findBySql("SELECT p.* FROM posts p WHERE p.user_id = {$this->id} AND p.status <> 'deleted' ORDER BY p.id DESC LIMIT 6");
+        $posts = Post::findBySql("SELECT p.* FROM posts p WHERE p.user_id = ? AND p.status <> 'deleted' ORDER BY p.id DESC LIMIT 6", [$this->id]);
         return $posts ?: new Rails\ActiveRecord\Collection();
     }
 
     public function recent_favorite_posts()
     {
-        return Post::findBySql('SELECT p.* FROM posts p JOIN post_votes pv ON p.id = pv.post_id WHERE pv.user_id = ' . $this->id . ' AND pv.score = 3 ORDER BY pv.updated_at DESC LIMIT 6');
+        return Post::findBySql('SELECT p.* FROM posts p JOIN post_votes pv ON p.id = pv.post_id WHERE pv.user_id = ? AND pv.score = 3 ORDER BY pv.updated_at DESC LIMIT 6', [$this->id]);
     }
 
     public function favorite_post_count($options = array())
     {
-        return self::connection()->selectValue("SELECT COUNT(*) FROM post_votes v WHERE v.user_id = {$this->id} AND v.score = 3");
+        return self::connection()->selectValue("SELECT COUNT(*) FROM post_votes v WHERE v.user_id = ? AND v.score = 3", $this->id);
     }
 
     public function post_count()
@@ -526,7 +544,7 @@ class User extends Rails\ActiveRecord\Base
         $invitee->save();
         # iTODO: add support for decrement!
         // decrement! :invite_count
-        self::connection()->executeSql("UPDATE users SET invite_count = invite_count - 1 WHERE id = ".$this->id);
+        self::connection()->executeSql("UPDATE users SET invite_count = invite_count - 1 WHERE id = ?", $this->id);
         $this->invite_count--;
         // end
     }
@@ -710,22 +728,22 @@ class User extends Rails\ActiveRecord\Base
         $sql = "
             SELECT
                 f0.user_id as user_id,
-                COUNT(*) / (SELECT sqrt((SELECT COUNT(*) FROM post_votes WHERE user_id = f0.user_id) * (SELECT COUNT(*) FROM post_votes WHERE user_id = {$this->id}))) AS similarity
+                COUNT(*) / (SELECT sqrt((SELECT COUNT(*) FROM post_votes WHERE user_id = f0.user_id) * (SELECT COUNT(*) FROM post_votes WHERE user_id = ?))) AS similarity
             FROM
                 vote v0,
                 vote v1,
                 users u
             WHERE
                 v0.post_id = v1.post_id
-                AND v1.user_id = {$this->id}
-                AND v0.user_id <> {$this->id}
+                AND v1.user_id = ?
+                AND v0.user_id <> ?
                 AND u.id = v0.user_id
             GROUP BY v0.user_id
             ORDER BY similarity DESC
             LIMIT 6
         ";
 
-        return self::connection()->select($sql);
+        return self::connection()->select($sql, $this->id, $this->id, $this->id);
     }
 
     public function set_show_samples()

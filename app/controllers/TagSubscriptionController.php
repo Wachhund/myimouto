@@ -6,15 +6,13 @@ class TagSubscriptionController extends ApplicationController
         return [
             'before' => [
                 'member_only' => ['except' => ['index']],
-                'no_anonymous',
-                'verify_tag_subscription_csrf' => ['only' => ['create', 'update', 'destroy']]
+                'no_anonymous'
             ]
         ];
     }
 
     public function create()
     {
-        $this->csrf_token = $this->form_authenticity_token();
         $this->response()->headers()->setContentType('text/javascript');
         $this->setLayout(false);
 
@@ -53,13 +51,11 @@ class TagSubscriptionController extends ApplicationController
 
     public function index()
     {
-        $this->csrf_token = $this->form_authenticity_token();
         $this->tag_subscriptions = current_user()->tag_subscriptions;
     }
 
     public function destroy()
     {
-        $this->csrf_token = $this->form_authenticity_token();
         $this->response()->headers()->setContentType('text/javascript');
         $this->setLayout(false);
 
@@ -92,33 +88,4 @@ class TagSubscriptionController extends ApplicationController
         $this->respond_to_error('Access denied', ['user#edit'], ['status' => 403]);
     }
 
-    protected function verify_tag_subscription_csrf()
-    {
-        if (!$this->request()->isPost()) {
-            return;
-        }
-
-        if ($this->authenticated_with_api_key_request()) {
-            return;
-        }
-
-        if (!$this->valid_authenticity_token($this->params()->csrf_token)) {
-            if ($this->request()->isXmlHttpRequest() || $this->request()->format() === 'js') {
-                $this->render(['text' => 'invalid authenticity token', 'status' => 403]);
-                return;
-            }
-
-            $this->respondTo([
-                'html' => function() {
-                    $this->render(['text' => 'invalid authenticity token', 'status' => 403]);
-                },
-                'json' => function() {
-                    $this->render(['json' => ['success' => false, 'reason' => 'invalid authenticity token'], 'status' => 403]);
-                },
-                'xml' => function() {
-                    $this->render(['xml' => ['success' => false, 'reason' => 'invalid authenticity token'], 'root' => 'response', 'status' => 403]);
-                }
-            ]);
-        }
-    }
 }

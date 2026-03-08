@@ -242,7 +242,8 @@ trait PostSqlMethods
 
             if (is_int($q['pool'])) {
                 $joins[] = "JOIN pools_posts ON pools_posts.post_id = p.id JOIN pools ON pools_posts.pool_id = pools.id";
-                $conds[] = "pools.id = ".$q['pool'];
+                $conds[] = "pools.id = ?";
+                $cond_params[] = $q['pool'];
             }
 
             if (is_string($q['pool'])) {

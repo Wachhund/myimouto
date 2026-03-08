@@ -36,7 +36,7 @@ class DText
         
         # htmLawed ensures valid html output.
         require_once Rails::root() . '/vendor/htmLawed/htmLawed.php';
-        return htmLawed($result);
+        return htmLawed($result, ['safe' => 1], 'span=onclick');
     }
     
     static public function parseinline($str)

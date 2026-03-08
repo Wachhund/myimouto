@@ -165,6 +165,9 @@ class CommentController extends ApplicationController
     protected function normalized_comment_params()
     {
         $comment_params = $this->params()->comment;
-        return is_array($comment_params) ? $comment_params : array();
+        if (!is_array($comment_params)) {
+            return [];
+        }
+        return array_intersect_key($comment_params, array_flip(['post_id', 'body']));
     }
 }

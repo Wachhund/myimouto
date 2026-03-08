@@ -41,7 +41,7 @@
     <li><?= $this->linkTo($this->t('.delete'), array('#delete', 'id' => $this->post->id)) ?></li>
     <?php endif ?>
     <?php if ($this->post->is_deleted() && current_user()->is_janitor_or_higher()) : ?>
-      <li><?= $this->linkTo($this->t('.undelete'), array('#undelete', 'id' => $this->post->id)) ?></li>
+      <li><form method="post" action="<?= $this->urlFor(['#undelete', 'id' => $this->post->id]) ?>" style="display:inline"><?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?><button type="submit" style="background:none;border:none;padding:0;color:inherit;cursor:pointer;text-decoration:underline;font:inherit"><?= $this->t('.undelete') ?></button></form></li>
     <?php endif ?>
     <?php if (!$this->post->is_flagged() && !$this->post->is_deleted()) : ?>
       <li><?= $this->linkToFunction($this->t('.flag'), "Post.flag(".$this->post->id.", function() { window.location.reload(); })", array('level' => 'member')) ?></li>

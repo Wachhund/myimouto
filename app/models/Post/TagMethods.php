@@ -356,12 +356,16 @@ trait PostTagMethods
         sort($new_tags_names);
         sort($this->new_tags);
         
-        $tag_set = implode(", ", array_map(function($x){return "(".$this->id.", ".$x->id.")";}, $this->new_tags));
-        
         $this->cached_tags = implode(' ', $new_tags_names);
-        
-        $sql = "INSERT INTO posts_tags (post_id, tag_id) VALUES " . $tag_set;
-        self::connection()->executeSql($sql);
+
+        $placeholders = implode(", ", array_fill(0, count($this->new_tags), "(?, ?)"));
+        $insert_params = [];
+        foreach ($this->new_tags as $tag) {
+            $insert_params[] = $this->id;
+            $insert_params[] = $tag->id;
+        }
+        $sql = "INSERT INTO posts_tags (post_id, tag_id) VALUES " . $placeholders;
+        self::connection()->executeSql($sql, ...$insert_params);
         
         # Store the old cached_tags, so we can expire them.
         $this->old_cached_tags = $this->cached_tags;
