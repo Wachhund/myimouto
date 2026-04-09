@@ -1,16 +1,44 @@
 # MyImouto
 [![PHP CI](https://github.com/Wachhund/myimouto/actions/workflows/php.yml/badge.svg)](https://github.com/Wachhund/myimouto/actions/workflows/php.yml)
+[![Latest Release](https://img.shields.io/github/v/release/Wachhund/myimouto)](https://github.com/Wachhund/myimouto/releases/latest)
 
-MyImouto is an actively maintained Moebooru port for PHP and MySQL.
+MyImouto is an actively maintained Moebooru/Danbooru-style imageboard for PHP and MySQL. Originally created by [Parziphal](https://github.com/Parziphal), the project is now under active development again with a focus on security, moderation tooling, and modern PHP compatibility.
 
 It runs on a custom Rails-inspired PHP framework and aims to stay close to Moebooru behavior while keeping a modern runtime baseline.
 
-## What Is Included
-- Image upload and management
-- Tagging with aliases and implications
-- Search and filter endpoints
-- User accounts, moderation tools, and staff workflows
-- Community features (comments, forum, dmail)
+## Features
+
+**Core**
+- Image upload, processing, and management (GD2/Imagick)
+- Tagging with aliases, implications, and type categories
+- Powerful search and filter engine with API endpoints
+- Pools, notes, and parent/child post relationships
+
+**Community**
+- User accounts with role-based access (Member → Privileged → Contributor → Janitor → Mod → Admin)
+- Comments, forum with topic subscriptions, and direct messages (dmail)
+- User profile customization and favorites
+
+**Moderation & Admin**
+- Post replacement workflow with staged uploads and admin approval
+- Mod action audit log for accountability
+- Ticket and DMCA takedown system
+- Upload whitelist for URL-based uploads
+- Exception log viewer with auto-pruning
+- IP bans, user records, and flagged post management
+
+**Security & Compliance**
+- CSRF protection on all state-changing endpoints
+- Scoped API keys with usage tracking and expiration
+- Terms of Service acceptance gate with version bumping (HTTP 451 for API)
+- User self-deletion with async data cleanup
+- Username change requests with moderation workflow
+- Rate limiting on auth endpoints
+
+**Infrastructure**
+- Background job scheduler with concurrent daemon support
+- CI pipeline (GitHub Actions): lint, PHPUnit, PHPStan, PHP-CS-Fixer
+- Asset pipeline with CSS/JS compilation and Brotli pre-compression
 
 ## Requirements
 
@@ -74,9 +102,10 @@ php config/boot.php db:migrate
 ## Contributing
 1. Fork the repository.
 2. Create a feature branch.
-3. Commit your changes.
-4. Push your branch.
-5. Open a pull request.
+3. Run quality gates before committing: `composer run ci:lint && composer run test && composer run analyse`
+4. Push your branch and open a pull request against `master`.
+
+CI runs automatically on every PR (lint, tests, static analysis, code style).
 
 ## Troubleshooting
 
@@ -92,17 +121,6 @@ Images not uploading:
 Permission errors under `public/`:
 - Verify ownership and permissions for your web server user.
 
-## Mail Namespace Migration Notes
+## License
 
-MyImouto treats `MyImouto\\Mail\\*` and `MyImouto\\Mime\\*` as canonical runtime namespaces.
-
-`Zend\\Mail\\*` and `Zend\\Mime\\*` are compatibility shims only.
-
-Shim removal criteria:
-- no first-party code depends on `Zend\\*` internals beyond compatibility entrypoints
-- mail regression tests (password reset + dmail notification paths) pass on canonical classes
-- no unresolved external/runtime references to `Zend\\*` mail classes are observed during rollout
-
-Rollback guidance:
-- keep `lib/Zend/*` wrappers in place for mixed-version deploy windows
-- if regressions occur, roll back to the previous release and keep wrappers enabled while restoring canonical behavior
+See [LICENSE](LICENSE) for details.
