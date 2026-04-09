@@ -10,6 +10,9 @@
   <div style="text-align: center;">
     <img src="/images/errors.png" alt="errors" style="margin: auto;" />
     <p style="width: 30em; margin: auto;">An error has occurred.</p>
+    <?php if (!empty($this->error_code)) : ?>
+      <p style="width: 30em; margin: auto; margin-top: 1em; font-size: 0.85em; color: #666;">Error code: <?= htmlspecialchars($this->error_code) ?></p>
+    <?php endif ?>
   </div>
 </body>
 </html>

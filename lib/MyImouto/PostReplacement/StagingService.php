@@ -53,6 +53,12 @@ class StagingService
             throw new \RuntimeException('Source URL is not allowed');
         }
 
+        // Check upload whitelist
+        $whitelist_result = \UploadWhitelist::is_allowed($source_url);
+        if (!$whitelist_result['allowed']) {
+            throw new \RuntimeException('Source URL is not on the upload whitelist: ' . $whitelist_result['reason']);
+        }
+
         $content = \Danbooru::http_get_streaming($source_url, ['max_size' => \CONFIG()->max_image_size]);
         if (!$content) {
             throw new \RuntimeException('Source URL returned no data');

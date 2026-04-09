@@ -4,8 +4,24 @@
       <?php if ($this->params()->order) : ?>
       <?= $this->hiddenFieldTag("order", $this->params()->order) ?>
       <?php endif ?>
+      <?php if ($this->params()->tags) : ?>
+      <?= $this->hiddenFieldTag("tags", $this->h($this->params()->tags)) ?>
+      <?php endif ?>
       <?= $this->textFieldTag("query", $this->h($this->params()->query), ['size' => 40]) ?>
       <?= $this->submitTag($this->t('.search'), ['name' => '']) ?>
+    <?php }) ?>
+  </div>
+
+  <div style="margin-bottom: 2em;">
+    <?= $this->formTag([], ['method' => 'get'], function(){ ?>
+      <?php if ($this->params()->order) : ?>
+      <?= $this->hiddenFieldTag("order", $this->params()->order) ?>
+      <?php endif ?>
+      <?php if ($this->params()->query) : ?>
+      <?= $this->hiddenFieldTag("query", $this->h($this->params()->query)) ?>
+      <?php endif ?>
+      <?= $this->textFieldTag("tags", $this->h($this->params()->tags), ['size' => 40, 'placeholder' => $this->t('.search_by_tags')]) ?>
+      <?= $this->submitTag($this->t('.search_tags'), ['name' => '']) ?>
     <?php }) ?>
   </div>
 

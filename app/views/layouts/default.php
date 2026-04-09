@@ -1,11 +1,20 @@
 <!DOCTYPE html>
-<html class="action-<?= $this->request()->controller() ?> action-<?= $this->request()->controller() ?>-<?= $this->request()->action() ?> hide-advanced-editing">
+<html lang="<?= Rails::application()->I18n()->locale() ?: 'en' ?>" style="color-scheme: dark" class="action-<?= $this->request()->controller() ?> action-<?= $this->request()->controller() ?>-<?= $this->request()->action() ?> hide-advanced-editing">
 <head>
-  <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#222">
   <title><?= $this->html_title() ?></title>
   <meta name="description" content="<?= CONFIG()->app_name ?>">
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
   <link rel="top" title="<?= CONFIG()->app_name ?>" href="/">
+  <?php
+    $image_host = parse_url(CONFIG()->url_base, PHP_URL_HOST);
+    $page_host  = $this->request()->host();
+    if ($image_host && $image_host !== $page_host) {
+        echo '  <link rel="preconnect" href="' . rtrim(CONFIG()->url_base, '/') . "\">\n";
+    }
+  ?>
   <?php # The javascript-hide class is used to hide elements (eg. blacklisted posts) from JavaScript. ?>
   <script type="text/javascript">
     var css = ".javascript-hide { display: none !important; }";
@@ -44,6 +53,7 @@
   <meta name="csrf-token" content="<?= $this->h($this->csrf_token) ?>">
 </head>
 <body>
+  <a href="#content" class="skip-link"><?= $this->t('skip_to_content', 'Skip to content') ?></a>
   <?= $this->partial('layouts/news') ?>
   <div id="header">
     <div id="title"><h2 id="site-title"><?= $this->linkTo($this->imageTag('images/logo_small.png', array('alt' => CONFIG()->app_name, 'size' => '484x75', 'id' => 'logo')), CONFIG()->url_base) ?><span><?= $this->tag_header($this->h($this->params()->tags)) ?></span></h2></div>
@@ -71,7 +81,7 @@
   <div class="blocked" id="block-reason" style="display: none;">
   </div>
 
-  <div id="content">
+  <main id="content">
     <?= $this->content() ?>
     <?php if ($this->contentFor('subnavbar')) : ?>
       <div class="footer">
@@ -81,7 +91,7 @@
         </ul>
       </div>
     <?php endif ?>
-  </div>
+  </main>
 
   <script type="text/javascript">
     InitTextAreas();

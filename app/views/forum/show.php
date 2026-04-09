@@ -5,6 +5,16 @@
   </div>
 <?php endif ?>
 
+<?php if (!current_user()->is_anonymous()) : ?>
+  <div style="margin-bottom: 0.5em;">
+    <?php if (ForumTopicSubscription::is_subscribed(current_user()->id, $this->forum_post->id)) : ?>
+      <?= $this->linkTo("&#x2605; Unsubscribe", ['action' => "unsubscribe", 'id' => $this->forum_post->id], ['method' => 'post', 'class' => 'forum-subscribe-btn']) ?>
+    <?php else: ?>
+      <?= $this->linkTo("&#x2606; Subscribe", ['action' => "subscribe", 'id' => $this->forum_post->id], ['method' => 'post', 'class' => 'forum-subscribe-btn']) ?>
+    <?php endif ?>
+  </div>
+<?php endif ?>
+
 <div id="forum" class="response-list">
   <?php if ($this->page_number <= 1) : ?>
     <?= $this->partial("post", ['post' => $this->forum_post]) ?>

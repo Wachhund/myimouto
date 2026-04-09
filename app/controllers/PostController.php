@@ -766,11 +766,16 @@ class PostController extends ApplicationController
                 return;
             }
 
-            if (!current_user()->is_mod_or_higher() and current_user()->id != $post->flag_detail->user_id) {
+            $latest_flag = $post->latest_flag();
+            if (!current_user()->is_janitor_or_higher() and (!$latest_flag || current_user()->id != $latest_flag->user_id)) {
                 $this->access_denied();
                 return;
             }
 
+            # Resolve the flag via resolve() instead of approve()
+            if ($latest_flag) {
+                $latest_flag->resolve(current_user()->id);
+            }
             $post->approve(current_user()->id);
             $message = "Post approved";
         } else {
@@ -779,7 +784,40 @@ class PostController extends ApplicationController
                 return;
             }
 
-            $post->flag($this->params()->reason, current_user()->id);
+            # Cooldown check: non-janitors cannot flag the same post within 24 hours
+            if (!current_user()->is_janitor_or_higher() && !FlaggedPostDetail::can_flag_again(current_user()->id, $post->id)) {
+                $this->respond_to_error("You can only flag a post once every 24 hours", array("#show", 'id' => $this->params()->id));
+                return;
+            }
+
+            $reason_category = $this->params()->reason_category;
+            $parent_post_id = $this->params()->parent_post_id;
+
+            // Validate reason_category against configured reasons
+            $valid_categories = array_keys(CONFIG()->flag_reasons);
+            if ($reason_category && !in_array($reason_category, $valid_categories)) {
+                $this->respond_to_error("Invalid flag reason category", array("#show", 'id' => $this->params()->id));
+                return;
+            }
+
+            // Validate requires_detail
+            if ($reason_category && !empty(CONFIG()->flag_reasons[$reason_category]['requires_detail'])) {
+                if (!$this->params()->reason || trim($this->params()->reason) === '') {
+                    $this->respond_to_error("This flag reason requires a detailed explanation", array("#show", 'id' => $this->params()->id));
+                    return;
+                }
+            }
+
+            // Validate parent_post_id references an existing, non-deleted post
+            if ($parent_post_id) {
+                $parent = Post::where('id = ? AND status <> ?', (int)$parent_post_id, 'deleted')->first();
+                if (!$parent) {
+                    $this->respond_to_error("Referenced parent post does not exist or is deleted", array("#show", 'id' => $this->params()->id));
+                    return;
+                }
+            }
+
+            $post->flag($this->params()->reason, current_user()->id, $reason_category, $parent_post_id);
             $message = "Post flagged";
         }
 
@@ -892,6 +930,10 @@ class PostController extends ApplicationController
                 # Save the file locally.
                 try {
                     if (!empty($params['url'])) {
+                        $whitelist_result = UploadWhitelist::is_allowed($params['url']);
+                        if (!$whitelist_result['allowed']) {
+                            return ['errors' => ['error' => 'URL is not on the upload whitelist: ' . $whitelist_result['reason']]];
+                        }
                         $file = Danbooru::http_get_streaming($params['url']);
                         $search = SimilarImages::save_search($file);
                     } else { # file

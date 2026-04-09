@@ -427,8 +427,7 @@ ul.bare-list li {
   padding: 0px 2px 1px 2px;
   margin-right: 0.6em;
 }
-#main-menu a:focus {
-  /* XXX: isn't working in IE7 */
+#main-menu a:focus:not(:focus-visible) {
   outline: none;
 }
 #main-menu .selected-menu {
@@ -1115,14 +1114,14 @@ div.response-list > div.comment > div.content > div.post-footer a {
   color: #666;
 }
 
-div.sidebar {
+.sidebar {
   width: 20%;
   margin-right: 1em;
   float: left;
   overflow: visible;
 }
 
-div.sidebar li {
+.sidebar li {
   list-style-type: none;
   margin: 0;
 }
@@ -1465,7 +1464,7 @@ img.service-icon#source {
 }
 
 
-.score:focus {
+.score:focus:not(:focus-visible) {
 	outline: none;
 }
 .score > span {
@@ -1479,7 +1478,7 @@ span.stars .star-1 { color:#0a0; }
 span.stars .star-2 { color:#0f0; }
 span.stars .star-3 { color:#ff0; }
 
-.star:focus {
+.star:focus:not(:focus-visible) {
 	outline: none;
 }
 
@@ -2139,6 +2138,10 @@ ul.login-tabs li > a:hover {
   padding: 2px 6px;
   border: 1px solid #EAEAEA;
   margin: 10px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
 }
 
 #login-popup-submit:hover {
@@ -2229,7 +2232,7 @@ P,.inline-image + .inline-image > .inline-thumb
 	background: rgb(40, 40, 180);
 	color: white;
 }
-.inline-image .expanded-image-ui .select-image:focus
+.inline-image .expanded-image-ui .select-image:focus:not(:focus-visible)
 {
 	outline: none;
 }
@@ -2318,4 +2321,56 @@ div#news-ticker li {
 
 div#news-ticker a#close-news-ticker-link {
   float: right;
+}
+
+/* PROJ-34: Accessibility */
+
+/* Skip-Link */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 10000;
+  padding: 0.5em 1em;
+  background: #333;
+  color: #fff;
+}
+.skip-link:focus {
+  position: static;
+  left: auto;
+}
+
+/* Focus-visible indicators */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #6cf;
+  outline-offset: 2px;
+}
+
+/* Touch: reduce double-tap zoom delay */
+a, button, input, select, textarea {
+  touch-action: manipulation;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* PROJ-35: Tabular numerics for scores, IDs, dimensions */
+.post-score, .directlink-res, [id^="post-score-"], #paginator a, #paginator .current {
+  font-variant-numeric: tabular-nums;
+}
+
+/* PROJ-35: Balanced text wrapping for headings */
+h1, h2, h3, h4 {
+  text-wrap: balance;
 }

@@ -93,13 +93,53 @@ class User extends Rails\ActiveRecord\Base
     
     static public function authenticate($name, $pass)
     {
-        return self::authenticate_hash($name, self::sha1($pass));
+        $user = parent::where("lower(name) = lower(?)", $name)->first();
+        if (!$user) {
+            return null;
+        }
+
+        // Try bcrypt first
+        if ($user->bcrypt_password_hash) {
+            if (password_verify($pass, $user->bcrypt_password_hash)) {
+                return $user;
+            }
+            return null;
+        }
+
+        // SHA1 fallback for accounts not yet migrated
+        if ($user->password_hash && $user->password_hash === self::sha1($pass)) {
+            // Transparent migration to bcrypt
+            $user->bcrypt_password_hash = self::hashPassword($pass);
+            $user->updateAttribute('bcrypt_password_hash', $user->bcrypt_password_hash);
+            return $user;
+        }
+
+        return null;
     }
 
     static public function authenticate_hash($name, $pass)
     {
         $user = parent::where("lower(name) = lower(?) AND password_hash = ?", $name, $pass)->first();
         return $user;
+    }
+
+    static public function authenticate_remember_token($name, $token)
+    {
+        $user = parent::where("lower(name) = lower(?)", $name)->first();
+        if (!$user || !$user->remember_token) {
+            return null;
+        }
+
+        if (hash_equals($user->remember_token, hash('sha256', $token))) {
+            return $user;
+        }
+
+        return null;
+    }
+
+    static public function hashPassword($plaintext)
+    {
+        return password_hash($plaintext, PASSWORD_BCRYPT, ['cost' => 12]);
     }
     
     static public function authenticate_with_api_key($name, $api_key)
@@ -127,11 +167,7 @@ class User extends Rails\ActiveRecord\Base
 
     static private function generate_api_key()
     {
-        if (function_exists('random_bytes')) {
-            return rtrim(strtr(base64_encode(random_bytes(24)), '+/', '-_'), '=');
-        }
-
-        return substr(sha1(uniqid(mt_rand(), true)), 0, 32);
+        return rtrim(strtr(base64_encode(random_bytes(24)), '+/', '-_'), '=');
     }
     
     # } UserPasswordMethods {
@@ -153,24 +189,70 @@ class User extends Rails\ActiveRecord\Base
     
     protected function _encrypt_password()
     {
-        if ($this->password)
+        if ($this->password) {
+            $this->bcrypt_password_hash = self::hashPassword($this->password);
+            // Keep SHA1 hash for rollback compatibility
             $this->password_hash = self::sha1($this->password);
+            // Invalidate remember token on password change
+            $this->remember_token = null;
+        }
+    }
+
+    public function generate_reset_token()
+    {
+        $raw_token = bin2hex(random_bytes(32));
+        $hashed = hash('sha256', $raw_token);
+        $expires_at = date('Y-m-d H:i:s', time() + 86400); // 24 hours
+
+        self::connection()->executeSql(
+            "UPDATE users SET reset_token = ?, reset_token_expires_at = ? WHERE id = ?",
+            $hashed,
+            $expires_at,
+            $this->id
+        );
+
+        $this->reset_token = $hashed;
+        $this->reset_token_expires_at = $expires_at;
+
+        return $raw_token;
+    }
+
+    public function validate_reset_token($raw_token)
+    {
+        if (!$this->reset_token || !$this->reset_token_expires_at) {
+            return false;
+        }
+
+        if ($this->reset_token_expires_at < date('Y-m-d H:i:s')) {
+            return false;
+        }
+
+        return hash_equals($this->reset_token, hash('sha256', $raw_token));
+    }
+
+    public function apply_new_password($new_password)
+    {
+        $bcrypt_hash = self::hashPassword($new_password);
+        $sha1_hash = self::sha1($new_password);
+
+        self::connection()->executeSql(
+            "UPDATE users SET bcrypt_password_hash = ?, password_hash = ?, reset_token = NULL, reset_token_expires_at = NULL, remember_token = NULL WHERE id = ?",
+            $bcrypt_hash,
+            $sha1_hash,
+            $this->id
+        );
+
+        $this->bcrypt_password_hash = $bcrypt_hash;
+        $this->password_hash = $sha1_hash;
+        $this->reset_token = null;
+        $this->reset_token_expires_at = null;
+        $this->remember_token = null;
     }
 
     public function reset_password()
     {
-        $consonants = "bcdfghjklmnpqrstvqxyz";
-        $vowels = "aeiou";
-        $pass = "";
-
-        foreach (range(1, 4) as $i) {
-            $pass .= substr($consonants, rand(0, 20), 1);
-            $pass .= substr($vowels, rand(0, 4), 1);
-        }
-
-        $pass .= rand(0, 100);
-        self::connection()->executeSql("UPDATE users SET password_hash = ? WHERE id = ?", self::sha1($pass), $this->id);
-        return $pass;
+        $raw_token = $this->generate_reset_token();
+        return $raw_token;
     }
     
     public function setPasswordConfirmation($value)
@@ -513,6 +595,11 @@ class User extends Rails\ActiveRecord\Base
     }
     # }
 
+    public function has_active_negative_records()
+    {
+        return (int)UserRecord::where('user_id = ? AND category = ? AND is_deleted = 0', $this->id, 'negative')->count() > 0;
+    }
+
     # module UserInviteMethods {
     public function invite($name, $level)
     {
@@ -528,8 +615,8 @@ class User extends Rails\ActiveRecord\Base
         if (!$invitee) {
             throw new Rails\ActiveRecord\Exception\RecordNotFoundException();
         }
-        
-        if (UserRecord::where("user_id = ? AND is_positive = false AND reported_by IN (SELECT id FROM users WHERE level >= ?)", $invitee->id, CONFIG()->user_levels["Mod"])->exists() && !$this->is_admin()) {
+
+        if (UserRecord::where("user_id = ? AND category = 'negative' AND is_deleted = 0 AND reported_by IN (SELECT id FROM users WHERE level >= ?)", $invitee->id, CONFIG()->user_levels["Mod"])->exists() && !$this->is_admin()) {
             throw new User_HasNegativeRecord();
         }
 
@@ -866,7 +953,7 @@ class User extends Rails\ActiveRecord\Base
     
     protected function attrProtected()
     {
-        return ['level', 'invite_count'];
+        return ['level', 'invite_count', 'password_hash', 'bcrypt_password_hash', 'remember_token', 'reset_token', 'reset_token_expires_at', 'failed_login_count'];
     }
     
     private function parse_is_level_or($method)

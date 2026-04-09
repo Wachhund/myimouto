@@ -10,6 +10,7 @@ class UserController extends ApplicationController
                 'mod_only'            => ['only' => ['block', 'unblock', 'showBlockedUsers']],
                 'post_member_only'    => ['only' => ['setAvatar']],
                 'no_anonymous'        => ['only' => ['changePassword', 'changeEmail']],
+                'member_only'         => ['only' => ['deleteAccount', 'executeDeleteAccount']],
                 'set_settings_layout' => ['only' => ['changePassword', 'changeEmail', 'edit']]
             ]
         ];
@@ -173,15 +174,42 @@ class UserController extends ApplicationController
             $this->redirectTo('root');
             return;
         }
-        
+
+        $ip = $this->request()->remoteIp();
+
+        // AC-6: IP-based rate limit (10 per 15 minutes)
+        if (\MyImouto\RateLimiter::isLimited('login_ip:' . $ip, 10, 900)) {
+            $retry = \MyImouto\RateLimiter::retryAfter(900);
+            $this->response()->headers()->add('Retry-After', (string)$retry);
+            $this->respond_to_error(
+                'Too many login attempts. Please try again later.',
+                ['#login'],
+                ['status' => 429, 'api' => ['retry_after' => $retry]]
+            );
+            return;
+        }
+
         $user = User::where(['name' => $this->params()->username])->first();
-        
+
         $ret['exists'] = false;
         $ret['name'] = $this->params()->username;
 
         if (!$user) {
+            \MyImouto\RateLimiter::hit('login_ip:' . $ip, 900);
             $ret['response'] = "unknown-user";
             $this->respond_to_success("User does not exist", array(), array('api' => $ret));
+            return;
+        }
+
+        // AC-10: Account-based lockout (20 per 30 minutes)
+        if (\MyImouto\RateLimiter::isLimited('login_account:' . $user->id, 20, 1800)) {
+            $retry = \MyImouto\RateLimiter::retryAfter(1800);
+            $this->response()->headers()->add('Retry-After', (string)$retry);
+            $this->respond_to_error(
+                'Too many login attempts. Please try again later.',
+                ['#login'],
+                ['status' => 429, 'api' => ['retry_after' => $retry]]
+            );
             return;
         }
 
@@ -194,18 +222,22 @@ class UserController extends ApplicationController
 
         $pass = $this->params()->password ?: "";
 
-        $user = User::authenticate($this->params()->username, $pass);
+        $authenticated_user = User::authenticate($this->params()->username, $pass);
 
-        if (!$user) {
+        if (!$authenticated_user) {
+            \MyImouto\RateLimiter::hit('login_ip:' . $ip, 900);
+            \MyImouto\RateLimiter::hit('login_account:' . $user->id, 1800);
             $ret['response'] = "wrong-password";
             $this->respond_to_success("Wrong password", array(), array('api' => $ret));
             return;
         }
 
-        $ret['pass_hash'] = $user->password_hash;
-        $ret['user_info'] = $user->user_info_cookie();
+        // Set login cookies server-side (remember_token is HttpOnly)
+        $this->_save_cookies($authenticated_user);
+
+        $ret['user_info'] = $authenticated_user->user_info_cookie();
         $ret['response']  = 'success';
-        
+
         $this->respond_to_success("Successful", array(), array('api' => $ret));
     }
 
@@ -216,8 +248,22 @@ class UserController extends ApplicationController
 
     public function create()
     {
+        // AC-7: Registration rate limit (3 per IP per hour)
+        $ip = $this->request()->remoteIp();
+        if (\MyImouto\RateLimiter::isLimited('signup_ip:' . $ip, 3, 3600)) {
+            $retry = \MyImouto\RateLimiter::retryAfter(3600);
+            $this->response()->headers()->add('Retry-After', (string)$retry);
+            $this->respond_to_error(
+                'Too many registration attempts. Please try again later.',
+                ['#signup'],
+                ['status' => 429, 'api' => ['retry_after' => $retry]]
+            );
+            return;
+        }
+
+        \MyImouto\RateLimiter::hit('signup_ip:' . $ip, 3600);
         $user = User::create($this->params()->user);
-        
+
         if ($user->errors()->blank()) {
             $this->_save_cookies($user);
 
@@ -225,7 +271,6 @@ class UserController extends ApplicationController
                 'exists'    => false,
                 'name'      => $user->name,
                 'id'        => $user->id,
-                'pass_hash' => $user->password_hash,
                 'user_info' => $user->user_info_cookie()
             ];
 
@@ -245,9 +290,16 @@ class UserController extends ApplicationController
     public function logout()
     {
         $this->set_title('Logout');
+
+        // Invalidate remember token in DB
+        if (!current_user()->is_anonymous()) {
+            current_user()->updateAttribute('remember_token', null);
+        }
+
         $this->session()->delete('user_id');
         $this->cookies()->delete('login');
         $this->cookies()->delete('pass_hash');
+        $this->cookies()->delete('remember_token');
 
         $dest = $this->params()->from ?: '#home';
         $this->respond_to_success("You are now logged out", $dest);
@@ -306,8 +358,53 @@ class UserController extends ApplicationController
     public function resetPassword()
     {
         $this->set_title('Reset Password');
-        
+
+        // Handle token-based password reset (user clicked link in email)
+        if ($this->params()->token && $this->request()->isGet()) {
+            $this->reset_token = $this->params()->token;
+            return;
+        }
+
+        // Handle new password submission with token
+        if ($this->params()->token && $this->request()->isPost() && isset($this->params()->user['password'])) {
+            $raw_token = $this->params()->token;
+            // Find user by reset token hash
+            $hashed = hash('sha256', $raw_token);
+            $user = User::where(['reset_token' => $hashed])->first();
+
+            if (!$user || !$user->validate_reset_token($raw_token)) {
+                $this->respond_to_error("Invalid or expired reset token", '#reset_password', ['api' => ['result' => "invalid-token"]]);
+                return;
+            }
+
+            $new_password = $this->params()->user['password'];
+            if (strlen($new_password) < 5) {
+                $this->respond_to_error("Password must be at least 5 characters", '#reset_password', ['api' => ['result' => "password-too-short"]]);
+                return;
+            }
+
+            $user->apply_new_password($new_password);
+            $this->respond_to_success("Password has been reset. You can now log in.", '#login', ['api' => ['result' => "success"]]);
+            return;
+        }
+
+        // Handle reset request (generate token + send email)
         if ($this->request()->isPost()) {
+            // AC-8: Rate limit reset requests (3 per IP per hour)
+            // Token-based password submissions are not rate-limited here.
+            $ip = $this->request()->remoteIp();
+            if (\MyImouto\RateLimiter::isLimited('reset_ip:' . $ip, 3, 3600)) {
+                $retry = \MyImouto\RateLimiter::retryAfter(3600);
+                $this->response()->headers()->add('Retry-After', (string)$retry);
+                $this->respond_to_error(
+                    'Too many password reset attempts. Please try again later.',
+                    ['#reset_password'],
+                    ['status' => 429, 'api' => ['retry_after' => $retry]]
+                );
+                return;
+            }
+
+            \MyImouto\RateLimiter::hit('reset_ip:' . $ip, 3600);
             $this->user = User::where(['name' => $this->params()->user['name']])->first();
 
             if (!$this->user) {
@@ -326,18 +423,14 @@ class UserController extends ApplicationController
                                                  '#login', ['api' => ['result' => "wrong-email"]]);
                 return;
             }
-            
-            # iTODO:
+
             try {
-                // User.transaction do
-                    # If the email is invalid, abort the password reset
-                    $new_password = $this->user->reset_password();
-                    UserMailer::mail('new_password', [$this->user, $new_password])->deliver();
-                    $this->respond_to_success("Password reset. Check your email in a few minutes.",
-                                                     '#login', ['api' => ['result' => "success"]]);
-                    return;
-                // end
-            } catch (\Throwable $e) { // rescue Net::SMTPSyntaxError, Net::SMTPFatalError
+                $reset_token = $this->user->reset_password();
+                UserMailer::mail('password_reset', [$this->user, $reset_token])->deliver();
+                $this->respond_to_success("Password reset link sent. Check your email in a few minutes.",
+                                                 '#login', ['api' => ['result' => "success"]]);
+                return;
+            } catch (\Throwable $e) {
                 Rails::log()->exception($e);
                 $this->respond_to_success("Your email address was invalid",
                                                  '#login', ['api' => ['result' => "invalid-email"]]);
@@ -474,6 +567,76 @@ class UserController extends ApplicationController
         $this->post = Post::find($this->params()->id);
     }
 
+    /**
+     * GET: Show self-deletion confirmation form.
+     */
+    public function deleteAccount()
+    {
+        $this->set_title('Delete Account');
+
+        // Staff accounts cannot be self-deleted
+        if (current_user()->is_mod_or_higher()) {
+            $this->respond_to_error(
+                "Staff accounts cannot be self-deleted. Contact an administrator.",
+                '#home'
+            );
+            return;
+        }
+
+        // Blocked users cannot self-delete
+        if (current_user()->level <= CONFIG()->user_levels['Blocked']) {
+            $this->respond_to_error(
+                "Banned accounts cannot be self-deleted",
+                '#home'
+            );
+            return;
+        }
+
+        // Account must be at least 1 week old
+        if (strtotime(current_user()->created_at) > strtotime('-1 week')) {
+            $this->respond_to_error(
+                "Account must be at least 1 week old to be deleted",
+                '#home'
+            );
+            return;
+        }
+    }
+
+    /**
+     * POST: Execute self-service account deletion.
+     */
+    public function executeDeleteAccount()
+    {
+        $password = trim((string)($this->params()->password ?: ''));
+
+        if ($password === '') {
+            $this->respond_to_error("Password is required", '#delete_account');
+            return;
+        }
+
+        if (!$this->params()->confirm_deletion) {
+            $this->respond_to_error("You must confirm the deletion", '#delete_account');
+            return;
+        }
+
+        try {
+            \MyImouto\UserDeletion\DeletionService::selfDelete(current_user(), $password);
+
+            // Log the user out after successful deletion
+            $this->session()->delete('user_id');
+            $this->cookies()->delete('login');
+            $this->cookies()->delete('pass_hash');
+            $this->cookies()->delete('remember_token');
+
+            $this->respond_to_success(
+                "Your account has been deleted",
+                '#home'
+            );
+        } catch (\RuntimeException $e) {
+            $this->respond_to_error($e->getMessage(), '#delete_account');
+        }
+    }
+
     public function error()
     {
         $report = $this->params()->report;
@@ -495,10 +658,28 @@ class UserController extends ApplicationController
     
     protected function _save_cookies($user)
     {
-        $this->cookies()->login = ['value' => $user->name, 'expires' => strtotime('+1 year')];
-        $this->cookies()->pass_hash = ['value' => $user->password_hash, 'expires' => strtotime('+1 year')];
+        $is_https = str_starts_with(CONFIG()->url_base, 'https://');
+        $cookie_flags = [
+            'expires'  => strtotime('+1 year'),
+            'httponly'  => true,
+            'samesite' => 'Lax',
+            'secure'   => $is_https,
+        ];
+
+        // Generate remember token
+        $raw_token = bin2hex(random_bytes(32));
+        $hashed_token = hash('sha256', $raw_token);
+        $user->updateAttribute('remember_token', $hashed_token);
+
+        $this->cookies()->login = array_merge($cookie_flags, ['value' => $user->name]);
+        $this->cookies()->remember_token = array_merge($cookie_flags, ['value' => $raw_token]);
         $this->cookies()->user_id = ['value' => $user->id, 'expires' => strtotime('+1 year')];
         $this->session()->user_id = $user->id;
+
+        // AC-9: Store password hash token for session invalidation on password change.
+        if ($user->bcrypt_password_hash) {
+            $this->session()->ph = crc32($user->bcrypt_password_hash);
+        }
     }
 
     protected function sanitized_user_update_params()

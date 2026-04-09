@@ -48,6 +48,20 @@ class FlaggedPostDetail extends Rails\ActiveRecord\Base
         }
     }
 
+    public function resolve($resolver_id)
+    {
+        $this->updateAttributes(['is_resolved' => true, 'resolved_by' => $resolver_id]);
+    }
+
+    static public function can_flag_again($user_id, $post_id)
+    {
+        $count = self::connection()->selectValue(
+            "SELECT COUNT(*) FROM flagged_post_details WHERE user_id = ? AND post_id = ? AND created_at > ?",
+            $user_id, $post_id, date('Y-m-d H:i:s', strtotime('-24 hours'))
+        );
+        return (int)$count === 0;
+    }
+
     public function api_attributes()
     {
         $ret = array(
@@ -56,9 +70,21 @@ class FlaggedPostDetail extends Rails\ActiveRecord\Base
             'created_at' => $this->created_at
         );
 
+        if ($this->reason_category) {
+            $ret['reason_category'] = $this->reason_category;
+        }
+
+        if ($this->parent_post_id) {
+            $ret['parent_post_id'] = $this->parent_post_id;
+        }
+
         if (!$this->hide_user) {
             $ret['user_id']    = $this->user_id;
             $ret['flagged_by'] = $this->flagged_by();
+        }
+
+        if ($this->resolved_by) {
+            $ret['resolved_by'] = $this->resolved_by;
         }
 
         return $ret;

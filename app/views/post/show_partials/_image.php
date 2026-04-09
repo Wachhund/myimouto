@@ -16,13 +16,14 @@
         $jpeg        = $this->post->get_file_jpeg(current_user());
         
         echo $this->imageTag($file_sample['url'], array(
-                    'alt'          => $this->post->tags(),
-                    'id'           => 'image',
-                    'class'        => 'image',
-                    'width'        => $file_sample['width']  ?: $jpeg['width'],
-                    'height'       => $file_sample['height'] ?: $jpeg['height'],
-                    'large_width'  => $jpeg['width'],
-                    'large_height' => $jpeg['height'])); ?>
+                    'alt'           => $this->post->tags(),
+                    'id'            => 'image',
+                    'class'         => 'image',
+                    'width'         => $file_sample['width']  ?: $jpeg['width'],
+                    'height'        => $file_sample['height'] ?: $jpeg['height'],
+                    'large_width'   => $jpeg['width'],
+                    'large_height'  => $jpeg['height'],
+                    'fetchpriority' => 'high')); ?>
     <?php else: ?>
       <h2><a href="<?= $this->post->file_url() ?>"><?= $this->t('post_download') ?></a></h2>
       <p><?= $this->t('post_download_text') ?></p>

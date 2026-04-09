@@ -48,12 +48,12 @@
         <tr>
           <td>
             <?php if ($fp->can_be_seen_by($this->current_user)) : ?>
-              <?= $this->linkTo($this->imageTag($fp->preview_url(), ['width' => $fp->preview_dimensions()[0], 'height' => $fp->preview_dimensions()[1]]), ["post#show", 'id' => $fp->id], ['title' => $fp->cached_tags])?>
+              <?= $this->linkTo($this->imageTag($fp->preview_url(), ['width' => $fp->preview_dimensions()[0], 'height' => $fp->preview_dimensions()[1], 'loading' => 'lazy']), ["post#show", 'id' => $fp->id], ['title' => $fp->cached_tags])?>
             <?php endif ?>
           </td>
           <td>
             <?php if ($tp->can_be_seen_by($this->current_user)) : ?>
-              <?= $this->linkTo($this->imageTag($tp->preview_url(), ['width' => $tp->preview_dimensions()[0], 'height' => $tp->preview_dimensions()[1]]), ["post#show", 'id' => $tp->id], ['title' => $tp->cached_tags])?>
+              <?= $this->linkTo($this->imageTag($tp->preview_url(), ['width' => $tp->preview_dimensions()[0], 'height' => $tp->preview_dimensions()[1], 'loading' => 'lazy']), ["post#show", 'id' => $tp->id], ['title' => $tp->cached_tags])?>
             <?php endif ?>
           </td>
           <td>

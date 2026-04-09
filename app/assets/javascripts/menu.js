@@ -82,7 +82,7 @@
      */
     sync_forum_menu: function() {
       // Reset latest topics.
-      var forum_menu_items = $.parseJSON($.cookie('current_forum_posts'));
+      var forum_menu_items = JSON.parse($.cookie('current_forum_posts'));
       var create_forum_item = function(forum_json) {
         return $('<li/>', {
           html: $('<a/>', {

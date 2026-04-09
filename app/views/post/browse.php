@@ -1,10 +1,6 @@
 <?= $this->contentFor('html_header', function() { ?>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <script type="text/javascript">
-    if(navigator.platform.indexOf("iPhone") != -1 || navigator.platform == "iPad" || navigator.platform == "iPod") // includes "iPhone Simulator"
-      document.write('<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">');
-    else
-      document.write('<meta name="viewport" content="target-densityDpi=150; user-scalable=0;">');
-
     if(navigator.platform == "iPad")
       document.write('<link rel="apple-touch-startup-image" href="/images/iphone-startup-ipad.png">');
     else
@@ -18,9 +14,8 @@
 
   <link rel="apple-touch-icon" href="/images/iphone-icon.png">
   <style type="text/css">
-    /* iPhone tends to highlight things oddly, sometimes even highlighting the
-     * entire page on swipe.  Turn tap highlighting off. */
-    * { -webkit-tap-highlight-color: rgba(0,0,0,0); }
+    /* Subtle tap highlight instead of completely disabling it */
+    * { -webkit-tap-highlight-color: rgba(255,255,255,0.1); }
   </style>
 <?php }) ?>
 
@@ -30,7 +25,7 @@
 
 <div id="post-browser" class="post-browser" style="display: none;">
   <a style="display: none;" class="browser-thumb-hover-overlay" href="#" tabindex="-1">
-    <?= $this->imageTag('images/blank.gif') ?>
+    <?= $this->imageTag('images/blank.gif', ['alt' => '']) ?>
   </a>
 
   <div class="post-browser-posts-container">
@@ -42,7 +37,7 @@
 
   <div class="browser-bottom-bar">
     <form action="#" class="tags-form" method="get" style="display: inline;">
-      <input class="post-browser-tags-form" name="tags" size="20" type="search" autocapitalize="off" autocorrect="off">
+      <input class="post-browser-tags-form" name="tags" size="20" type="search" autocapitalize="off" autocorrect="off" aria-label="<?= $this->t('.search_tags', 'Search tags') ?>">
       <input style="display: none;" type="submit">
     </form>
   </div>
@@ -68,15 +63,15 @@
     <div class="image-navigator disable-selection" style="display: none;">
       <div class="image-navigator-box">
         <div class="navigator-cursor" style="position: absolute; top: 0; left: 0;"></div>
-        <img class="image-navigator-img">
+        <img class="image-navigator-img" alt="">
       </div>
     </div>
     <div class="frame-editor-popup-container disable-selection" style="position: absolute; right: 0;">
       <div class="frame-editor-popup" style="display: none;">
-        <div class="frame-editor-popup-box frame-editor-nw"><div class="frame-editor-popup-div"><img></div></div>
-        <div class="frame-editor-popup-box frame-editor-ne"><div class="frame-editor-popup-div"><img></div></div>
-        <div class="frame-editor-popup-box frame-editor-sw"><div class="frame-editor-popup-div"><img></div></div>
-        <div class="frame-editor-popup-box frame-editor-se"><div class="frame-editor-popup-div"><img></div></div>
+        <div class="frame-editor-popup-box frame-editor-nw"><div class="frame-editor-popup-div"><img alt=""></div></div>
+        <div class="frame-editor-popup-box frame-editor-ne"><div class="frame-editor-popup-div"><img alt=""></div></div>
+        <div class="frame-editor-popup-box frame-editor-sw"><div class="frame-editor-popup-div"><img alt=""></div></div>
+        <div class="frame-editor-popup-box frame-editor-se"><div class="frame-editor-popup-div"><img alt=""></div></div>
       </div>
     </div>
 
@@ -91,15 +86,15 @@
     <ul class="post-info-right-edge" style="float: right; text-align: right;">
       <li style="margin-top: 1px; margin-right: 1px;">
         <div class="default_to_large_cont"><a href="#"><span>✓</span> Default to large</a></div>
-        <img style="cursor: pointer;" class="toggle-zoom zoom-icon-in" src="/images/icon-zoom-in.png" width="20" height="20">
-        <img style="cursor: pointer;" class="toggle-zoom zoom-icon-out" src="/images/icon-zoom-out.png" width="20" height="20">
-        <img style="" class="zoom-icon-none" src="/images/icon-zoom-none.png">
+        <img style="cursor: pointer;" class="toggle-zoom zoom-icon-in" src="/images/icon-zoom-in.png" width="20" height="20" alt="<?= $this->t('.zoom_in', 'Zoom in') ?>">
+        <img style="cursor: pointer;" class="toggle-zoom zoom-icon-out" src="/images/icon-zoom-out.png" width="20" height="20" alt="<?= $this->t('.zoom_out', 'Zoom out') ?>">
+        <img style="" class="zoom-icon-none" src="/images/icon-zoom-none.png" alt="">
       </li>
       <li>
-        <img style="margin-top: 1px; margin-right: 1px; cursor: pointer;" class="flag-button member-only" src="/images/icon-flag.png" width=20 height=20>
+        <img style="margin-top: 1px; margin-right: 1px; cursor: pointer;" class="flag-button member-only" src="/images/icon-flag.png" width="20" height="20" alt="<?= $this->t('.flag', 'Flag') ?>">
       </li>
       <li>
-        <img style="margin-top: 1px; margin-right: 1px; cursor: pointer;" class="post-delete moderator-only" src="/images/icon-delete.png" width=20 height=20>
+        <img style="margin-top: 1px; margin-right: 1px; cursor: pointer;" class="post-delete moderator-only" src="/images/icon-delete.png" width="20" height="20" alt="<?= $this->t('.delete', 'Delete') ?>">
       </li>
     </ul>
 

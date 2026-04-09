@@ -98,6 +98,13 @@ class BatchController extends ApplicationController
         if ($this->params()->url) {
             $this->source = $this->params()->url;
 
+            // Check upload whitelist before fetching
+            $whitelist_result = UploadWhitelist::is_allowed($this->source);
+            if (!$whitelist_result['allowed']) {
+                $this->respond_to_error('Source URL is not on the upload whitelist: ' . $whitelist_result['reason'], '#index', ['status' => 424]);
+                return;
+            }
+
             // $text = "";
             $text = Danbooru::http_get_streaming($this->source);
             

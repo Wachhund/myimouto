@@ -87,21 +87,59 @@ class ApplicationController extends Rails\ActionController\Base
 
         if (!current_user() && $this->session()->user_id) {
             $user = User::where(['id' => $this->session()->user_id])->first();
+            // AC-9: Session invalidation on password change.
+            // Compare stored password hash token with current hash.
+            if ($user && $this->session()->ph) {
+                $current_ph = $user->bcrypt_password_hash
+                    ? crc32($user->bcrypt_password_hash)
+                    : 0;
+                if ((int)$this->session()->ph !== $current_ph) {
+                    // Password changed since session was created -- invalidate.
+                    $this->session()->delete('user_id');
+                    $this->session()->delete('ph');
+                    $user = null;
+                }
+            }
         } else {
             if (isset($this->params()->api_key) && isset($this->params()->username)) {
                 $api_auth_attempted = true;
-                $user = User::authenticate_with_api_key($this->params()->username, $this->params()->api_key);
-                if ($user) {
-                    $this->authenticated_with_api_key = true;
+                // Try new api_keys table first (PROJ-22), then legacy users.api_key fallback.
+                $apiKey = ApiKey::authenticate($this->params()->api_key);
+                if ($apiKey) {
+                    $user = User::where(['id' => $apiKey->user_id, 'name' => $this->params()->username])->first();
+                    if ($user) {
+                        $apiKey->touch_usage(
+                            $this->request()->remoteIp(),
+                            $this->request()->userAgent() ?? ''
+                        );
+                        $this->authenticated_with_api_key = true;
+                    } else {
+                        $apiKey = null; // username mismatch
+                    }
+                }
+                if (!$user) {
+                    // Legacy single-key fallback (users.api_key column)
+                    $user = User::authenticate_with_api_key($this->params()->username, $this->params()->api_key);
+                    if ($user) {
+                        $this->authenticated_with_api_key = true;
+                    }
                 }
             }
 
-            if (!$user && $this->cookies()->login && $this->cookies()->pass_hash) {
-                $user = User::authenticate_hash($this->cookies()->login, $this->cookies()->pass_hash);
-            } elseif (!$user && isset($this->params()->login) && isset($this->params()->password_hash)) {
-                $user = User::authenticate_hash($this->params()->login, $this->params()->password_hash);
+            if (!$user && $this->cookies()->login && $this->cookies()->remember_token) {
+                $user = User::authenticate_remember_token($this->cookies()->login, $this->cookies()->remember_token);
             } elseif (!$user && isset($this->params()->user['name']) && isset($this->params()->user['password'])) {
-                $user = User::authenticate($this->params()->user['name'], $this->params()->user['password']);
+                $ip = $this->request()->remoteIp();
+                if (!\MyImouto\RateLimiter::isLimited('login_ip:' . $ip, 10, 900)) {
+                    $user = User::authenticate($this->params()->user['name'], $this->params()->user['password']);
+                    if (!$user) {
+                        \MyImouto\RateLimiter::hit('login_ip:' . $ip, 900);
+                        $target = User::where(['name' => $this->params()->user['name']])->first();
+                        if ($target) {
+                            \MyImouto\RateLimiter::hit('login_account:' . $target->id, 1800);
+                        }
+                    }
+                }
             }
 
             if ($api_auth_attempted && !$user) {
@@ -117,6 +155,10 @@ class ApplicationController extends Rails\ActionController\Base
                 Ban::destroyAll("user_id = ?", $user->id);
             }
             $this->session()->user_id = $user->id;
+            // AC-9: Store password hash token for session invalidation check.
+            if (!$this->session()->ph && $user->bcrypt_password_hash) {
+                $this->session()->ph = crc32($user->bcrypt_password_hash);
+            }
         } else {
             $user = new User();
             $user->assignAttributes($AnonymousUser, ['without_protection' => true]);
@@ -254,6 +296,65 @@ class ApplicationController extends Rails\ActionController\Base
         }
 
         $this->redirectTo('banned#index');
+    }
+
+    protected function check_tos_acceptance()
+    {
+        if (!CONFIG()->tos_require_acceptance) {
+            return;
+        }
+
+        // Anonymous users are exempt.
+        if (!$this->current_user || current_user()->is_anonymous()) {
+            return;
+        }
+
+        // Exempt controllers/actions that must remain accessible.
+        $controller = $this->request()->controller();
+        $action = $this->request()->action();
+
+        $exempt = [
+            'tos'    => ['show', 'accept'],
+            'user'   => ['login', 'logout', 'signup', 'authenticate', 'check'],
+            'static' => true, // all actions
+            'banned' => true,
+        ];
+
+        if (isset($exempt[$controller])) {
+            if ($exempt[$controller] === true || in_array($action, $exempt[$controller])) {
+                return;
+            }
+        }
+
+        $tos_version = TosController::effective_tos_version();
+        $accepted = $this->current_user->tos_accepted_version ?? 0;
+
+        if ((int)$accepted >= $tos_version) {
+            return;
+        }
+
+        $return_to = $this->request()->fullPath();
+        $tos_url = $this->urlFor(['controller' => 'tos', 'action' => 'show']);
+
+        $this->respondTo([
+            'html' => function() use ($return_to) {
+                $this->notice('You must accept the current Terms of Service to continue.');
+                $this->redirectTo(['controller' => 'tos', 'action' => 'show', 'return_to' => $return_to]);
+            },
+            'xml' => function() use ($tos_url) {
+                $this->render([
+                    'xml' => ['success' => false, 'reason' => 'Terms of Service acceptance required', 'tos_url' => $tos_url],
+                    'root' => 'response',
+                    'status' => 451,
+                ]);
+            },
+            'json' => function() use ($tos_url) {
+                $this->render([
+                    'json' => ['success' => false, 'reason' => 'Terms of Service acceptance required', 'tos_url' => $tos_url],
+                    'status' => 451,
+                ]);
+            },
+        ]);
     }
 
     protected function save_tags_to_cookie()
@@ -509,6 +610,24 @@ class ApplicationController extends Rails\ActionController\Base
         return bin2hex(random_bytes(32));
     }
 
+    protected function set_security_headers()
+    {
+        $headers = $this->response()->headers();
+
+        $headers->add('X-Frame-Options', 'SAMEORIGIN');
+        $headers->add('X-Content-Type-Options', 'nosniff');
+        $headers->add('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+        if (str_starts_with(CONFIG()->url_base, 'https://')) {
+            $headers->add('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+        }
+
+        $headers->add(
+            'Content-Security-Policy',
+            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'self'"
+        );
+    }
+
     protected function filters()
     {
         return [
@@ -519,11 +638,13 @@ class ApplicationController extends Rails\ActionController\Base
                 'set_title',
                 'sanitize_params',
                 'check_ip_ban',
+                'check_tos_acceptance',
                 'set_csrf_token',
                 'verify_authenticity_token'
             ],
             'after' => [
-                'init_cookies'
+                'init_cookies',
+                'set_security_headers'
             ]
         ];
     }

@@ -51,8 +51,16 @@
         "assets:verify": [
             "@php script/verify-assets.php"
         ],
+        "assets:cleanup": [
+            "@php script/cleanup-old-assets.php"
+        ],
+        "assets:brotli": [
+            "@php script/brotli-assets.php"
+        ],
         "assets:build": [
+            "@assets:cleanup",
             "@assets:compile",
+            "@assets:brotli",
             "@assets:verify"
         ],
         "post-install-cmd": [

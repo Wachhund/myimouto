@@ -12,7 +12,7 @@ class ForumController extends ApplicationController
             'before' => [
                 'sanitize_id' => ['only' => ['show']],
                 'mod_only' => ['only' => ['stick', 'unstick', 'lock', 'unlock']],
-                'member_only' => ['only' => ['destroy', 'update', 'edit', 'add', 'markAllRead', 'preview']],
+                'member_only' => ['only' => ['destroy', 'update', 'edit', 'add', 'markAllRead', 'preview', 'subscribe', 'unsubscribe', 'vote']],
                 'post_member_only' => ['only' => ['create']]
             ]
         ];
@@ -141,6 +141,11 @@ class ForumController extends ApplicationController
             $this->current_user->updateAttribute('last_forum_topic_read_at', $this->forum_post->updated_at);
         }
 
+        # Mark subscription as read when viewing the topic
+        if (!$this->current_user->is_anonymous()) {
+            ForumTopicSubscription::mark_read($this->current_user->id, $this->forum_post->id);
+        }
+
         $this->respond_to_list("forum_post");
     }
 
@@ -189,5 +194,56 @@ class ForumController extends ApplicationController
     {
         $this->current_user->updateAttribute('last_forum_topic_read_at', date('Y-m-d H:i:s'));
         $this->render('nothing');
+    }
+
+    public function subscribe()
+    {
+        $topic_id = (int)$this->params()->id;
+        $topic = ForumPost::find($topic_id);
+
+        if (!$topic->is_parent()) {
+            $topic_id = $topic->parent_id;
+        }
+
+        ForumTopicSubscription::subscribe($this->current_user->id, $topic_id);
+        $this->notice("Subscribed to topic");
+        $this->redirectTo(['action' => "show", 'id' => $topic_id]);
+    }
+
+    public function unsubscribe()
+    {
+        $topic_id = (int)$this->params()->id;
+        $topic = ForumPost::find($topic_id);
+
+        if (!$topic->is_parent()) {
+            $topic_id = $topic->parent_id;
+        }
+
+        ForumTopicSubscription::unsubscribe($this->current_user->id, $topic_id);
+        $this->notice("Unsubscribed from topic");
+        $this->redirectTo(['action' => "show", 'id' => $topic_id]);
+    }
+
+    public function vote()
+    {
+        $post_id = (int)$this->params()->id;
+        $score = (int)$this->params()->score;
+
+        $forum_post = ForumPost::find($post_id);
+        ForumPostVote::vote($this->current_user->id, $post_id, $score);
+
+        $this->respondTo([
+            'html' => function() use ($forum_post) {
+                $this->notice("Vote recorded");
+                $this->redirectTo(['action' => "show", 'id' => $forum_post->root_id()]);
+            },
+            'json' => function() use ($post_id) {
+                $this->render(['json' => [
+                    'success'    => true,
+                    'post_id'    => $post_id,
+                    'post_score' => ForumPostVote::post_score($post_id)
+                ]]);
+            }
+        ]);
     }
 }

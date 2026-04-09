@@ -21,25 +21,25 @@
 
         <?= $this->formTag("user#authenticate", array('id' => "login-popup"), function() { ?>
           <div style="position: absolute; top: 0; right: 0;">
-            <a href="#" id="login-popup-cancel" style="font-size: 1.2em; padding: 2px;">ⓧ</a>
+            <a href="#" id="login-popup-cancel" style="font-size: 1.2em; padding: 2px;" aria-label="<?= $this->t('close', 'Close') ?>">ⓧ</a>
           </div>
 
           <table class="form" style="width: 80%; max-width: 30em; margin-bottom: .5em; margin-left: auto; margin-right: auto;">
             <tr>
               <th style="width: 8em"><label class="block" for="login-popup-username"><?= $this->t('.name') ?></label></th>
-              <td style="width: 10em" align="left"><input id="login-popup-username" name="username" type="text" style="width: 100%;"></td>
+              <td style="width: 10em" align="left"><input id="login-popup-username" name="username" type="text" style="width: 100%;" autocomplete="username" spellcheck="false"></td>
             </tr>
             <tr id="login-popup-email-box">
               <th><label class="block" for="login-popup-email"><?= $this->t('.email') ?></label></th>
-              <td align="left"><input id="login-popup-email" name="email" type="text" style="width: 100%;"></td>
+              <td align="left"><input id="login-popup-email" name="email" type="email" style="width: 100%;" autocomplete="email"></td>
             </tr>
             <tr id="login-popup-password-box">
               <th><label class="block" for="login-popup-password"><?= $this->t('.password') ?></label></th>
-              <td align="left"><input id="login-popup-password" name="password" type="password" style="width: 100%;"></td>
+              <td align="left"><input id="login-popup-password" name="password" type="password" style="width: 100%;" autocomplete="current-password"></td>
             </tr>
             <tr id="login-popup-password-confirm-box" style="display: none;">
               <th><label class="block" for="login-popup-password-confirm"><?= $this->t('.password_confirm') ?></label></th>
-              <td align="left"><input id="login-popup-password-confirm" name="password-confirm" type="password" style="width: 100%;"></td>
+              <td align="left"><input id="login-popup-password-confirm" name="password-confirm" type="password" style="width: 100%;" autocomplete="new-password"></td>
             </tr>
             <tr>
               <th style="background: none;"></th>
@@ -47,7 +47,7 @@
               </td>
             </tr>
           </table>
-          <a href="#" id="login-popup-submit" style="margin-bottom: 1em; margin-left: auto; margin-right: auto;"><?= $this->t('.login') ?></a>
+          <button type="submit" id="login-popup-submit" style="margin-bottom: 1em; margin-left: auto; margin-right: auto;"><?= $this->t('.login') ?></button>
         <?php }) ?>
 
         <div id="login-popup-notices" class="login-popup-notice">

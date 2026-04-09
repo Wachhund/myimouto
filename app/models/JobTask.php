@@ -5,9 +5,99 @@ class JobTask extends Rails\ActiveRecord\Base
 
     static public function execute_once()
     {
-        foreach (self::where('status = "pending" AND task_type IN (?)', CONFIG()->active_job_tasks)->order("id desc")->take() as $task) {
+        // Enqueue any due scheduled jobs before processing.
+        self::enqueue_scheduled();
+
+        $conn = self::connection();
+        $taskTypes = CONFIG()->active_job_tasks;
+
+        // Snapshot: collect all currently pending task IDs once.
+        // This prevents infinite re-processing of repeat_count=-1 tasks
+        // that reset to 'pending' after execution.
+        $placeholders = implode(',', array_fill(0, count($taskTypes), '?'));
+        $params = array_merge(
+            ["SELECT id FROM job_tasks WHERE status = 'pending' AND task_type IN ({$placeholders}) ORDER BY id DESC"],
+            $taskTypes
+        );
+        $rows = call_user_func_array([$conn, 'select'], $params);
+
+        foreach ($rows as $row) {
+            // Atomically claim each task using FOR UPDATE SKIP LOCKED
+            // to prevent double execution across multiple processor instances.
+            $conn->executeSql("BEGIN");
+            $locked = $conn->selectRow(
+                "SELECT id FROM job_tasks WHERE id = ? AND status = 'pending' FOR UPDATE SKIP LOCKED",
+                $row['id']
+            );
+
+            if (!$locked) {
+                $conn->executeSql("COMMIT");
+                continue;
+            }
+
+            $conn->executeSql(
+                "UPDATE job_tasks SET status = 'processing' WHERE id = ? AND status = 'pending'",
+                $row['id']
+            );
+            $conn->executeSql("COMMIT");
+
+            $task = self::find($row['id']);
+            if ($task->status !== 'processing') {
+                continue;
+            }
+
             $task->execute();
             sleep(1);
+        }
+    }
+
+    /**
+     * Check CONFIG()->scheduled_jobs and enqueue due tasks.
+     * Prevents duplicates by checking for pending/processing instances.
+     * Uses DB timestamps to determine when a task last ran.
+     */
+    public static function enqueue_scheduled()
+    {
+        $scheduled = CONFIG()->scheduled_jobs ?? [];
+
+        foreach ($scheduled as $job) {
+            if (empty($job['enabled'])) {
+                continue;
+            }
+
+            $taskType = $job['task_type'];
+            $intervalSeconds = (int)($job['interval_seconds'] ?? 86400);
+
+            // Skip if a pending or processing task of this type already exists.
+            $pendingCount = (int)self::connection()->selectValue(
+                "SELECT COUNT(*) FROM job_tasks WHERE task_type = ? AND status IN ('pending', 'processing')",
+                $taskType
+            );
+            if ($pendingCount > 0) {
+                continue;
+            }
+
+            // Check when the last finished or error task of this type ran.
+            // Use DB TIMESTAMPDIFF to avoid PHP/DB clock skew.
+            $elapsed = self::connection()->selectValue(
+                "SELECT TIMESTAMPDIFF(SECOND, MAX(updated_at), NOW()) FROM job_tasks WHERE task_type = ? AND status IN ('finished', 'error')",
+                $taskType
+            );
+
+            // $elapsed is NULL if no previous runs exist (first-time enqueue).
+            if ($elapsed !== null && (int)$elapsed < $intervalSeconds) {
+                continue;
+            }
+
+            // Enqueue a single-shot task.
+            $task = new self();
+            $task->task_type = $taskType;
+            $task->status = 'pending';
+            $task->repeat_count = 0;
+            $task->data_as_json = json_encode($job['data'] ?? new \stdClass());
+            $task->save();
+
+            Rails::log()->info(sprintf('Scheduled job enqueued: %s', $taskType));
         }
     }
 
@@ -98,6 +188,18 @@ class JobTask extends Rails\ActiveRecord\Base
                     // return data["status"]
                 // end
             // end
+
+            case "exception_log_prune":
+                return $this->status_message ?: 'idle';
+
+            case "user_deletion_cleanup":
+                return $this->status_message ?: 'idle';
+
+            case "forum_digest_send":
+                return $this->status_message ?: 'idle';
+
+            case "api_key_expiration_check":
+                return $this->status_message ?: 'idle';
         }
     }
 
@@ -280,8 +382,148 @@ class JobTask extends Rails\ActiveRecord\Base
         }
 
         TagSubscription::process_all();
-        
+
         $this->updateAttributes(['data' => ['last_run' => date('Y-m-d H:i:s')]]);
+    }
+
+    /**
+     * AC-2: Prune exception logs older than configured retention period.
+     */
+    public function execute_exception_log_prune()
+    {
+        $days = CONFIG()->exception_log_retention_days ?? 90;
+        $totalDeleted = 0;
+
+        // Delete in batches (prune() uses LIMIT 1000 internally).
+        // Loop until no more rows are deleted.
+        do {
+            $stmt = ExceptionLog::prune($days);
+            $deleted = $stmt->rowCount();
+            $totalDeleted += $deleted;
+        } while ($deleted > 0);
+
+        $message = sprintf('Pruned %d exception logs older than %d days', $totalDeleted, $days);
+        $this->updateAttribute('status_message', $message);
+        Rails::log()->info($message);
+    }
+
+    /**
+     * AC-3: Process pending user deletion cleanup (votes, favorites, subscriptions).
+     * Runs bulk DELETEs in batches to avoid long locks.
+     */
+    public function execute_user_deletion_cleanup()
+    {
+        $conn = self::connection();
+        $batchLimit = 10000;
+        $processedUsers = 0;
+        $totalDeleted = 0;
+
+        // Find pending and failed (retry) cleanup events. Failed events are retried
+        // up to 3 times — after that they stay 'failed' and require manual intervention.
+        $maxRetries = 3;
+        $events = $conn->select(
+            "SELECT id, target_user_id, cleanup_status, cleanup_retries FROM user_deletion_events " .
+            "WHERE cleanup_status IN ('pending', 'failed') AND cleanup_retries < ? ORDER BY id ASC LIMIT 50",
+            $maxRetries
+        );
+
+        foreach ($events as $event) {
+            $userId = (int)$event['target_user_id'];
+            $eventId = (int)$event['id'];
+            $userDeleted = 0;
+
+            try {
+                // Delete post_votes in batches.
+                do {
+                    $stmt = $conn->executeSql(
+                        "DELETE FROM post_votes WHERE user_id = ? LIMIT {$batchLimit}",
+                        $userId
+                    );
+                    $deleted = $stmt->rowCount();
+                    $userDeleted += $deleted;
+                } while ($deleted >= $batchLimit);
+
+                // Delete favorites in batches.
+                do {
+                    $stmt = $conn->executeSql(
+                        "DELETE FROM favorites WHERE user_id = ? LIMIT {$batchLimit}",
+                        $userId
+                    );
+                    $deleted = $stmt->rowCount();
+                    $userDeleted += $deleted;
+                } while ($deleted >= $batchLimit);
+
+                // Delete tag_subscriptions in batches.
+                do {
+                    $stmt = $conn->executeSql(
+                        "DELETE FROM tag_subscriptions WHERE user_id = ? LIMIT {$batchLimit}",
+                        $userId
+                    );
+                    $deleted = $stmt->rowCount();
+                    $userDeleted += $deleted;
+                } while ($deleted >= $batchLimit);
+
+                // Mark event as completed.
+                $conn->executeSql(
+                    "UPDATE user_deletion_events SET cleanup_status = 'completed' WHERE id = ?",
+                    $eventId
+                );
+
+                $processedUsers++;
+                $totalDeleted += $userDeleted;
+            } catch (\Exception $e) {
+                // Increment retry counter and mark as failed.
+                // Events exceeding max retries are excluded from future queries.
+                $conn->executeSql(
+                    "UPDATE user_deletion_events SET cleanup_status = 'failed', cleanup_retries = cleanup_retries + 1 WHERE id = ?",
+                    $eventId
+                );
+                Rails::log()->warning(sprintf(
+                    'User deletion cleanup failed for event #%d (user #%d, retry %d/%d): %s',
+                    $eventId,
+                    $userId,
+                    (int)($event['cleanup_retries'] ?? 0) + 1,
+                    $maxRetries,
+                    $e->getMessage()
+                ));
+            }
+        }
+
+        $message = sprintf(
+            'Cleanup complete: %d users processed, %d records deleted',
+            $processedUsers,
+            $totalDeleted
+        );
+        $this->updateAttribute('status_message', $message);
+        Rails::log()->info($message);
+    }
+
+    /**
+     * AC-4: Forum digest sending hook (implementation in PROJ-41).
+     */
+    public function execute_forum_digest_send()
+    {
+        // Stub: call digest service when PROJ-41 is implemented.
+        if (class_exists('MyImouto\\Forum\\DigestService')) {
+            \MyImouto\Forum\DigestService::sendPendingDigests();
+            $this->updateAttribute('status_message', 'Digest send completed');
+        } else {
+            $this->updateAttribute('status_message', 'DigestService not available (PROJ-41 pending)');
+        }
+    }
+
+    /**
+     * AC-5: API key expiration warning hook (implementation in PROJ-43).
+     */
+    public function execute_api_key_expiration_check()
+    {
+        // Stub: call expiration check service when PROJ-43 is implemented.
+        if (class_exists('MyImouto\\Auth\\ApiKeyExpirationService')) {
+            \MyImouto\Auth\ApiKeyExpirationService::checkAndNotify();
+            $this->updateAttribute('status_message', 'Expiration check completed');
+        } else {
+            $this->updateAttribute('status_message', 'ApiKeyExpirationService not available (PROJ-43 pending)');
+        }
     }
 
     protected function init()

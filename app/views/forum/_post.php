@@ -17,6 +17,19 @@
     </div>
     <?php if (empty($this->preview)) : ?>
     <div class="post-footer" style="clear: left;">
+      <?php
+        $forum_vote_score = ForumPostVote::post_score($this->post->id);
+        $forum_user_vote = !current_user()->is_anonymous() ? ForumPostVote::user_vote(current_user()->id, $this->post->id) : null;
+      ?>
+      <span class="forum-post-votes" style="margin-right: 0.5em;">
+        <?php if (!current_user()->is_anonymous()) : ?>
+          <?= $this->linkTo("+1", ['action' => "vote", 'id' => $this->post->id, 'score' => 1], ['method' => 'post', 'class' => 'forum-vote-btn' . ($forum_user_vote === 1 ? ' forum-vote-active' : ''), 'title' => 'Vote up']) ?>
+        <?php endif ?>
+        <span class="forum-vote-score" title="Score"><?= $forum_vote_score ?></span>
+        <?php if (!current_user()->is_anonymous()) : ?>
+          <?= $this->linkTo("-1", ['action' => "vote", 'id' => $this->post->id, 'score' => -1], ['method' => 'post', 'class' => 'forum-vote-btn' . ($forum_user_vote === -1 ? ' forum-vote-active' : ''), 'title' => 'Vote down']) ?>
+        <?php endif ?>
+      </span>
       <ul class="flat-list pipe-list">
       <?php if (current_user()->has_permission($this->post, 'creator_id')) : ?>
         <li> <?= $this->linkTo($this->t('.edit'), ['action' => "edit", 'id' => $this->post->id, 'page' => (int)$this->params()->page]) ?>

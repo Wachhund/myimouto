@@ -43,21 +43,21 @@ class AdminController extends ApplicationController
     {
         if ($this->request()->isPost()) {
             $user = User::find_by_name($this->params()->user['name']);
-            
+
             if ($user) {
-                $new_password = $user->reset_password();
-                $notice = 'Password reset to ' . $new_password;
+                $reset_token = $user->reset_password();
 
                 if ($user->email) {
                     try {
-                        UserMailer::mail('new_password', [$user, $new_password])->deliver();
+                        UserMailer::mail('password_reset', [$user, $reset_token])->deliver();
+                        $this->notice('Password reset email sent to ' . $user->email);
                     } catch (\Throwable $e) {
                         Rails::log()->exception($e);
-                        $notice .= ' (email delivery failed; check mail transport settings)';
+                        $this->notice('Password reset initiated but email delivery failed; check mail transport settings');
                     }
+                } else {
+                    $this->notice('Password reset initiated but user has no email address on file');
                 }
-
-                $this->notice($notice);
             } else {
                 $this->notice('That account does not exist');
                 $this->redirectTo('#reset_password');

@@ -577,6 +577,8 @@ en:
       title: 'Pool Import: %{name}'
     index:
       search: Search
+      search_by_tags: Search pools by post tags...
+      search_tags: Search by Tags
       table:
         created: Created
         creator: Creator

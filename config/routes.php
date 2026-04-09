@@ -303,6 +303,72 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('wiki/destroy(.:format)', 'wiki#destroy', ['via' => ['post', 'delete']]);
     $this->post('wiki/create(.:format)', 'wiki#create');
 
+    # ApiKey (PROJ-22)
+    $this->match('api_key(/index)', 'api_key#index', ['via' => ['get']]);
+    $this->post('api_key/create');
+    $this->post('api_key/destroy(/:id)', 'api_key#destroy');
+    $this->post('api_key/regenerate(/:id)', 'api_key#regenerate');
+
+    # ExceptionLog (PROJ-24)
+    $this->match('exception_log(/index)', 'exception_log#index', ['via' => ['get']]);
+    $this->match('exception_log/show(/:id)', 'exception_log#show', ['via' => ['get']]);
+    $this->post('exception_log/prune');
+
+    # Forum Subscriptions + Votes (PROJ-12)
+    $this->post('forum/subscribe(/:id)', 'forum#subscribe');
+    $this->post('forum/unsubscribe(/:id)', 'forum#unsubscribe');
+    $this->post('forum/vote(/:id)', 'forum#vote');
+
+    # ModAction (PROJ-37)
+    $this->match('mod_action(/index)(.:format)', 'mod_action#index', ['via' => ['get']]);
+
+    # Takedown (PROJ-10)
+    $this->match('takedown(/index)', 'takedown#index', ['via' => ['get']]);
+    $this->match('takedown/show(/:id)', 'takedown#show', ['via' => ['get']]);
+    $this->match('takedown/new', 'takedown#blank', ['via' => ['get']]);
+    $this->post('takedown/create');
+    $this->post('takedown/update(/:id)', 'takedown#update');
+    $this->post('takedown/destroy(/:id)', 'takedown#destroy');
+    $this->post('takedown/add_posts(/:id)', 'takedown#add_posts');
+    $this->post('takedown/remove_posts(/:id)', 'takedown#remove_posts');
+    $this->match('takedown/status', ['via' => ['get']]);
+
+    # Ticket (PROJ-10)
+    $this->match('ticket(/index)', 'ticket#index', ['via' => ['get']]);
+    $this->match('ticket/show(/:id)', 'ticket#show', ['via' => ['get']]);
+    $this->match('ticket/new', 'ticket#blank', ['via' => ['get']]);
+    $this->post('ticket/create');
+    $this->post('ticket/update(/:id)', 'ticket#update');
+    $this->post('ticket/claim(/:id)', 'ticket#claim');
+    $this->post('ticket/unclaim(/:id)', 'ticket#unclaim');
+
+    # ToS (PROJ-13)
+    $this->match('tos/show', ['via' => ['get']]);
+    $this->post('tos/accept');
+    $this->post('tos/bump_version');
+
+    # UploadWhitelist (PROJ-11)
+    $this->match('upload_whitelist(/index)', 'upload_whitelist#index', ['via' => ['get']]);
+    $this->post('upload_whitelist/create');
+    $this->post('upload_whitelist/update(/:id)', 'upload_whitelist#update');
+    $this->post('upload_whitelist/destroy(/:id)', 'upload_whitelist#destroy');
+    $this->match('upload_whitelist/is_allowed', ['via' => ['get']]);
+
+    # User Account Deletion (PROJ-26)
+    $this->match('user_deletion/confirm(/:id)', 'user_deletion#confirm', ['via' => ['get']]);
+    $this->post('user_deletion/execute(/:id)', 'user_deletion#execute');
+    $this->match('user/delete_account', ['via' => ['get']]);
+    $this->post('user/execute_delete_account');
+
+    # UserNameChangeRequest (PROJ-25)
+    $this->match('user_name_change_request(/index)', 'user_name_change_request#index', ['via' => ['get']]);
+    $this->match('user_name_change_request/show(/:id)', 'user_name_change_request#show', ['via' => ['get']]);
+    $this->match('user_name_change_request/new', 'user_name_change_request#blank', ['via' => ['get']]);
+    $this->post('user_name_change_request/create');
+    $this->post('user_name_change_request/cancel(/:id)', 'user_name_change_request#cancel');
+    $this->post('user_name_change_request/approve(/:id)', 'user_name_change_request#approve');
+    $this->post('user_name_change_request/reject(/:id)', 'user_name_change_request#reject');
+
     $this->match('errors/not_found', 'errors#not_found', ['via' => ['get', 'post']]);
 
     $this->root('static#index');

@@ -308,6 +308,15 @@ abstract class DefaultConfig
     # Enables the E/R hotkeys to jump to the edit/reply forms respectevely in post#show.
     public $post_show_hotkeys = true;
 
+    # Cooldown in days between approved username changes per user.
+    public $username_change_cooldown_days = 90;
+
+    # Current Terms of Service version number.
+    public $tos_version = 1;
+
+    # Set to true to require users to accept the current ToS version.
+    public $tos_require_acceptance = false;
+
     # Max number of dmails users can send in one hour.
     public $max_dmails_per_hour = 10;
 
@@ -326,7 +335,52 @@ abstract class DefaultConfig
         'upload_batch_posts',
         'approve_tag_implication',
         'approve_tag_alias',
-        'calculate_tag_subscriptions'
+        'calculate_tag_subscriptions',
+        'exception_log_prune',
+        'user_deletion_cleanup',
+        'forum_digest_send',
+        'api_key_expiration_check'
+    ];
+
+    # Retention period for exception logs in days. Used by the scheduled prune job.
+    public $exception_log_retention_days = 90;
+
+    # Scheduled jobs configuration. Each entry defines a recurring background task.
+    # The scheduler checks these on each processor cycle and enqueues due tasks.
+    public $scheduled_jobs = [
+        [
+            'task_type' => 'exception_log_prune',
+            'interval_seconds' => 86400,
+            'enabled' => true,
+            'data' => [],
+        ],
+        [
+            'task_type' => 'user_deletion_cleanup',
+            'interval_seconds' => 3600,
+            'enabled' => true,
+            'data' => [],
+        ],
+        [
+            'task_type' => 'forum_digest_send',
+            'interval_seconds' => 86400,
+            'enabled' => false,
+            'data' => [],
+        ],
+        [
+            'task_type' => 'api_key_expiration_check',
+            'interval_seconds' => 86400,
+            'enabled' => false,
+            'data' => [],
+        ],
+    ];
+
+    # Flag reason categories for structured post flagging.
+    public $flag_reasons = [
+        ['key' => 'duplicate', 'label' => 'Duplicate', 'requires_parent' => true, 'requires_detail' => false],
+        ['key' => 'inferior', 'label' => 'Inferior quality', 'requires_parent' => true, 'requires_detail' => false],
+        ['key' => 'rule_violation', 'label' => 'Rule violation', 'requires_parent' => false, 'requires_detail' => true],
+        ['key' => 'dnp_artist', 'label' => 'DNP artist', 'requires_parent' => false, 'requires_detail' => false],
+        ['key' => 'other', 'label' => 'Other', 'requires_parent' => false, 'requires_detail' => true],
     ];
 
     # Javascripts assets manifest files.
@@ -416,6 +470,15 @@ abstract class DefaultConfig
     # Enables tag autocomplete in the home page.
     # Requires $enable_tag_completion.
     public $tag_completion_in_homepage = false;
+
+    # Enable OAuth login (infrastructure stub -- requires provider configuration).
+    public $enable_oauth_login = false;
+
+    # Enable passkey/WebAuthn login (infrastructure stub -- requires WebAuthn library).
+    public $enable_passkey_login = false;
+
+    # Configured OAuth providers. Each entry: ['client_id' => ..., 'client_secret' => ..., 'authorize_url' => ..., 'token_url' => ...].
+    public $oauth_providers = [];
 
     # Configuration for External Data Search job task.
     # Only the needed values to be changed can be copied over the

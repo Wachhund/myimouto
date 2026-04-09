@@ -71,8 +71,13 @@ trait PostStatusMethods
         self::connection()->executeSql("UPDATE posts SET status = ? WHERE id = ?", 'deleted', $this->id);
         if ($this->parent_id)
                 Post::update_has_children($this->parent_id);
-        if ($this->flag_detail)
-                $this->flag_detail->updateAttribute('is_resolved', true);
+        # Resolve all unresolved flags
+        $unresolved = FlaggedPostDetail::where('post_id = ? AND is_resolved = 0', $this->id)->take();
+        if ($unresolved) {
+            foreach ($unresolved as $flag) {
+                $flag->resolve(null);
+            }
+        }
         return false;
     }
 

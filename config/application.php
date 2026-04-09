@@ -24,16 +24,18 @@ class Application extends \Rails\Application\Base
     {
         $config->assets->enabled = true;
 
-        // Keep asset compilation fully local and deterministic.
-        // This avoids the legacy assetic/remote-closure minification chain.
-        $noopCompressor = [
-            'file' => \Rails::root() . '/lib/MyImouto/Assets/NoopCompressor.php',
-            'class_name' => 'MyImouto\\Assets\\NoopCompressor',
+        $config->assets->js_compressor = [
+            'file' => \Rails::root() . '/lib/MyImouto/Assets/JsCompressor.php',
+            'class_name' => 'MyImouto\\Assets\\JsCompressor',
             'method' => 'run',
             'static' => true,
         ];
-        $config->assets->css_compressor = $noopCompressor;
-        $config->assets->js_compressor = $noopCompressor;
+        $config->assets->css_compressor = [
+            'file' => \Rails::root() . '/lib/MyImouto/Assets/CssCompressor.php',
+            'class_name' => 'MyImouto\\Assets\\CssCompressor',
+            'method' => 'run',
+            'static' => true,
+        ];
         
         $config->action_view->layout = 'default';
         

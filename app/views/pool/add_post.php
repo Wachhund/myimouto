@@ -1,6 +1,6 @@
 <h3><?= $this->t('pool_add') ?></h3>
 
-<?= $this->linkTo($this->imageTag($this->post->preview_url()), ['controller' => "post", 'action' => "show", 'id' => $this->post->id]) ?>
+<?= $this->linkTo($this->imageTag($this->post->preview_url(), ['loading' => 'lazy']), ['controller' => "post", 'action' => "show", 'id' => $this->post->id]) ?>
 
 <p><?= $this->t('pool_add_text') ?></p>
 

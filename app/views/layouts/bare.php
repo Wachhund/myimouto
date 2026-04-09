@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html class="action-<?= $this->request()->controller() ?> action-<?= $this->request()->controller() ?>-<?= $this->request()->action() ?> hide-advanced-editing">
+<html lang="<?= Rails::application()->I18n()->locale() ?: 'en' ?>" style="color-scheme: dark" class="action-<?= $this->request()->controller() ?> action-<?= $this->request()->controller() ?>-<?= $this->request()->action() ?> hide-advanced-editing">
 <head>
-  <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#222">
   <title><?= $this->page_title ?></title>
   <meta name="description" content="<?= CONFIG()->app_name ?>">
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
@@ -19,9 +21,9 @@
 </head>
 <body>
   <?= $this->partial("layouts/notice") ?>
-  <div id="content">
+  <main id="content">
     <?= $this->content() ?>
-  </div>
+  </main>
   <?= $this->content('post_cookie_javascripts') ?>
   <?php
   /*

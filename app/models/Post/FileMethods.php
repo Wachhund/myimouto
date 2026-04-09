@@ -301,7 +301,14 @@ trait PostFileMethods
     {
         if (!preg_match('/^https?:\/\//', $this->source) || $this->file_ext || $this->tempfile_path)
             return;
-        
+
+        # Check upload whitelist before fetching
+        $whitelist_result = UploadWhitelist::is_allowed($this->source);
+        if (!$whitelist_result['allowed']) {
+            $this->errors()->add('source', 'is not on the upload whitelist: ' . $whitelist_result['reason']);
+            return false;
+        }
+
         try {
             $file = Danbooru::http_get_streaming($this->source);
             

@@ -18,6 +18,7 @@
       <ul>
         <li><?= $this->linkTo($this->t('user.edit.title'), ['user#edit']) ?></li>
         <li><?= $this->linkTo($this->t('settings.api.show.title'), ['settings_api#show']) ?></li>
+        <li><?= $this->linkTo('API Keys', ['api_key#index']) ?></li>
         <li><?= $this->linkTo($this->t('user.change_email.title'), $this->userChangeEmailPath()) ?></li>
         <li><?= $this->linkTo($this->t('user.change_password.title'), $this->userChangePasswordPath()) ?></li>
       </ul>

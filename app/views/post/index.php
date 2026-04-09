@@ -17,7 +17,7 @@
     endif
   ?>
 
-  <div class="sidebar">
+  <aside class="sidebar">
     <?= $this->partial('search') ?>
     <?php if (current_user()->is_privileged_or_higher()) : ?>
     <div style="margin-bottom: 1em;" id="mode-box" class="advanced-editing">
@@ -76,7 +76,7 @@
     <?php if (CONFIG()->can_show_ad('post#index-sidebar', current_user())) : ?>
     <?= $this->partial('vertical') ?>
     <?php endif ?>
-  </div>
+  </aside>
   <div class="content">
     <?php if (!empty($this->ambiguous_tags)) : ?>
       <div class="status-notice">

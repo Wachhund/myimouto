@@ -91,10 +91,10 @@
       <h4>Logging In</h4>
       <p>Some actions may require you to log in. For any action you can always specify two parameters to identify yourself:</p>
       <ul>
-        <li><strong>login</strong> Your login name.</li>
-        <li><strong>password_hash</strong> Your SHA1 hashed password. Simply hashing your plain password will NOT work since Danbooru salts its passwords. The actual string that is hashed is "<?= CONFIG()->password_salt ?>--<em>your-password</em>--".</li>
+        <li><strong>username</strong> Your login name.</li>
+        <li><strong>api_key</strong> Your API key (found in your account settings).</li>
       </ul>
-      <p>Please be aware of the security risks involved in sending your password through an unencrypted channel. Although your password will be hashed, it is still theoretically possible for someone to steal your account by creating a fake cookie based on your hashed password.</p>
+      <p>URL-parameter-based password authentication has been removed for security reasons. Use API key authentication instead.</p>
     </div>
   </div>
 

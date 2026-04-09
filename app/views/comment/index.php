@@ -6,7 +6,7 @@
   <?php foreach ($this->posts as $post) : ?>
     <div class="post">
       <div class="col1">
-        <?= $this->linkTo($this->imageTag($post->preview_url(), array('title' => $post->tags(), 'class' => 'preview javascript-hide', 'id' => 'p'.$post->id, 'width' => $post->preview_dimensions()[0], 'height' => $post->preview_dimensions()[1])), array('post#show', 'id' => $post->id)) ?>&nbsp;
+        <?= $this->linkTo($this->imageTag($post->preview_url(), array('title' => $post->tags(), 'class' => 'preview javascript-hide', 'id' => 'p'.$post->id, 'width' => $post->preview_dimensions()[0], 'height' => $post->preview_dimensions()[1], 'loading' => 'lazy')), array('post#show', 'id' => $post->id)) ?>&nbsp;
       </div>
       <div class="col2" id="comments-for-p<?= $post->id ?>">
         <div class="header">

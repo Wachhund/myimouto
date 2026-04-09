@@ -5,17 +5,51 @@ RewriteEngine On
 # RewriteCond %{HTTP:Referer} ^http://myimouto/
 RewriteRule ^(?:data/)?(preview|sample|jpeg|image)/([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{28})(?:/.*?)?(\.[\w]+)$  data/$1/$2/$3/$2$3$4$5 [L]
 
-# Serve gzipped Stylesheets and Javascripts if mod_headers are enabled.
+# PROJ-32: Cache-Control headers for assets
+<IfModule mod_headers.c>
+    # Digest-hashed assets (e.g. application-abc123.js) — cache forever
+    <FilesMatch "-[0-9a-f]{32}\.(js|css)(\.gz|\.br)?$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+
+    # Static assets without hash — cache for 1 day
+    <FilesMatch "\.(ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot)$">
+        Header set Cache-Control "public, max-age=86400"
+    </FilesMatch>
+</IfModule>
+
+# PROJ-32: Serve pre-compressed assets (Brotli preferred, then gzip).
+# Disable mod_deflate for assets to avoid double-compression.
 <IfModule mod_headers.c>
     SetEnv no-gzip
-    RewriteCond %{REQUEST_FILENAME} -f
-    RewriteRule ^(assets/.*)\.css $1\.css\.gz [L,ENV=ASSETSCSS:true] [L]
-    Header set Content-Type text/css env=ASSETSCSS
-    Header set Content-Encoding gzip env=ASSETSCSS
-    RewriteCond %{REQUEST_FILENAME} -f
-    RewriteRule ^(assets/.*)\.js $1\.js\.gz [L,ENV=ASSETSJS:true] [L]
-    Header set Content-Type text/javascript env=ASSETSJS
-    Header set Content-Encoding gzip env=ASSETSJS
+
+    # Brotli-compressed CSS
+    RewriteCond %{HTTP:Accept-Encoding} br
+    RewriteCond %{REQUEST_FILENAME}.br -f
+    RewriteRule ^(assets/.*)\.css$ $1.css.br [L,E=ASSETCSS_BR:true]
+    Header set Content-Type "text/css" env=ASSETCSS_BR
+    Header set Content-Encoding "br" env=ASSETCSS_BR
+
+    # Brotli-compressed JS
+    RewriteCond %{HTTP:Accept-Encoding} br
+    RewriteCond %{REQUEST_FILENAME}.br -f
+    RewriteRule ^(assets/.*)\.js$ $1.js.br [L,E=ASSETJS_BR:true]
+    Header set Content-Type "text/javascript" env=ASSETJS_BR
+    Header set Content-Encoding "br" env=ASSETJS_BR
+
+    # Gzip-compressed CSS (fallback)
+    RewriteCond %{HTTP:Accept-Encoding} gzip
+    RewriteCond %{REQUEST_FILENAME}.gz -f
+    RewriteRule ^(assets/.*)\.css$ $1.css.gz [L,E=ASSETCSS_GZ:true]
+    Header set Content-Type "text/css" env=ASSETCSS_GZ
+    Header set Content-Encoding "gzip" env=ASSETCSS_GZ
+
+    # Gzip-compressed JS (fallback)
+    RewriteCond %{HTTP:Accept-Encoding} gzip
+    RewriteCond %{REQUEST_FILENAME}.gz -f
+    RewriteRule ^(assets/.*)\.js$ $1.js.gz [L,E=ASSETJS_GZ:true]
+    Header set Content-Type "text/javascript" env=ASSETJS_GZ
+    Header set Content-Encoding "gzip" env=ASSETJS_GZ
 </IfModule>
 
 # Redirect to index.php

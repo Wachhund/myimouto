@@ -50,7 +50,7 @@
         <tr>
           <td>
             <?php if ($pp->post->can_be_seen_by($this->current_user)) : ?>
-              <?= $this->linkTo($this->imageTag($pp->post->preview_url(), ['width' => $pp->post->preview_dimensions()[0], 'height' => $pp->post->preview_dimensions()[1]]), ["post#show", 'id' => $pp->post_id], ['title' => $pp->post->tags()]) ?>
+              <?= $this->linkTo($this->imageTag($pp->post->preview_url(), ['width' => $pp->post->preview_dimensions()[0], 'height' => $pp->post->preview_dimensions()[1], 'loading' => 'lazy']), ["post#show", 'id' => $pp->post_id], ['title' => $pp->post->tags()]) ?>
             <?php endif ?>
           </td>
           <td>

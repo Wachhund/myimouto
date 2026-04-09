@@ -5,6 +5,9 @@ class Pool_AccessDeniedError extends Exception
 class Pool_PostAlreadyExistsError extends Exception
 {}
 
+class Pool_InvalidPostError extends Exception
+{}
+
 class Pool extends Rails\ActiveRecord\Base
 {
     use Moebooru\Versioning\VersioningTrait;
@@ -42,6 +45,45 @@ class Pool extends Rails\ActiveRecord\Base
             return [];
     }
 
+    /**
+     * Find pools that contain posts matching the given tag query string.
+     * Returns distinct Pool records whose active pool_posts link to posts
+     * carrying ALL of the supplied tags.
+     */
+    static public function search_by_tags($tag_string)
+    {
+        $tag_string = trim((string)$tag_string);
+        if ($tag_string === '') {
+            return [];
+        }
+
+        $tag_names = array_filter(array_map('trim', explode(' ', $tag_string)));
+        if (empty($tag_names)) {
+            return [];
+        }
+
+        # Build a query that finds pools containing at least one active post
+        # that has ALL of the requested tags.
+        $placeholders = implode(',', array_fill(0, count($tag_names), '?'));
+        $tag_count = count($tag_names);
+
+        $sql = "SELECT DISTINCT p.* FROM pools p "
+             . "INNER JOIN pools_posts pp ON pp.pool_id = p.id AND pp.active = 1 "
+             . "INNER JOIN ("
+             .   "SELECT pt.post_id FROM posts_tags pt "
+             .   "INNER JOIN tags t ON t.id = pt.tag_id "
+             .   "INNER JOIN posts po ON po.id = pt.post_id AND po.status != 'deleted' "
+             .   "WHERE t.name IN ({$placeholders}) "
+             .   "GROUP BY pt.post_id "
+             .   "HAVING COUNT(DISTINCT t.id) = ?"
+             . ") matching_posts ON matching_posts.post_id = pp.post_id "
+             . "ORDER BY p.name ASC";
+
+        $params = array_merge($tag_names, [$tag_count]);
+
+        return Pool::findBySql($sql, $params)->members();
+    }
+
     public function can_be_updated_by($user)
     {
         return $this->is_public || $user->has_permission($this);
@@ -51,7 +93,18 @@ class Pool extends Rails\ActiveRecord\Base
     {
         if (isset($options['user']) && !$this->can_be_updated_by($options['user']))
             throw new Pool_AccessDeniedError();
-        
+
+        # Validate that the post exists and is not deleted.
+        try {
+            $post = Post::find($post_id);
+        } catch (\Rails\ActiveRecord\Exception\RecordNotFoundException $e) {
+            throw new Pool_InvalidPostError("Post not found");
+        }
+
+        if ($post->status == 'deleted') {
+            throw new Pool_InvalidPostError("Post is deleted");
+        }
+
         $seq = isset($options['sequence']) ? $options['sequence'] : $this->next_sequence();
         
         $pool_post = $this->all_pool_posts ? $this->all_pool_posts->search('post_id', $post_id) : null;

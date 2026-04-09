@@ -79,6 +79,18 @@ class PoolController extends ApplicationController
             }
         }
 
+        # Tag-based pool search: find pools containing posts with the given tags.
+        if ($this->params()->tags) {
+            $tag_pools = Pool::search_by_tags($this->params()->tags);
+            if (!empty($tag_pools)) {
+                $tag_pool_ids = array_map(function($p) { return $p->id; }, $tag_pools);
+                $sql_query->where("id IN (?)", $tag_pool_ids);
+            } else {
+                # No pools match the tag query — force empty result set.
+                $sql_query->where("1 = 0");
+            }
+        }
+
         if (empty($order))
             $order = empty($search_tokens) ? 'date' : 'name';
 
@@ -268,6 +280,8 @@ class PoolController extends ApplicationController
                 $this->respond_to_success('Post added', array(array('post#show', 'id' => $this->params()->post_id)));
             } catch (Pool_PostAlreadyExistsError $e) {
                 $this->respond_to_error("Post already exists", array('post#show', 'id' => $this->params()->post_id), array('status' => 423));
+            } catch (Pool_InvalidPostError $e) {
+                $this->respond_to_error($e->getMessage(), array('post#show', 'id' => $this->params()->post_id), array('status' => 422));
             } catch (Pool_AccessDeniedError $e) {
                 $this->access_denied();
             } catch (Exception $e) {

@@ -15,7 +15,7 @@
           <td>
             <a href='<?= $this->urlFor(['#edit', 'id' => $p->id]) ?>'>
             <?php if ($p->inline_images->any()) : ?>
-              <?= $this->imageTag($p->inline_images[0]->preview_url(), ['alt' => "thumb", 'width' => $p->inline_images[0]->preview_dimensions()['width'], 'height' => $p->inline_images[0]->preview_dimensions()['height']]) ?>
+              <?= $this->imageTag($p->inline_images[0]->preview_url(), ['alt' => "thumb", 'width' => $p->inline_images[0]->preview_dimensions()['width'], 'height' => $p->inline_images[0]->preview_dimensions()['height'], 'loading' => 'lazy']) ?>
             <?php else: ?>
               (no images)
             <?php endif ?>

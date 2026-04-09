@@ -39,7 +39,7 @@
         <?php foreach ($this->pending_posts as $p) : ?>
           <tr class="<?php if ($p->score > 2): ?>good<?php elseif ($p->score < -2): ?>bad<?php endif ?> <?= $this->cycle('even', 'odd') ?>">
             <td><input type="checkbox" class="p" name="ids[<?= $p->id ?>]" onclick="highlight_row(this)"></td>
-            <td><?= $this->linkTo($this->imageTag($p->preview_url(), ['width' => $p->preview_dimensions()[0], 'height' => $p->preview_dimensions()[1]]), ['post#show', 'id' => $p->id]) ?></td>
+            <td><?= $this->linkTo($this->imageTag($p->preview_url(), ['width' => $p->preview_dimensions()[0], 'height' => $p->preview_dimensions()[1], 'loading' => 'lazy']), ['post#show', 'id' => $p->id]) ?></td>
             <td class="checkbox-cell">
               <ul>
                 <li><?= $this->t(['.uploaded_by_when_html', 'u' => $this->linkTo($p->author(), ['user#show', 'id' => $p->user->id]), 't_ago' => $this->t(['time.x_ago', 't' => $this->timeAgoInWords($p->created_at)]), 'mod' => $this->linkTo($this->t('.mod'), ['#moderate', 'query' => 'user:'.$p->author()])]) ?></li>
@@ -49,9 +49,9 @@
                 <?php endif ?>
                 <li><?= $this->t('.tags') ?>: <?= $this->h($p->cached_tags) ?></li>
                 <li><?= $this->t('.score') ?>: <span id="post-score-<?= $p->id ?>"><?= $p->score ?></span></li>
-                <?php if ($p->flag_detail) : ?>
+                <?php $p_flag = $p->latest_flag(); if ($p_flag) : ?>
                 <li>
-                  <?= $this->t('.reason') ?>: <?= $this->h($p->flag_detail->reason) ?> (<?php if (!$p->flag_detail->user_id): ?>automatic flag<?php else: ?><?= $this->linkTo($this->h($p->flag_detail->author()), ['user#show', 'id' => $p->flag_detail->user_id]) ?><?php endif ?>)
+                  <?= $this->t('.reason') ?>: <?= $this->h($p_flag->reason) ?> (<?php if (!$p_flag->user_id): ?>automatic flag<?php else: ?><?= $this->linkTo($this->h($p_flag->author()), ['user#show', 'id' => $p_flag->user_id]) ?><?php endif ?>)
                 </li>
                 <?php endif ?>
                 <li><?= $this->t('.size') ?>: <?= $this->numberToHumanSize($p->file_size) ?>, <?= $p->width ?>x<?= $p->height ?></li>
@@ -85,7 +85,7 @@
         <?php foreach ($this->flagged_posts as $p) : ?>
           <tr class="<?= $this->cycle('even', 'odd') ?>">
             <td><input type="checkbox" class="f" name="ids[<?= $p->id ?>]" onclick="highlight_row(this)"></td>
-            <td><?= $this->linkTo($this->imageTag($p->preview_url(), ['width' => $p->preview_dimensions()[0], 'height' => $p->preview_dimensions()[1]]), ['post#show', 'id' => $p->id]) ?></td>
+            <td><?= $this->linkTo($this->imageTag($p->preview_url(), ['width' => $p->preview_dimensions()[0], 'height' => $p->preview_dimensions()[1], 'loading' => 'lazy']), ['post#show', 'id' => $p->id]) ?></td>
             <td class="checkbox-cell">
               <ul>
                 <li><?= $this->t(['.uploaded_by_when_html', 'u' => $this->linkTo($p->author(), ['user#show', 'id' => $p->user->id]), 't_ago' => $this->t(['time.x_ago', 't' => $this->timeAgoInWords($p->created_at)]), 'mod' => $this->linkTo($this->t('.mod'), ['#moderate', 'query' => 'user:'.$p->author()])]) ?></li>
@@ -95,9 +95,9 @@
                 <?php endif ?>
                 <li><?= $this->t('.tags') ?>: <?= $this->h($p->cached_tags) ?></li>
                 <li><?= $this->t('.score') ?>: <?= $p->score ?> (vote <?= $this->linkToFunction($this->t('.down'), "Post.vote(-1, {$p->id}, {})") ?>)</li>
-                <?php if ($p->flag_detail) : ?>
+                <?php $p_flag = $p->latest_flag(); if ($p_flag) : ?>
                 <li>
-                  <?= $this->t('.reason') ?>: <?= $this->h($p->flag_detail->reason) ?> (<?php if (!$p->flag_detail->user_id): ?>automatic flag<?php else: ?><?= $this->linkTo($this->h($p->flag_detail->author()), ['user#show', 'id' => $p->flag_detail->user_id]) ?><?php endif ?>)
+                  <?= $this->t('.reason') ?>: <?= $this->h($p_flag->reason) ?> (<?php if (!$p_flag->user_id): ?>automatic flag<?php else: ?><?= $this->linkTo($this->h($p_flag->author()), ['user#show', 'id' => $p_flag->user_id]) ?><?php endif ?>)
                 </li>
                 <?php endif ?>
                 <li><?= $this->t('.size') ?>: <?= $this->numberToHumanSize($p->file_size) ?>, <?= $p->width ?>x<?= $p->height ?></li>

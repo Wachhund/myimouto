@@ -76,6 +76,16 @@ jobs:
           path: coverage/clover.xml
           if-no-files-found: error
 
+      - name: Upload Coverage to Codecov
+        if: ${{ steps.coverage-driver.outputs.enabled == 'true' }}
+        uses: codecov/codecov-action@v4
+        continue-on-error: true
+        with:
+          files: coverage/clover.xml
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
       - name: PHPStan
         run: composer run-script analyse
 

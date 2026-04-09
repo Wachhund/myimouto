@@ -1,4 +1,4 @@
-<div class="clearfix" id="main-menu" data-controller="<?= $this->request()->controller() ?>">
+<nav class="clearfix" id="main-menu" aria-label="<?= $this->t('navigation', 'Main navigation') ?>" data-controller="<?= $this->request()->controller() ?>">
   <?php
   /**
    * MI: how about caching the menu for each user level, instead of each user,
@@ -13,7 +13,7 @@
   ?>
     <ul>
       <li class="user"><?= $this->linkTo($this->t('.account._'), ['user#home'], ['onclick' => 'if(!User.run_login_onclick(event)) return false;', 'class' => 'login-button']) ?>
-        <?= $this->linkTo('■', '#', ['class' => 'submenu-button']) ?>
+        <?= $this->linkTo('■', '#', ['class' => 'submenu-button', 'aria-label' => $this->t('submenu', 'Submenu'), 'aria-expanded' => 'false']) ?>
         <ul class="submenu">
           <?php if (current_user()->is_anonymous()) : ?>
             <li><?= $this->linkTo($this->t('.account.login'), ['controller' => 'user', 'action' => 'login'], ['id' => 'login-link', 'class' => 'login-button']) ?></li>
@@ -29,12 +29,12 @@
         </ul>
       </li>
       <li class="post"><?= $this->linkTo($this->t('.posts._'), ['controller' => 'post', 'action' => 'index']) ?>
-        <?= $this->linkTo('■', '#', ['class' => 'submenu-button']) ?>
+        <?= $this->linkTo('■', '#', ['class' => 'submenu-button', 'aria-label' => $this->t('submenu', 'Submenu'), 'aria-expanded' => 'false']) ?>
         <ul class="search-box">
           <li>
             <div>
               <?= $this->formTag('post#', ['method' => 'get'], function(){ ?>
-                <?= $this->textFieldTag('tags', '', ['id' => '']) ?><br />
+                <?= $this->textFieldTag('tags', '', ['id' => '', 'aria-label' => $this->t('.posts.search')]) ?><br />
                 <?= $this->submitTag($this->t('.posts.search')) ?>
               <?php }) ?>
             </div>
@@ -60,12 +60,12 @@
         </ul>
       </li>
       <li class="comment"><?= $this->linkTo($this->t('.comments._'), ['controller' => 'comment', 'action' => 'index'], ['id' => 'comments-link']) ?>
-        <?= $this->linkTo('■', '#', ['class' => 'submenu-button']) ?>
+        <?= $this->linkTo('■', '#', ['class' => 'submenu-button', 'aria-label' => $this->t('submenu', 'Submenu'), 'aria-expanded' => 'false']) ?>
         <ul class="search-box">
           <li>
             <div>
               <?= $this->formTag('comment#search', ['method' => 'get'], function(){ ?>
-                <?= $this->textFieldTag('query', '') ?><br />
+                <?= $this->textFieldTag('query', '', ['aria-label' => $this->t('.comments.search')]) ?><br />
                 <?= $this->submitTag($this->t('.comments.search')) ?>
               <?php }) ?>
             </div>
@@ -80,12 +80,12 @@
         </ul>
       </li>
       <li class="note"><?= $this->linkTo($this->t('.notes._'), ['controller' => 'note', 'action' => 'index']) ?>
-        <?= $this->linkTo('■', '#', ['class' => 'submenu-button']) ?>
+        <?= $this->linkTo('■', '#', ['class' => 'submenu-button', 'aria-label' => $this->t('submenu', 'Submenu'), 'aria-expanded' => 'false']) ?>
         <ul class="search-box">
           <li>
             <div>
               <?= $this->formTag('note#search', ['method' => 'get'], function(){ ?>
-                <?= $this->textFieldTag('query', '') ?><br />
+                <?= $this->textFieldTag('query', '', ['aria-label' => $this->t('.notes.search')]) ?><br />
                 <?= $this->submitTag($this->t('.notes.search')) ?>
               <?php }) ?>
             </div>
@@ -98,12 +98,12 @@
         </ul>
       </li>
       <li class="artist"><?= $this->linkTo($this->t('.artists._'), ['controller' => 'artist', 'action' => 'index', 'order' => 'date']) ?>
-        <?= $this->linkTo('■', '#', ['class' => 'submenu-button']) ?>
+        <?= $this->linkTo('■', '#', ['class' => 'submenu-button', 'aria-label' => $this->t('submenu', 'Submenu'), 'aria-expanded' => 'false']) ?>
         <ul class="search-box">
           <li>
             <div>
               <?= $this->formTag('artist#index', ['method' => 'get'], function(){ ?>
-                <?= $this->textFieldTag('name', '') ?><br />
+                <?= $this->textFieldTag('name', '', ['aria-label' => $this->t('.artists.search')]) ?><br />
                 <?= $this->submitTag($this->t('.artists.search')) ?>
               <?php }) ?>
             </div>
@@ -116,12 +116,12 @@
         </ul>
       </li>
       <li class="tag"><?= $this->linkTo($this->t('.tags._'), ['controller' => 'tag', 'action' => 'index', 'order' => 'date']) ?>
-        <?= $this->linkTo('■', '#', ['class' => 'submenu-button']) ?>
+        <?= $this->linkTo('■', '#', ['class' => 'submenu-button', 'aria-label' => $this->t('submenu', 'Submenu'), 'aria-expanded' => 'false']) ?>
         <ul class="search-box">
           <li>
             <div>
               <?= $this->formTag('tag#index', ['method' => 'get'], function(){ ?>
-                <?= $this->textFieldTag('name', '') ?><br />
+                <?= $this->textFieldTag('name', '', ['aria-label' => $this->t('.tags.search')]) ?><br />
                 <?= $this->submitTag($this->t('.tags.search')) ?>
               <?php }) ?>
             </div>
@@ -139,12 +139,12 @@
         </ul>
       </li>
       <li class="pool"><?= $this->linkTo($this->t('.pools._'), ['controller' => 'pool', 'action' => 'index']) ?>
-        <?= $this->linkTo('■', '#', ['class' => 'submenu-button']) ?>
+        <?= $this->linkTo('■', '#', ['class' => 'submenu-button', 'aria-label' => $this->t('submenu', 'Submenu'), 'aria-expanded' => 'false']) ?>
         <ul class="search-box">
           <li>
             <div>
               <?= $this->formTag('pool#index', ['method' => 'get'], function(){ ?>
-                <?= $this->textFieldTag('query', '') ?><br />
+                <?= $this->textFieldTag('query', '', ['aria-label' => $this->t('.pools.search')]) ?><br />
                 <?= $this->submitTag($this->t('.pools.search')) ?>
               <?php }) ?>
             </div>
@@ -157,12 +157,12 @@
         </ul>
       </li>
       <li class="wiki"><?= $this->linkTo($this->t('.wiki._'), (!CONFIG()->menu_wiki_link ? ['wiki#index'] : array_merge(['wiki#show'], CONFIG()->menu_wiki_link))) ?>
-        <?= $this->linkTo('■', '#', ['class' => 'submenu-button']) ?>
+        <?= $this->linkTo('■', '#', ['class' => 'submenu-button', 'aria-label' => $this->t('submenu', 'Submenu'), 'aria-expanded' => 'false']) ?>
         <ul class="search-box">
           <li>
             <div>
               <?= $this->formTag('wiki#index', ['method' => 'get'], function(){ ?>
-                <?= $this->textFieldTag('query', '') ?><br />
+                <?= $this->textFieldTag('query', '', ['aria-label' => $this->t('.wiki.search')]) ?><br />
                 <?= $this->submitTag($this->t('.wiki.search')) ?>
               <?php }) ?>
             </div>
@@ -175,12 +175,12 @@
         </ul>
       </li>
       <li class="forum"><?= $this->linkTo($this->t('.forum._'), ['controller' => 'forum', 'action' => 'index'], ['id' => 'forum-link']) ?>
-        <?= $this->linkTo('■', '#', ['class' => 'submenu-button']) ?>
+        <?= $this->linkTo('■', '#', ['class' => 'submenu-button', 'aria-label' => $this->t('submenu', 'Submenu'), 'aria-expanded' => 'false']) ?>
         <ul class="search-box">
           <li>
             <div>
               <?= $this->formTag('forum#search', ['method' => 'get'], function(){ ?>
-                <?= $this->textFieldTag('query', '') ?><br />
+                <?= $this->textFieldTag('query', '', ['aria-label' => $this->t('.forum.search')]) ?><br />
                 <?= $this->submitTag($this->t('.forum.search')) ?>
               <?php }) ?>
             </div>
@@ -195,7 +195,7 @@
         </ul>
       </li>
       <li class="help"><?= $this->linkTo($this->t('.help._'), "help#") ?>
-        <?= $this->linkTo('■', '#', ['class' => 'submenu-button']) ?>
+        <?= $this->linkTo('■', '#', ['class' => 'submenu-button', 'aria-label' => $this->t('submenu', 'Submenu'), 'aria-expanded' => 'false']) ?>
         <ul class="submenu">
           <?php # FIXME: should pluralize everything one day ?>
           <?php foreach(['post', 'comment', 'note', 'artist', 'tag', 'pool'] as $item) : ?>
@@ -228,4 +228,4 @@
     echo $menu;
   }
   ?>
-</div>
+</nav>

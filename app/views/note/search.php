@@ -9,7 +9,7 @@
     <?php foreach ($this->notes as $note) : ?>
       <div style="float: left; clear: both; margin-bottom: 2em;">
         <div style="float: left; width: 200px;">
-          <?= $this->linkTo($this->imageTag($note->post->preview_url(), ['width' => $note->post->preview_dimensions()[0], 'height' => $note->post->preview_dimensions()[1]]), ['post#show', 'id' => $note->post_id]) ?>
+          <?= $this->linkTo($this->imageTag($note->post->preview_url(), ['width' => $note->post->preview_dimensions()[0], 'height' => $note->post->preview_dimensions()[1], 'loading' => 'lazy']), ['post#show', 'id' => $note->post_id]) ?>
         </div>
         <div style="float: left;">
           <?= $this->h($note->formatted_body()) //sanitize ?>

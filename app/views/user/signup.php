@@ -22,7 +22,7 @@
             <p><?= $this->t('user_signup_text') ?></p>
           </th>
           <td width="85%">
-            <?= $this->textField("user", "name", ['size' => '30']) ?>
+            <?= $this->textField("user", "name", ['size' => '30', 'autocomplete' => 'username', 'spellcheck' => 'false']) ?>
           </td>
         </tr>
         <tr>
@@ -31,7 +31,7 @@
             <p><?= $this->t('user_signup_email_text') ?></p>
           </th>
           <td>
-            <?= $this->textField("user", "email", ['size' => '30']) ?>
+            <?= $this->textField("user", "email", ['size' => '30', 'type' => 'email', 'autocomplete' => 'email']) ?>
           </td>
         </tr>
         <tr>
@@ -40,7 +40,7 @@
             <p><?= $this->t('user_password_text') ?></p>
           </th>
           <td>
-            <?= $this->passwordField("user", "password", ['size' => '30']) ?>
+            <?= $this->passwordField("user", "password", ['size' => '30', 'autocomplete' => 'new-password']) ?>
           </td>
         </tr>
         <tr>
@@ -48,7 +48,7 @@
             <label class="block" for="user_password_confirmation"><?= $this->t('user_password_confirm') ?></label>
           </th>
           <td>
-            <?= $this->passwordField("user", "password_confirmation", ['size' => '30']) ?>
+            <?= $this->passwordField("user", "password_confirmation", ['size' => '30', 'autocomplete' => 'new-password']) ?>
           </td>
         </tr>
       </tbody>

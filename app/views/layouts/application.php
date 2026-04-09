@@ -1,14 +1,23 @@
 <!DOCTYPE html>
-<html class="action-<?= $this->request()->controller() ?> action-<?= $this->request()->controller() ?>-<?= $this->request()->action() ?> hide-advanced-editing">
+<html lang="<?= Rails::application()->I18n()->locale() ?: 'en' ?>" style="color-scheme: dark" class="action-<?= $this->request()->controller() ?> action-<?= $this->request()->controller() ?>-<?= $this->request()->action() ?> hide-advanced-editing">
 <head>
 <?php if ($this->params()->tags && preg_match('/(source:|fav:|date:|rating:|mpixels:|parent:|sub:|vote:|score:|order:|user:|limit:|holds:|pool:|[ \-])/')) : ?>
 <meta name="robots" content="none">
 <?php endif ?>
-  <meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#222">
   <title><?= $this->html_title() ?></title>
   <meta name="description" content="yande.re - A Danbooru focusing on High Resolution Anime Scans, Ecchi Scans, Hentai Scans, Moe Scans, and Bishoujo Scans; unlimited downloads. ">
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
   <link rel="top" title="<?= CONFIG()->app_name ?>" href="/">
+  <?php
+    $image_host = parse_url(CONFIG()->url_base, PHP_URL_HOST);
+    $page_host  = $this->request()->host();
+    if ($image_host && $image_host !== $page_host) {
+        echo '  <link rel="preconnect" href="' . rtrim(CONFIG()->url_base, '/') . "\">\n";
+    }
+  ?>
   <?= $this->tag('link', ['rel' => 'canonical', 'href' => !empty($this->canonical_url) ? $this->canonical_url : $this->urlFor(array_merge($this->params()->toArray(), ['only_path' => false]))]) ?>
   <?php # The javascript-hide class is used to hide elements (eg. blacklisted posts) from JavaScript. ?>
   <script type="text/javascript">
@@ -49,13 +58,14 @@
   <meta name="csrf-token" content="<?= $this->h($this->csrf_token) ?>">
 </head>
 <body>
+  <a href="#content" class="skip-link"><?= $this->t('skip_to_content', 'Skip to content') ?></a>
   <?= $this->partial('layouts/notice') ?>
   <?php if ($this->contentFor('content')) : ?>
     <?= $this->content('content') ?>
   <?php else: ?>
-    <div id="content">
+    <main id="content">
       <?= $this->content() ?>
-    </div>
+    </main>
   <?php endif ?>
   <?= $this->content('post_cookie_javascripts') ?>
   <?php if (CONFIG()->ga_tracking_id) echo $this->partial('layouts/ga') ?>

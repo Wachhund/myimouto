@@ -1,7 +1,8 @@
 <?php if ($this->post->is_flagged()) : ?>
+  <?php $latest_flag = $this->post->latest_flag(); ?>
   <div class="status-notice">
-    <?= $this->t(['.flagged.info', 'user' => $this->h($this->post->flag_detail->author()), 'reason' => $this->h($this->post->flag_detail->reason)]) ?>
-    <?php if (current_user()->is_mod_or_higher() or ($this->post->flag_detail && $this->post->flag_detail->user_id == current_user()->id)) : ?>
+    <?= $this->t(['.flagged.info', 'user' => $this->h($latest_flag ? $latest_flag->author() : ''), 'reason' => $this->h($latest_flag ? $latest_flag->reason : '')]) ?>
+    <?php if (current_user()->is_mod_or_higher() or ($latest_flag && $latest_flag->user_id == current_user()->id)) : ?>
     (<?= $this->linkToFunction($this->t('.flagged.unflag'), 'Post.unflag('.$this->post->id.', function() { window.location.reload(); })') ?>)
     <?php endif ?>
     <?php if (current_user()->is_janitor_or_higher()) : ?>
@@ -9,10 +10,11 @@
     <?php endif ?>
   </div>
 <?php elseif ($this->post->is_pending()) : ?>
+  <?php $latest_flag = $this->post->latest_flag(); ?>
   <div class="status-notice" id="pending-notice">
     <?= $this->t('.pending.info') ?>
-    <?php if ($this->post->flag_detail) : ?>
-      <?= $this->t('.reason') ?><?= $this->h($this->post->flag_detail->reason()) ?>
+    <?php if ($latest_flag) : ?>
+      <?= $this->t('.reason') ?><?= $this->h($latest_flag->reason) ?>
     <?php endif ?>
     <?php if (current_user()->is_janitor_or_higher()) : ?>
       (<?= $this->linkToFunction($this->t('.pending.approve._'), "if (confirm('".$this->t('.pending.approve.confirm')."')) {Post.approve(".$this->post->id.")}") ?></li>)
@@ -20,14 +22,15 @@
     <?php endif ?>
   </div>
 <?php elseif ($this->post->is_deleted()) : ?>
+  <?php $latest_flag = $this->post->latest_flag(); ?>
   <div class="status-notice">
     <?= $this->t('.deleted_info') ?>
-    <?php if ($this->post->flag_detail) : ?>
+    <?php if ($latest_flag) : ?>
       <?php if (current_user()->is_mod_or_higher()) : ?>
-        <?= $this->t('.by') ?>: <?= $this->linkTo($this->h($this->post->flag_detail->author()), array('user#show', 'id' => $this->post->flag_detail->user_id)) ?>
+        <?= $this->t('.by') ?>: <?= $this->linkTo($this->h($latest_flag->author()), array('user#show', 'id' => $latest_flag->user_id)) ?>
       <?php endif ?>
 
-      <?= $this->t('.reason') ?>: <?= $this->h($this->post->flag_detail->reason) ?>. MD5: <?= $this->post->md5 ?>
+      <?= $this->t('.reason') ?>: <?= $this->h($latest_flag->reason) ?>. MD5: <?= $this->post->md5 ?>
     <?php endif ?>
   </div>
 <?php endif ?>

@@ -97,17 +97,19 @@
       <td><?= implode(', ', array_map(function($x){return $this->linkTo($this->h($x->pretty_name()), array('action' => 'show', 'id' => $x->id));}, User::where("invited_by = ?", $this->user->id)->order('id desc')->select('name, id')->limit(5)->take()->members())) ?></td>
     </tr>
     <?php endif ?>
+    <?php if (current_user()->is_mod_or_higher()) : ?>
     <tr>
       <td><strong><?= $this->t('user_record') ?></strong></td>
       <td>
-        <?php if (!UserRecord::where("user_id = ?", $this->user->id)->exists()) : ?>
+        <?php if (!UserRecord::where("user_id = ? AND is_deleted = 0", $this->user->id)->exists()) : ?>
           <?= $this->t('user_record_none') ?>
         <?php else: ?>
-          <?= UserRecord::where("user_id = ? AND is_positive = true", $this->user->id)->count() - UserRecord::where("user_id = ? AND is_positive = false", $this->user->id)->count() ?>
+          <?= UserRecord::where("user_id = ? AND category = 'positive' AND is_deleted = 0", $this->user->id)->count() - UserRecord::where("user_id = ? AND category = 'negative' AND is_deleted = 0", $this->user->id)->count() ?>
         <?php endif ?>
         (<?= $this->linkTo($this->t('user_record_add'), array('user_record#index', 'user_id' => $this->user->id)) ?>)
       </td>
     </tr>
+    <?php endif ?>
     <?php if (current_user()->is_mod_or_higher()) : ?>
       <tr>
         <td><strong><?= $this->t('user_ip') ?></strong></td>

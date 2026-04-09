@@ -20,6 +20,11 @@ class StaticController extends ApplicationController
         $this->response()->headers()->setContentType('application/opensearchdescription+xml');
     }
 
+    public function terms_of_service()
+    {
+        $this->redirectTo(['controller' => 'tos', 'action' => 'show', 'status' => 301]);
+    }
+
     public function error500()
     {
         $this->render(['action' => '500', 'status' => 500]);

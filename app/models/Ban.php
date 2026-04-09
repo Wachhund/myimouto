@@ -31,7 +31,7 @@ class Ban extends Rails\ActiveRecord\Base
     
     protected function _save_to_record()
     {
-        UserRecord::create(['user_id' => $this->user_id, 'reported_by' => $this->banned_by, 'is_positive' => false, 'body' => "Blocked: ".$this->reason]);
+        UserRecord::create(['user_id' => $this->user_id, 'reported_by' => $this->banned_by, 'category' => 'negative', 'body' => "Blocked: ".$this->reason]);
     }
     
     public function setDuration($dur)

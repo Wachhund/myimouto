@@ -102,9 +102,14 @@ class Post extends Rails\ActiveRecord\Base
     {
         $old_status = $this->status;
 
-        if ($this->flag_detail)
-            $this->flag_detail->updateAttribute('is_resolved', true);
-        
+        # Resolve ALL pending (unresolved) flags
+        $unresolved = FlaggedPostDetail::where('post_id = ? AND is_resolved = 0', $this->id)->take();
+        if ($unresolved) {
+            foreach ($unresolved as $flag) {
+                $flag->resolve($approver_id);
+            }
+        }
+
         $this->updateAttributes(array('status' => 'active', 'approver_id' => $approver_id));
 
         # Don't bump posts if the status wasn't "pending"; it might be "flagged".
@@ -157,26 +162,40 @@ class Post extends Rails\ActiveRecord\Base
         return $this->notes ? $this->notes->select(function($x){return $x->is_active;}) : array();
     }
     
-    public function set_flag_detail($reason, $creator_id)
+    public function latest_flag()
     {
-        if ($this->flag_detail) {
-            $this->flag_detail->updateAttributes(array('reason' => $reason, 'user_id' => $creator_id, 'created_at' => date('Y-m-d H:i:s')));
-        } else {
-            FlaggedPostDetail::create(array('post_id' => $this->id, 'reason' => $reason, 'user_id' => $creator_id, 'is_resolved' => false));
+        # Return the most recent unresolved flag, or the most recent flag if all are resolved
+        $flag = FlaggedPostDetail::where('post_id = ? AND is_resolved = 0', $this->id)->order('created_at DESC')->first();
+        if (!$flag) {
+            $flag = FlaggedPostDetail::where('post_id = ?', $this->id)->order('created_at DESC')->first();
         }
+        return $flag;
     }
-    
-    public function flag($reason, $creator_id)
+
+    public function set_flag_detail($reason, $creator_id, $reason_category = null, $parent_post_id = null)
+    {
+        $attrs = array('post_id' => $this->id, 'reason' => $reason, 'user_id' => $creator_id, 'is_resolved' => false);
+        if ($reason_category) {
+            $attrs['reason_category'] = $reason_category;
+        }
+        if ($parent_post_id) {
+            $attrs['parent_post_id'] = $parent_post_id;
+        }
+        FlaggedPostDetail::create($attrs);
+    }
+
+    public function flag($reason, $creator_id, $reason_category = null, $parent_post_id = null)
     {
         $this->updateAttribute('status', 'flagged');
-        $this->set_flag_detail($reason, $creator_id);
+        $this->set_flag_detail($reason, $creator_id, $reason_category, $parent_post_id);
     }
     
     public function destroy_with_reason($reason, $current_user)
     {
         // Post.transaction do
-        if ($this->flag_detail)
-            $this->flag_detail->updateAttribute('is_resolved', true);
+        $existing_flag = $this->latest_flag();
+        if ($existing_flag && !$existing_flag->is_resolved)
+            $existing_flag->resolve($current_user->id);
         $this->flag($reason, $current_user->id);
         $this->first_delete();
         
@@ -366,12 +385,12 @@ class Post extends Rails\ActiveRecord\Base
     protected function associations()
     {
         return [
-            'has_one'    => ['flag_detail' => ['class_name' => "FlaggedPostDetail"]],
             'belongs_to' => [
                 'user',
                 'approver' => ['class_name' => 'User']
             ],
             'has_many' => [
+                'flag_details' => ['class_name' => "FlaggedPostDetail"],
                 'notes'       => [function() { $this->order('id DESC')->where('is_active = 1'); }],
                 'comments'    => [function() { $this->order("id"); }],
                 'children'    => [

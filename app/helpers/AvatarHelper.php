@@ -15,7 +15,7 @@ class AvatarHelper extends Rails\ActionView\Helper
             $posts_to_send[] = $user->avatar_post;
             $this->avatar_posts_registry[] = $user->avatar_post;
             $img = $this->imageTag($user->avatar_url() . "?" . strtotime($user->avatar_timestamp),
-                                        array_merge(array('class' => "avatar", 'width' => $user->avatar_width, 'height' => $user->avatar_height), $html_options));
+                                        array_merge(array('class' => "avatar", 'width' => $user->avatar_width, 'height' => $user->avatar_height, 'loading' => 'lazy'), $html_options));
             return $this->linkTo($img,
                           array("post#show", 'id' => $user->avatar_post->id),
                           array('class' => "ca" . $user->avatar_post->id,

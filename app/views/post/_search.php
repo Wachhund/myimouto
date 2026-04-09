@@ -3,7 +3,7 @@
   <?= $this->formTag('post#index', array('method' => 'get', 'accept-charset' => 'UTF-8'), function(){ ?>
     <div style="margin:0;padding:0;display:inline"></div>
     <div>
-      <?= $this->textFieldTag("tags", $this->h($this->params()->tags), array('size' => '20', 'autocomplete' => 'off')) ?>
+      <?= $this->textFieldTag("tags", $this->h($this->params()->tags), array('size' => '20', 'autocomplete' => 'off', 'aria-label' => $this->t('.search'))) ?>
       <?= $this->submitTag($this->t('.search'), array('style' => 'display: none;', 'name' => '')) ?>
     </div>
   <?php }) ?>

@@ -61,7 +61,7 @@ if ($this->posts->any()) :
   <div>
     <div class="post_ext_data">
       <div class="comparing">
-        <div class="preview"><?= $this->linkTo($this->imageTag($post->preview_url()), ['post#show', 'id' => $post->id], ['target' => '_blank']) ?></div>
+        <div class="preview"><?= $this->linkTo($this->imageTag($post->preview_url(), ['loading' => 'lazy']), ['post#show', 'id' => $post->id], ['target' => '_blank']) ?></div>
         <div><table class="form"><tbody>
           <tr><th>Id</th><td><?= $post->id ?></td></tr>
           <tr><th>Tags</th><td class="post_tags"><?= $post->cached_tags ?></td></tr>

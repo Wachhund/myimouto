@@ -13,3 +13,12 @@
 !/vendor/htmLawed
 docs/*
 features/*
+
+# Deployment artifacts
+*.tar
+*.tar.gz
+.env
+.env.*
+!scripts/.env.deploy.example
+scripts/.env.deploy
+node_modules/

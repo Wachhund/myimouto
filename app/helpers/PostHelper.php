@@ -54,7 +54,7 @@ class PostHelper extends Rails\ActionView\Helper
             $crop_left = 0;
         }
         
-        $image = '<img src="'.$post->preview_url().'" style="margin-left: '.$crop_left*(-1).'px;" alt="'.$image_title.'" class="'.$image_class.'" title="'.$image_title.'" '.$image_id.' width="'.$width.'" height="'.$height.'">';
+        $image = '<img src="'.$post->preview_url().'" style="margin-left: '.$crop_left*(-1).'px;" alt="'.$image_title.'" class="'.$image_class.'" title="'.$image_title.'" '.$image_id.' width="'.$width.'" height="'.$height.'" loading="lazy">';
         if ($is_post) {
             $plid = '<span class="plid">#pl http://'.CONFIG()->server_host.'/post/show/'.$post->id.'</span>';
             $target_url = '/post/show/' . $post->id . '/' . $post->tag_title() . $options['url_params'];

@@ -50,9 +50,10 @@ trait PostApiMethods
             unset($ret['file_url']);
         }
 
-        if (($this->status == "flagged" or $this->status == "deleted" or $this->status == "pending") && $this->flag_detail) {
-            $ret['flag_detail'] = $this->flag_detail->api_attributes();
-            $this->flag_detail->hide_user = ($this->status == "deleted" and current_user()->is_mod_or_higher());
+        $latest_flag = $this->latest_flag();
+        if (($this->status == "flagged" or $this->status == "deleted" or $this->status == "pending") && $latest_flag) {
+            $latest_flag->hide_user = ($this->status == "deleted" and current_user()->is_mod_or_higher());
+            $ret['flag_detail'] = $latest_flag->api_attributes();
         }
         
         # For post/similar results:

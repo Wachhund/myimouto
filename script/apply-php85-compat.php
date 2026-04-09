@@ -268,6 +268,74 @@ TXT,
 TXT,
         ],
     ],
+    'vendor/railsphp/railsphp/lib/Rails/ActionController/Cookie.php' => [
+        [
+            'find' => '    protected $raw = false;',
+            'replace' => <<<'TXT'
+    protected $raw = false;
+
+    protected $samesite = '';
+TXT,
+        ],
+        [
+            'find' => '    public function __construct($name, $value, $expire = null, $path = null, $domain = null, $secure = false, $httponly = false, $raw = false)',
+            'replace' => '    public function __construct($name, $value, $expire = null, $path = null, $domain = null, $secure = false, $httponly = false, $raw = false, $samesite = \'\')',
+        ],
+        [
+            'find' => <<<'TXT'
+        $this->httponly = $httponly;
+        $this->raw      = $raw;
+TXT,
+            'replace' => <<<'TXT'
+        $this->httponly = $httponly;
+        $this->raw      = $raw;
+        $this->samesite = $samesite;
+TXT,
+        ],
+        [
+            'find' => <<<'TXT'
+    public function set()
+    {
+        if ($this->raw) {
+            setrawcookie($this->name, $this->value, $this->expire, $this->path, $this->domain, $this->secure, $this->httponly);
+        } else {
+            setcookie($this->name, $this->value, $this->expire, $this->path, $this->domain, $this->secure, $this->httponly);
+        }
+    }
+TXT,
+            'replace' => <<<'TXT'
+    public function set()
+    {
+        $options = [
+            'expires'  => $this->expire ?: 0,
+            'path'     => $this->path ?: '/',
+            'domain'   => $this->domain ?: '',
+            'secure'   => $this->secure,
+            'httponly'  => $this->httponly,
+        ];
+        if ($this->samesite !== '') {
+            $options['samesite'] = $this->samesite;
+        }
+
+        if ($this->raw) {
+            setrawcookie($this->name, $this->value, $options);
+        } else {
+            setcookie($this->name, $this->value, $options);
+        }
+    }
+TXT,
+        ],
+    ],
+    'vendor/railsphp/railsphp/lib/Rails/ActionController/Cookies.php' => [
+        [
+            'find' => <<<'TXT'
+        $this->jar[$name] = new Cookie($name, $value, $p['expires'], $p['path'], $p['domain'], $p['secure'], $p['httponly'], $p['raw']);
+TXT,
+            'replace' => <<<'TXT'
+        $this->jar[$name] = new Cookie($name, $value, $p['expires'], $p['path'], $p['domain'], $p['secure'], $p['httponly'], $p['raw'], $p['samesite'] ?? '');
+TXT,
+        ],
+    ],
     'vendor/zendframework/zend-db/src/Sql/AbstractSql.php' => [
         [
             'find' => <<<'TXT'
