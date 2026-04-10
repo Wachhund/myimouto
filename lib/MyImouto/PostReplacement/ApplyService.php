@@ -3,7 +3,7 @@ namespace MyImouto\PostReplacement;
 
 class ApplyService
 {
-    public static function approve(\PostReplacement $replacement, \User $reviewer, $moderation_reason = null, array $resolved = null)
+    public static function approve(\PostReplacement $replacement, \User $reviewer, $moderation_reason = null, ?array $resolved = null)
     {
         if ((string)$replacement->status !== \PostReplacement::STATUS_PENDING) {
             throw new \RuntimeException('Replacement is not in pending state');
@@ -59,7 +59,7 @@ class ApplyService
         }
     }
 
-    private static function resolveReplacementFile(\PostReplacement $replacement, array $resolved = null)
+    private static function resolveReplacementFile(\PostReplacement $replacement, ?array $resolved = null)
     {
         if (is_array($resolved) && !empty($resolved['path'])) {
             $resolved['from_record'] = !empty($resolved['from_record']);
