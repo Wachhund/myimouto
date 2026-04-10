@@ -32,7 +32,6 @@
     btn.disabled = true;
     new Ajax.Request("/post/resolve_flag.json/" + flag_id, {
       method: "post",
-      parameters: { csrf_token: $$('meta[name=csrf-token]')[0].getAttribute('content') },
       onSuccess: function() {
         var label = document.createElement("span");
         label.className = "flag-resolved-label";
@@ -81,6 +80,9 @@
                 <li><?= $this->t('.score') ?>: <span id="post-score-<?= $p->id ?>"><?= $p->score ?></span></li>
                 <?php $p_flag = $p->latest_flag(); if ($p_flag) : ?>
                 <li>
+                  <?php if ($p_flag->reason_category) : ?>
+                    <span class="flag-cat-label flag-cat-<?= $this->h($p_flag->reason_category) ?>">[<?= $this->h($p_flag->reason_category) ?>]</span>
+                  <?php endif ?>
                   <?= $this->t('.reason') ?>: <?= $this->h($p_flag->reason) ?> (<?php if (!$p_flag->user_id): ?>automatic flag<?php else: ?><?= $this->linkTo($this->h($p_flag->author()), ['user#show', 'id' => $p_flag->user_id]) ?><?php endif ?>)
                 </li>
                 <?php endif ?>

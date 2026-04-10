@@ -147,7 +147,10 @@ class ForumController extends ApplicationController
         }
 
         # Pre-load vote data to avoid N+1 queries in the _post partial
-        $visible_post_ids = [$this->forum_post->id];
+        $visible_post_ids = [];
+        if ($this->page_number() <= 1) {
+            $visible_post_ids[] = $this->forum_post->id;
+        }
         foreach ($this->children as $child) {
             $visible_post_ids[] = $child->id;
         }

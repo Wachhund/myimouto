@@ -340,6 +340,23 @@ class User extends Rails\ActiveRecord\Base
         // end
     }
 
+    public function api_attributes()
+    {
+        $attrs = [
+            'name' => $this->name,
+            'id' => $this->id,
+            'level' => (int)$this->level,
+            'created_at' => $this->created_at,
+        ];
+
+        // Include flag_count for Staff (Janitor+) requests
+        if (current_user() && current_user()->is_janitor_or_higher()) {
+            $attrs['flag_count'] = FlaggedPostDetail::count_by_user($this->id);
+        }
+
+        return $attrs;
+    }
+
     public function asJson(array $args = array())
     {
         return ['name' => $this->name, 'blacklisted_tags' => $this->blacklisted_tags_array(), 'id' => $this->id];

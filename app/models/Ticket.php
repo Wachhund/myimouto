@@ -332,7 +332,7 @@ class Ticket extends Rails\ActiveRecord\Base
             }
 
             $creator = User::where('id = ?', (int)$this->creator_id)->first();
-            if (!$creator || $creator->is_anonymous()) {
+            if (!$creator || !$creator->level || (int)$creator->level <= 10) {
                 return;
             }
 

@@ -5,7 +5,7 @@ class TicketController extends ApplicationController
     {
         return [
             'before' => [
-                'member_only' => ['only' => ['create', 'show']],
+                'member_only' => ['only' => ['index', 'create', 'show']],
                 'mod_only' => ['only' => ['update', 'claim', 'unclaim']]
             ]
         ];
@@ -181,7 +181,7 @@ class TicketController extends ApplicationController
                 'api' => ['ticket' => $this->ticket->api_attributes()]
             ]);
         } elseif ($result['reason'] === 'already_claimed') {
-            $claimant_name = $result['claimant'] ?: 'another staff member';
+            $claimant_name = htmlspecialchars($result['claimant'] ?: 'another staff member', ENT_QUOTES, 'UTF-8');
             $this->respondTo([
                 'html' => function () use ($claimant_name) {
                     $this->notice("Error: This ticket has already been claimed by {$claimant_name}.");

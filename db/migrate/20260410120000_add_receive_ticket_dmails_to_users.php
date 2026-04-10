@@ -8,6 +8,13 @@ class AddReceiveTicketDmailsToUsers extends Rails\ActiveRecord\Migration\Base
         }
     }
 
+    public function down()
+    {
+        if ($this->columnExists('users', 'receive_ticket_dmails')) {
+            $this->execute("ALTER TABLE `users` DROP COLUMN `receive_ticket_dmails`");
+        }
+    }
+
     private function columnExists(string $table, string $column): bool
     {
         $stmt = $this->connection->executeSql(
