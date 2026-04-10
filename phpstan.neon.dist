@@ -1,0 +1,13 @@
+includes:
+    - phpstan-baseline.neon
+
+parameters:
+    level: 3
+    paths:
+        - app/
+        - lib/MyImouto/
+    scanDirectories:
+        - lib/Moebooru/
+    excludePaths:
+        - vendor/
+    phpVersion: 80500

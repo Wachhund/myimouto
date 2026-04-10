@@ -90,6 +90,9 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+      - name: Asset build
+        run: composer run-script assets:build
+
       - name: PHPStan
         run: composer run-script analyse
 

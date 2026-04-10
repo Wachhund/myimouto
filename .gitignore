@@ -22,3 +22,4 @@ features/*
 !scripts/.env.deploy.example
 scripts/.env.deploy
 node_modules/
+.php-cs-fixer.cache

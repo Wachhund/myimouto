@@ -58,8 +58,8 @@ $c->put('done');
 # Create user in database
 $c->write("Creating admin account...");
 Rails\ActiveRecord\ActiveRecord::connection()->executeSql(
-    'INSERT INTO users (created_at, name, password_hash, level, show_advanced_editing) VALUES (?, ?, ?, ?, ?)',
-    date('Y-m-d H:i:s'), $adminName, User::sha1($adminPass), 50, 1
+    'INSERT INTO users (created_at, name, password_hash, bcrypt_password_hash, level, show_advanced_editing) VALUES (?, ?, ?, ?, ?, ?)',
+    date('Y-m-d H:i:s'), $adminName, User::sha1($adminPass), password_hash($adminPass, PASSWORD_BCRYPT), 50, 1
 );
 Rails\ActiveRecord\ActiveRecord::connection()->executeSql(
     'INSERT INTO user_blacklisted_tags VALUES (?, ?)',

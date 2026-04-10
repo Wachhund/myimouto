@@ -1,3 +1,7 @@
+-- Schema regeneration: mysqldump --no-data --routines=false --triggers=false --skip-comments myimouto_db > db/schema.sql
+-- Last regenerated: [needs manual update]
+-- Includes all migrations up to: 20260410120000_add_receive_ticket_dmails_to_users.php
+
 CREATE TABLE `artists` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `alias_id` int(11) DEFAULT NULL,

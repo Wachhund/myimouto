@@ -1,12 +1,13 @@
 <?php
+
 class SiteSetting extends Rails\ActiveRecord\Base
 {
-    protected static function tableName()
+    public static function tableName()
     {
         return 'site_settings';
     }
 
-    protected static function primaryKey()
+    public static function primaryKey()
     {
         return 'key_name';
     }
@@ -29,7 +30,7 @@ class SiteSetting extends Rails\ActiveRecord\Base
             "INSERT INTO site_settings (key_name, value, updated_at) VALUES (?, ?, NOW()) " .
             "ON DUPLICATE KEY UPDATE value = VALUES(value), updated_at = NOW()",
             $key,
-            $value
+            $value,
         );
     }
 }

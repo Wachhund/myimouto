@@ -7,7 +7,7 @@ function run_command(array $parts): int
     $escaped = array_map('escapeshellarg', $parts);
     $command = implode(' ', $escaped);
     passthru($command, $code);
-    return (int)$code;
+    return (int) $code;
 }
 
 $root = dirname(__DIR__, 2);
@@ -25,7 +25,7 @@ if (!is_file($phpstanConfig) && !is_file($phpstanConfigDist)) {
     exit(0);
 }
 
-$command = [PHP_BINARY, $phpstanBin, 'analyse', '--no-progress'];
+$command = [PHP_BINARY, $phpstanBin, 'analyse', '--no-progress', '--memory-limit=512M'];
 if (is_file($phpstanConfig)) {
     $command[] = '--configuration';
     $command[] = $phpstanConfig;
@@ -35,4 +35,3 @@ if (is_file($phpstanConfig)) {
 }
 
 exit(run_command($command));
-
