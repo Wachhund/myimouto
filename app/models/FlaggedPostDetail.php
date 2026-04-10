@@ -53,6 +53,14 @@ class FlaggedPostDetail extends Rails\ActiveRecord\Base
         $this->updateAttributes(['is_resolved' => true, 'resolved_by' => $resolver_id]);
     }
 
+    /**
+     * Count total flags created by a user.
+     */
+    static public function count_by_user($user_id)
+    {
+        return (int)self::where('user_id = ?', $user_id)->count();
+    }
+
     static public function can_flag_again($user_id, $post_id)
     {
         $count = self::connection()->selectValue(

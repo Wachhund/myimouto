@@ -164,6 +164,23 @@ class PostController extends ApplicationController
                 $this->pending_posts = Post::where("status = 'pending'")->order("id desc")->take();
                 $this->flagged_posts = Post::where("status = 'flagged'")->order("id desc")->take();
             }
+
+            # Preload all pending (unresolved) flags for flagged posts to avoid N+1 queries
+            $flagged_post_ids = [];
+            foreach ($this->flagged_posts as $fp) {
+                $flagged_post_ids[] = $fp->id;
+            }
+            $this->flags_by_post = [];
+            if (!empty($flagged_post_ids)) {
+                $placeholders = implode(',', array_fill(0, count($flagged_post_ids), '?'));
+                $all_flags = FlaggedPostDetail::where(
+                    "post_id IN ({$placeholders}) AND is_resolved = 0",
+                    ...$flagged_post_ids
+                )->order('created_at DESC')->take();
+                foreach ($all_flags as $flag) {
+                    $this->flags_by_post[$flag->post_id][] = $flag;
+                }
+            }
         }
     }
 
@@ -311,6 +328,17 @@ class PostController extends ApplicationController
                     ->group('posts.id')
                     ->joins("JOIN flagged_post_details ON flagged_post_details.post_id = posts.id")
                     ->page($page)->perPage(25);
+
+        # Filter by reason_category if provided and valid
+        $reason_category = $this->params()->reason_category;
+        if ($reason_category) {
+            $valid_keys = array_map(function ($r) {
+                return $r['key'];
+            }, CONFIG()->flag_reasons);
+            if (in_array($reason_category, $valid_keys)) {
+                $query = $query->where("flagged_post_details.reason_category = ?", $reason_category);
+            }
+        }
 
         if ($this->params()->user_id) {
             $user_id = (int)$this->params()->user_id;
@@ -829,6 +857,26 @@ class PostController extends ApplicationController
         else
             $api_data = [];
         $this->respond_to_success($message, array("#show", 'id' => $this->params()->id), array('api' => $api_data));
+    }
+
+    public function resolveFlag()
+    {
+        $flag = FlaggedPostDetail::where('id = ?', (int)$this->params()->id)->first();
+
+        if (!$flag) {
+            $this->render(['json' => json_encode(['success' => false, 'reason' => 'Flag not found']), 'status' => 404]);
+            return;
+        }
+
+        # Already resolved — idempotent success
+        if ($flag->is_resolved) {
+            $this->render(['json' => json_encode(['success' => true])]);
+            return;
+        }
+
+        $flag->resolve(current_user()->id);
+
+        $this->render(['json' => json_encode(['success' => true])]);
     }
 
     public function random()
@@ -1367,7 +1415,7 @@ class PostController extends ApplicationController
                 'post_member_only' => ['only' => ['update', 'upload', 'flag']],
                 'janitor_only' => ['only' => ['moderate', 'undelete']],
                 'admin_only' => ['only' => ['import']],
-                'mod_only' => ['only' => ['searchExternalData']]
+                'mod_only' => ['only' => ['searchExternalData', 'resolveFlag']]
             ],
             'after' => [
                 'save_tags_to_cookie' => ['only' => ['update', 'create']]

@@ -10,6 +10,7 @@
     <?php if ($this->post->can_be_seen_by(current_user())) : ?>
       <script type="text/javascript">Post.register_resp(<?= json_encode(Post::batch_api_data(array($this->post))) ?>);</script>
     <?php endif ?>
+    <script type="text/javascript">var FLAG_REASONS = <?= json_encode(CONFIG()->flag_reasons) ?>;</script>
 
     <?= $this->partial('post/show_partials/status_notices', array('pools' => $this->pools)) ?>
 

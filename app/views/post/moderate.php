@@ -1,3 +1,14 @@
+<style>
+.flag-cat-duplicate { color: #2563eb; }
+.flag-cat-inferior { color: #ea580c; }
+.flag-cat-rule_violation { color: #dc2626; }
+.flag-cat-dnp_artist { color: #9333ea; }
+.flag-cat-other { color: #6b7280; }
+.flag-cat-label { font-weight: bold; margin-right: 0.4em; }
+.flag-resolve-btn { font-size: 0.85em; padding: 0.15em 0.6em; cursor: pointer; margin-left: 0.5em; }
+.flag-resolved-label { font-size: 0.85em; color: #22c55e; margin-left: 0.5em; }
+</style>
+
 <form method="get" action="/post/moderate">
   <?= $this->textFieldTag("query", $this->h($this->params()->query), ['size' => '40']) ?>
   <?= $this->submitTag($this->t('buttons.search')) ?>
@@ -15,6 +26,25 @@
     } else {
       row.className = row.original_class
     }
+  }
+
+  function resolve_flag(flag_id, btn) {
+    btn.disabled = true;
+    new Ajax.Request("/post/resolve_flag.json/" + flag_id, {
+      method: "post",
+      parameters: { csrf_token: $$('meta[name=csrf-token]')[0].getAttribute('content') },
+      onSuccess: function() {
+        var label = document.createElement("span");
+        label.className = "flag-resolved-label";
+        label.textContent = "Resolved";
+        btn.parentNode.replaceChild(label, btn);
+      },
+      onFailure: function(req) {
+        btn.disabled = false;
+        var resp = req.responseJSON;
+        notice("Error: " + (resp && resp.reason ? resp.reason : "Failed to resolve flag"));
+      }
+    });
   }
 </script>
 
@@ -95,11 +125,36 @@
                 <?php endif ?>
                 <li><?= $this->t('.tags') ?>: <?= $this->h($p->cached_tags) ?></li>
                 <li><?= $this->t('.score') ?>: <?= $p->score ?> (vote <?= $this->linkToFunction($this->t('.down'), "Post.vote(-1, {$p->id}, {})") ?>)</li>
-                <?php $p_flag = $p->latest_flag(); if ($p_flag) : ?>
+                <?php
+                  $post_flags = isset($this->flags_by_post[$p->id]) ? $this->flags_by_post[$p->id] : [];
+                  if (!empty($post_flags)) :
+                    foreach ($post_flags as $pf) :
+                ?>
                 <li>
-                  <?= $this->t('.reason') ?>: <?= $this->h($p_flag->reason) ?> (<?php if (!$p_flag->user_id): ?>automatic flag<?php else: ?><?= $this->linkTo($this->h($p_flag->author()), ['user#show', 'id' => $p_flag->user_id]) ?><?php endif ?>)
+                  <?php if ($pf->reason_category) : ?>
+                    <span class="flag-cat-label flag-cat-<?= $this->h($pf->reason_category) ?>">[<?= $this->h($pf->reason_category) ?>]</span>
+                  <?php endif ?>
+                  <?= $this->t('.reason') ?>: <?= $this->h($pf->reason) ?>
+                  (<?php if (!$pf->user_id): ?>automatic flag<?php else: ?><?= $this->linkTo($this->h($pf->author()), ['user#show', 'id' => $pf->user_id]) ?><?php endif ?>)
+                  <button type="button" class="flag-resolve-btn" onclick="resolve_flag(<?= $pf->id ?>, this)">Resolve</button>
                 </li>
-                <?php endif ?>
+                <?php
+                    endforeach;
+                  else :
+                    $p_flag = $p->latest_flag();
+                    if ($p_flag) :
+                ?>
+                <li>
+                  <?php if ($p_flag->reason_category) : ?>
+                    <span class="flag-cat-label flag-cat-<?= $this->h($p_flag->reason_category) ?>">[<?= $this->h($p_flag->reason_category) ?>]</span>
+                  <?php endif ?>
+                  <?= $this->t('.reason') ?>: <?= $this->h($p_flag->reason) ?>
+                  (<?php if (!$p_flag->user_id): ?>automatic flag<?php else: ?><?= $this->linkTo($this->h($p_flag->author()), ['user#show', 'id' => $p_flag->user_id]) ?><?php endif ?>)
+                </li>
+                <?php
+                    endif;
+                  endif;
+                ?>
                 <li><?= $this->t('.size') ?>: <?= $this->numberToHumanSize($p->file_size) ?>, <?= $p->width ?>x<?= $p->height ?></li>
               </ul>
             </td>

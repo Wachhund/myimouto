@@ -1,5 +1,18 @@
 <h4><?= $this->t('.title') ?></h4>
 
+<form method="get" action="/post/deleted_index" style="margin-bottom: 1em;">
+  <?php if ($this->params()->user_id) : ?>
+    <input type="hidden" name="user_id" value="<?= (int)$this->params()->user_id ?>" />
+  <?php endif ?>
+  <label for="reason_category">Filter by category:</label>
+  <select name="reason_category" id="reason_category" onchange="this.form.submit()">
+    <option value="">All</option>
+    <?php foreach (CONFIG()->flag_reasons as $r) : ?>
+      <option value="<?= $this->h($r['key']) ?>"<?= $this->params()->reason_category === $r['key'] ? ' selected' : '' ?>><?= $this->h($r['label']) ?></option>
+    <?php endforeach ?>
+  </select>
+</form>
+
 <table width="100%" class="highlightable">
   <thead>
     <tr>

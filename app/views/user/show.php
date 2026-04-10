@@ -85,6 +85,12 @@
       <td><strong><?= $this->t('user_forum_post') ?></strong></td>
       <td><?= ForumPost::where(['creator_id' => $this->user->id])->count() ?></td>
     </tr>
+    <?php if (current_user()->is_janitor_or_higher()) : ?>
+    <tr>
+      <td><strong>Flags created</strong></td>
+      <td><?= FlaggedPostDetail::count_by_user($this->user->id) ?></td>
+    </tr>
+    <?php endif ?>
     <?php if ($this->user->invited_by) : ?>
       <tr>
         <td><strong><?= $this->t('user_invited_by') ?></strong></td>
