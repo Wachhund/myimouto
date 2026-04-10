@@ -18,7 +18,7 @@ foreach ($paths as $path) {
     }
 
     $iterator = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS)
+        new RecursiveDirectoryIterator($path, FilesystemIterator::SKIP_DOTS),
     );
 
     foreach ($iterator as $file) {
@@ -46,4 +46,3 @@ foreach ($files as $file) {
 
 echo PHP_EOL . sprintf('[ci:lint] checked=%d failed=%d', count($files), $failed) . PHP_EOL;
 exit($failed === 0 ? 0 : 1);
-

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Applies compatibility patches required to run the legacy stack on PHP 8.5.
  * This script is idempotent and is invoked by composer post-install/update hooks.

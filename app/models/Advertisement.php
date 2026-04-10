@@ -1,16 +1,17 @@
 <?php
+
 class Advertisement extends Rails\ActiveRecord\Base
 {
     # Valid positions for horizontal advertisements: any, top, bottom.
-    static protected $POSITIONS = ['a', 't', 'b'];
-    
-    static protected $table_available = null;
-    
+    protected static $POSITIONS = ['a', 't', 'b'];
+
+    protected static $table_available = null;
+
     protected function validations()
     {
         return [
             'ad_type' => [
-                'inclusion' => ['in' => ['horizontal', 'vertical']]
+                'inclusion' => ['in' => ['horizontal', 'vertical']],
             ],
             'ad_type' => [ 'presence' => true ],
             'status'  => [ 'presence' => true ],
@@ -18,13 +19,13 @@ class Advertisement extends Rails\ActiveRecord\Base
             'validatePosition',
         ];
     }
-    
-    static public function random($type = 'vertical', $position = null)
+
+    public static function random($type = 'vertical', $position = null)
     {
         if (!self::table_available()) {
             return null;
         }
-        
+
         try {
             $sql = self::where(['ad_type' => $type, 'status' => 'active'])->order('RAND()');
             if ($position) {
@@ -40,35 +41,35 @@ class Advertisement extends Rails\ActiveRecord\Base
             throw $e;
         }
     }
-    
-    static public function reset_hit_count($ids)
+
+    public static function reset_hit_count($ids)
     {
         if (!self::table_available()) {
             return;
         }
-        
+
         foreach (self::where('id IN (?)', $ids)->take() as $ad) {
             $ad->updateAttribute('hit_count', 0);
         }
     }
-    
-    static protected function table_available()
+
+    protected static function table_available()
     {
         if (self::$table_available !== null) {
             return self::$table_available;
         }
-        
+
         try {
             self::$table_available = self::connection()->tableExists(self::tableName());
         } catch (\Throwable $e) {
             Rails::log()->exception($e);
             self::$table_available = false;
         }
-        
+
         return self::$table_available;
     }
-    
-    static protected function missing_table_exception(\Throwable $e)
+
+    protected static function missing_table_exception(\Throwable $e)
     {
         $message = strtolower($e->getMessage());
         return strpos($message, 'base table or view not found') !== false ||
@@ -82,30 +83,30 @@ class Advertisement extends Rails\ActiveRecord\Base
             $this->hit_count = 0;
         }
     }
-    
+
     # virtual method for no-reset default in view's form
     public function getResetHitCount()
     {
         return '0';
     }
-    
+
     public function prettyPosition()
     {
         switch ($this->position) {
             case 'a':
                 return 'Any';
-            
+
             case 't':
                 return 'Top';
-            
+
             case 'b':
                 return 'Bottom';
-            
+
             default:
                 return 'Unknown';
         }
     }
-    
+
     protected function validatePosition()
     {
         if ($this->ad_type == 'vertical') {
@@ -117,7 +118,7 @@ class Advertisement extends Rails\ActiveRecord\Base
             }
         }
     }
-    
+
     protected function validateType()
     {
         # Common needed attributes, width and height.
@@ -127,7 +128,7 @@ class Advertisement extends Rails\ActiveRecord\Base
         } elseif (!$this->height) {
             $attr = 'height';
         }
-        
+
         if ($attr) {
             $this->errors()->add($attr, "can't be blank");
             return false;
@@ -138,18 +139,18 @@ class Advertisement extends Rails\ActiveRecord\Base
             $this->referral_url = null;
         } else {
             $attr = '';
-            
+
             if (!$this->image_url) {
                 $attr = 'image_url';
             } elseif (!$this->referral_url) {
                 $attr = 'referral_url';
             }
-            
+
             if ($attr) {
                 $this->errors()->add($attr, "can't be blank");
                 return false;
             }
-            
+
             $this->html = null;
         }
     }

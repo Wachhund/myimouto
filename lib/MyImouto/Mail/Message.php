@@ -22,7 +22,7 @@ class Message
 
     public function setEncoding($encoding)
     {
-        $encoding = trim((string)$encoding);
+        $encoding = trim((string) $encoding);
         $this->encoding = $encoding === '' ? null : $encoding;
         return $this;
     }
@@ -90,7 +90,7 @@ class Message
 
     public function setSubject($subject)
     {
-        $this->subject = (string)$subject;
+        $this->subject = (string) $subject;
         return $this;
     }
 
@@ -222,31 +222,31 @@ class Message
 
     private function fromKeyValue($email, $name)
     {
-        $email = trim((string)$email);
+        $email = trim((string) $email);
         if ($email === '') {
             return null;
         }
 
-        return new Address($email, (string)$name);
+        return new Address($email, (string) $name);
     }
 
     private function fromArray(array $value)
     {
         if (isset($value['email'])) {
-            $email = trim((string)$value['email']);
+            $email = trim((string) $value['email']);
             if ($email === '') {
                 return null;
             }
-            $name = isset($value['name']) ? (string)$value['name'] : '';
+            $name = isset($value['name']) ? (string) $value['name'] : '';
             return new Address($email, $name);
         }
 
         if (isset($value[0])) {
-            $email = trim((string)$value[0]);
+            $email = trim((string) $value[0]);
             if ($email === '') {
                 return null;
             }
-            $name = isset($value[1]) ? (string)$value[1] : '';
+            $name = isset($value[1]) ? (string) $value[1] : '';
             return new Address($email, $name);
         }
 
@@ -259,9 +259,9 @@ class Message
         $name = '';
 
         if (method_exists($value, 'getEmail')) {
-            $email = trim((string)$value->getEmail());
+            $email = trim((string) $value->getEmail());
         } elseif (isset($value->email)) {
-            $email = trim((string)$value->email);
+            $email = trim((string) $value->email);
         }
 
         if ($email === '') {
@@ -269,9 +269,9 @@ class Message
         }
 
         if (method_exists($value, 'getName')) {
-            $name = (string)$value->getName();
+            $name = (string) $value->getName();
         } elseif (isset($value->name)) {
-            $name = (string)$value->name;
+            $name = (string) $value->name;
         }
 
         return new Address($email, $name);

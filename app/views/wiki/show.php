@@ -1,5 +1,5 @@
 <?php $this->provide('title', str_replace('_', ' ', $this->params()->title)) ?>
-<?php #render ['partial' => "sidebar"] ?>
+<?php #render ['partial' => "sidebar"]?>
 
 <div class="wiki" id="wiki-show">
   <h2 class="title">
@@ -28,13 +28,13 @@
     <div style="clear: both;">
      <table class="form" style="margin-bottom: 1em;">
        <tbody>
-         <?php foreach($this->artist->artist_urls as $artist_url) : ?>
+         <?php foreach ($this->artist->artist_urls as $artist_url) : ?>
           <tr>
             <th>URL</th>
             <td>
               <?= $this->linkTo($artist_url->url, $artist_url->url) ?>
               <?php if (current_user()->is_mod_or_higher()) : ?>
-                (<?= $this->linkTo("mass edit", ['controller' => "tag", 'action' => "mass_edit", 'source' => "-".$this->artist->name." source:" . ArtistUrl::normalize_for_search($artist_url->url), 'name' => $this->artist->name]) ?>)
+                (<?= $this->linkTo("mass edit", ['controller' => "tag", 'action' => "mass_edit", 'source' => "-" . $this->artist->name . " source:" . ArtistUrl::normalize_for_search($artist_url->url), 'name' => $this->artist->name]) ?>)
               <?php endif ?>
             </td>
           </tr>
@@ -48,7 +48,9 @@
         <?php if ($this->artist->aliases()->any()) : ?>
           <tr>
             <th>Aliases</th>
-            <td><?= implode(', ', array_map(function($x){return $this->linkTo($this->h($x->name), array('#show', 'title' => $x->name));}, $this->artist->aliases()->members())) ?></td>
+            <td><?= implode(', ', array_map(function ($x) {
+                return $this->linkTo($this->h($x->name), ['#show', 'title' => $x->name]);
+            }, $this->artist->aliases()->members())) ?></td>
           </tr>
         <?php endif ?>
         <?php if ($this->artist->group_id) : ?>
@@ -60,7 +62,9 @@
         <?php if ($this->artist->members()->any()) : ?>
           <tr>
             <th>Members</th>
-            <td><?= implode(', ', array_map(function($x){return $this->linkTo($this->h($x->name), array('#show', 'title' => $x->name));}, $this->artist->members()->members())) ?></td>
+            <td><?= implode(', ', array_map(function ($x) {
+                return $this->linkTo($this->h($x->name), ['#show', 'title' => $x->name]);
+            }, $this->artist->members()->members())) ?></td>
           </tr>
         <?php endif ?>
        </tbody>
@@ -86,7 +90,7 @@
     <?= $this->linkTo("View Posts", ['controller' => "post", 'action' => "index", 'tags' => $this->params()->title]) ?> |
     <?= $this->linkTo("Edit", ['controller' => "wiki", 'action' => "edit", 'title' => $this->params()->title]) ?>
   <?php else: ?>
-    <?= $this->linkToIf(!$this->page->first_version(), "<<", ['controller' => "wiki", 'action' => "show", 'title' => $this->page->title, 'version' => $this->page->version-1]) ?>
+    <?= $this->linkToIf(!$this->page->first_version(), "<<", ['controller' => "wiki", 'action' => "show", 'title' => $this->page->title, 'version' => $this->page->version - 1]) ?>
     <?= $this->linkTo("View posts", ['controller' => "post", 'action' => "index", 'tags' => $this->page->title]) ?>
     | <?= $this->linkTo("History", ['controller' => "wiki", 'action' => "history", 'title' => $this->page->title]) ?>
     <?php if (!$this->page->is_locked) : ?>
@@ -108,7 +112,7 @@
   <?php endif ?>
   <br>
 
-  <?php $this->contentFor('subnavbar', function() { ?>
+  <?php $this->contentFor('subnavbar', function () { ?>
     <?php if ($this->artist) : ?>
       <li><?= $this->linkTo("Edit Artist", ['controller' => "artist", 'action' => "update", 'id' => $this->artist->id]) ?></li>
       <?php if ($this->can_access('privileged')) : ?>
@@ -132,7 +136,7 @@
 <?php
 # MI: Hide blacklisted posts.
 if ($this->posts) :
-?>
+    ?>
 <script type="text/javascript">
 Post.register_resp(<?= json_encode(Post::batch_api_data($this->posts->members())) ?>);
 Post.init_blacklisted();

@@ -1,12 +1,13 @@
 <?php
+
 class UserOauthIdentity extends Rails\ActiveRecord\Base
 {
     protected function associations()
     {
         return [
             'belongs_to' => [
-                'user'
-            ]
+                'user',
+            ],
         ];
     }
 
@@ -15,19 +16,19 @@ class UserOauthIdentity extends Rails\ActiveRecord\Base
         return [
             'user_id' => ['presence' => true],
             'provider' => ['presence' => true],
-            'provider_subject' => ['presence' => true]
+            'provider_subject' => ['presence' => true],
         ];
     }
 
     public function api_attributes()
     {
         return [
-            'id' => (int)$this->id,
-            'user_id' => (int)$this->user_id,
-            'provider' => (string)$this->provider,
+            'id' => (int) $this->id,
+            'user_id' => (int) $this->user_id,
+            'provider' => (string) $this->provider,
             'email' => $this->email,
             'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at
+            'updated_at' => $this->updated_at,
         ];
     }
 

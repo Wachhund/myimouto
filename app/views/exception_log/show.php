@@ -6,7 +6,7 @@
   <tbody>
     <tr>
       <th style="width: 15%; text-align: right;">ID</th>
-      <td><?= (int)$this->exception_log->id ?></td>
+      <td><?= (int) $this->exception_log->id ?></td>
     </tr>
     <tr>
       <th style="text-align: right;">Code</th>
@@ -37,8 +37,8 @@
       <td>
         <?php if ($this->exception_log->user_id) : ?>
           <?= $this->linkTo(
-            $this->h(User::find_name((int)$this->exception_log->user_id)),
-            ['controller' => 'user', 'action' => 'show', 'id' => $this->exception_log->user_id]
+              $this->h(User::find_name((int) $this->exception_log->user_id)),
+              ['controller' => 'user', 'action' => 'show', 'id' => $this->exception_log->user_id],
           ) ?>
         <?php else : ?>
           -

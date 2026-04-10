@@ -1,7 +1,7 @@
 <div id="post-set-update">
   <h2>Edit Post Set</h2>
 
-  <?= $this->formTag(['action' => 'update', 'id' => $this->post_set->id], ['method' => 'post'], function() { ?>
+  <?= $this->formTag(['action' => 'update', 'id' => $this->post_set->id], ['method' => 'post'], function () { ?>
     <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
 
     <table>
@@ -21,7 +21,7 @@
         <td>Public</td>
         <td>
           <?= $this->hiddenFieldTag('post_set[is_public]', '0') ?>
-          <label><?= $this->checkBoxTag('post_set[is_public]', '1', (bool)$this->post_set->is_public) ?> Visible to everyone</label>
+          <label><?= $this->checkBoxTag('post_set[is_public]', '1', (bool) $this->post_set->is_public) ?> Visible to everyone</label>
         </td>
       </tr>
       <tr>
@@ -34,7 +34,7 @@
   <?php }) ?>
 
   <div style="margin-top: 1.5em;">
-    <?= $this->formTag(['action' => 'destroy', 'id' => $this->post_set->id], ['method' => 'post'], function() { ?>
+    <?= $this->formTag(['action' => 'destroy', 'id' => $this->post_set->id], ['method' => 'post'], function () { ?>
       <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
       <?= $this->submitTag('Delete Set') ?>
     <?php }) ?>

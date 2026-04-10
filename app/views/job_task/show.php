@@ -9,7 +9,7 @@
   <?php endif ?>
 </ul>
 
-<?php $this->contentFor('subnavbar', function(){ ?>
+<?php $this->contentFor('subnavbar', function () { ?>
   <li><?= $this->linkTo($this->t(".nav.list"), ['action' => "index"]) ?></li>
   <?php if (current_user()->is_admin() && $this->job_task->status == "error") : ?>
     <li><?= $this->linkTo($this->t(".nav.restart"), ["#restart", 'id' => $this->job_task->id]) ?></li>

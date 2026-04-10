@@ -1,21 +1,22 @@
 <?php
+
 class PostSetController extends ApplicationController
 {
     protected function filters()
     {
         return [
             'before' => [
-                'member_only' => ['only' => ['create', 'update', 'destroy', 'postList', 'updatePosts', 'addPost', 'removePost']]
-            ]
+                'member_only' => ['only' => ['create', 'update', 'destroy', 'postList', 'updatePosts', 'addPost', 'removePost']],
+            ],
         ];
     }
 
     public function index()
     {
         $params = $this->params()->all();
-        $limit = isset($params['limit']) ? (int)$params['limit'] : 0;
+        $limit = isset($params['limit']) ? (int) $params['limit'] : 0;
         if ($limit <= 0) {
-            $limit = (int)CONFIG()->post_set_index_default_limit;
+            $limit = (int) CONFIG()->post_set_index_default_limit;
         }
         $limit = max(1, min($limit, 100));
 
@@ -47,11 +48,11 @@ class PostSetController extends ApplicationController
             $posts = Post::where('id IN (?)', $all_post_ids)->take();
             $posts_by_id = [];
             foreach ($posts as $post) {
-                $posts_by_id[(int)$post->id] = $post;
+                $posts_by_id[(int) $post->id] = $post;
             }
 
             foreach ($all_post_ids as $post_id) {
-                $post_id = (int)$post_id;
+                $post_id = (int) $post_id;
                 if (!isset($posts_by_id[$post_id])) {
                     continue;
                 }
@@ -73,16 +74,16 @@ class PostSetController extends ApplicationController
 
         $this->respondTo([
             'html',
-            'json' => function() {
+            'json' => function () {
                 $payload = $this->post_set->api_attributes();
                 $payload['post_ids'] = $this->post_ids;
                 $this->render(['json' => $payload]);
             },
-            'xml' => function() {
+            'xml' => function () {
                 $payload = $this->post_set->api_attributes();
                 $payload['post_ids'] = implode(',', $this->post_ids);
                 $this->render(['xml' => $payload, 'root' => 'post_set']);
-            }
+            },
         ]);
     }
 
@@ -100,7 +101,7 @@ class PostSetController extends ApplicationController
         $this->post_set = PostSet::create($attrs);
         if ($this->post_set->errors()->blank()) {
             $this->respond_to_success('Set created', ['#show', 'id' => $this->post_set->id], [
-                'api' => ['post_set' => $this->post_set->api_attributes()]
+                'api' => ['post_set' => $this->post_set->api_attributes()],
             ]);
             return;
         }
@@ -129,7 +130,7 @@ class PostSetController extends ApplicationController
 
         if ($this->post_set->errors()->blank()) {
             $this->respond_to_success('Set updated', ['#show', 'id' => $this->post_set->id], [
-                'api' => ['post_set' => $this->post_set->api_attributes()]
+                'api' => ['post_set' => $this->post_set->api_attributes()],
             ]);
             return;
         }
@@ -182,12 +183,12 @@ class PostSetController extends ApplicationController
             return;
         }
 
-        $post_ids = PostSet::parse_post_ids_string((string)$this->params()->post_ids);
+        $post_ids = PostSet::parse_post_ids_string((string) $this->params()->post_ids);
         if (count($post_ids) > PostSet::post_limit()) {
             $this->respond_to_error(
                 'Too many posts in set update',
                 ['#post_list', 'id' => $this->post_set->id],
-                ['status' => 424]
+                ['status' => 424],
             );
             return;
         }
@@ -197,7 +198,7 @@ class PostSetController extends ApplicationController
             'Set posts updated (added: %d, removed: %d, invalid: %d)',
             count($result['added']),
             count($result['removed']),
-            count($result['invalid'])
+            count($result['invalid']),
         );
 
         $this->respond_to_success($summary, ['#post_list', 'id' => $this->post_set->id], ['api' => $result]);
@@ -230,7 +231,7 @@ class PostSetController extends ApplicationController
         $summary = sprintf(
             'Posts added to set (added: %d, invalid: %d)',
             count($result['added']),
-            count($result['invalid'])
+            count($result['invalid']),
         );
 
         $redirect = ['#show', 'id' => $this->post_set->id];
@@ -281,11 +282,11 @@ class PostSetController extends ApplicationController
 
         $this->respondTo([
             'html',
-            'json' => function() {
+            'json' => function () {
                 $payload = [
-                    'post_set_id' => (int)$this->post_set->id,
+                    'post_set_id' => (int) $this->post_set->id,
                     'pending' => [],
-                    'approved' => []
+                    'approved' => [],
                 ];
 
                 foreach ($this->pending_maintainers as $m) {
@@ -297,20 +298,20 @@ class PostSetController extends ApplicationController
 
                 $this->render(['json' => $payload]);
             },
-            'xml' => function() {
+            'xml' => function () {
                 $payload = [
-                    'post_set_id' => (int)$this->post_set->id,
+                    'post_set_id' => (int) $this->post_set->id,
                     'pending_count' => $this->pending_maintainers->size(),
-                    'approved_count' => $this->approved_maintainers->size()
+                    'approved_count' => $this->approved_maintainers->size(),
                 ];
                 $this->render(['xml' => $payload, 'root' => 'post_set_maintainers']);
-            }
+            },
         ]);
     }
 
     protected function find_post_set_from_params($param_key = 'id')
     {
-        $id = (int)$this->params()->$param_key;
+        $id = (int) $this->params()->$param_key;
         if ($id <= 0) {
             $this->respond_to_error('Set not found', ['#index'], ['status' => 404]);
             return null;
@@ -330,13 +331,13 @@ class PostSetController extends ApplicationController
 
         $attrs = [];
         if (array_key_exists('name', $source)) {
-            $attrs['name'] = trim((string)$source['name']);
+            $attrs['name'] = trim((string) $source['name']);
         }
         if (array_key_exists('shortname', $source)) {
-            $attrs['shortname'] = trim((string)$source['shortname']);
+            $attrs['shortname'] = trim((string) $source['shortname']);
         }
         if (array_key_exists('description', $source)) {
-            $attrs['description'] = trim((string)$source['description']);
+            $attrs['description'] = trim((string) $source['description']);
         }
         if (array_key_exists('is_public', $source)) {
             $attrs['is_public'] = $this->to_bool($source['is_public']) ? 1 : 0;
@@ -352,7 +353,7 @@ class PostSetController extends ApplicationController
             if (is_array($post_ids)) {
                 return PostSet::parse_post_ids_string(implode(' ', $post_ids));
             }
-            return PostSet::parse_post_ids_string((string)$post_ids);
+            return PostSet::parse_post_ids_string((string) $post_ids);
         }
 
         if (!empty($this->params()->post_id)) {
@@ -360,7 +361,7 @@ class PostSetController extends ApplicationController
             if (is_array($post_id)) {
                 return PostSet::parse_post_ids_string(implode(' ', $post_id));
             }
-            return PostSet::parse_post_ids_string((string)$post_id);
+            return PostSet::parse_post_ids_string((string) $post_id);
         }
 
         return [];
@@ -372,7 +373,7 @@ class PostSetController extends ApplicationController
             return $value;
         }
 
-        $normalized = strtolower(trim((string)$value));
+        $normalized = strtolower(trim((string) $value));
         return in_array($normalized, ['1', 'true', 'yes', 'on'], true);
     }
 

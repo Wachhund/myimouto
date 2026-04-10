@@ -1,4 +1,5 @@
 <?php
+
 trait TagTypeMethods
 {
     public function pretty_type_name()

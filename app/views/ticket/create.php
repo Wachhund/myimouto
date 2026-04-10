@@ -1,7 +1,7 @@
 <div id="ticket-create">
   <h4>Create Ticket</h4>
 
-  <?= $this->formTag(['action' => 'create'], ['method' => 'post'], function() { ?>
+  <?= $this->formTag(['action' => 'create'], ['method' => 'post'], function () { ?>
     <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
 
     <table>
@@ -10,7 +10,7 @@
         <td>
           <select name="ticket[qtype]">
             <?php foreach (Ticket::VALID_QTYPES as $qtype) : ?>
-              <option value="<?= $this->h($qtype) ?>" <?php if ((string)$this->ticket->qtype === $qtype) : ?>selected<?php endif ?>>
+              <option value="<?= $this->h($qtype) ?>" <?php if ((string) $this->ticket->qtype === $qtype) : ?>selected<?php endif ?>>
                 <?= $this->h(ucfirst($qtype)) ?>
               </option>
             <?php endforeach ?>

@@ -6,7 +6,7 @@
     </td> </tr>
   </tbody> </table>
 </div>
-<?php $this->contentFor('post_cookie_javascripts', function(){ ?>
+<?php $this->contentFor('post_cookie_javascripts', function () { ?>
   <script type="text/javascript">
     var text = Cookie.get("notice");
     if (text) {

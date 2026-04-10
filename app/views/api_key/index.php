@@ -33,11 +33,11 @@
           <td><?= $key->last_used_at ? $this->h($key->last_used_at) : 'Never' ?></td>
           <td><?= $key->last_ip_address ? $this->h($key->last_ip_address) : '-' ?></td>
           <td>
-            <?= $this->formTag(['api_key#regenerate', 'id' => $key->id], ['method' => 'post', 'style' => 'display:inline-block; margin-right: 4px;'], function() { ?>
+            <?= $this->formTag(['api_key#regenerate', 'id' => $key->id], ['method' => 'post', 'style' => 'display:inline-block; margin-right: 4px;'], function () { ?>
               <input type="hidden" name="csrf_token" value="<?= $this->h($this->csrf_token) ?>" />
               <input type="submit" value="Regenerate" onclick="return confirm('Regenerate this key? The old key will stop working immediately.');" />
             <?php }) ?>
-            <?= $this->formTag(['api_key#destroy', 'id' => $key->id], ['method' => 'post', 'style' => 'display:inline-block;'], function() { ?>
+            <?= $this->formTag(['api_key#destroy', 'id' => $key->id], ['method' => 'post', 'style' => 'display:inline-block;'], function () { ?>
               <input type="hidden" name="csrf_token" value="<?= $this->h($this->csrf_token) ?>" />
               <input type="submit" value="Delete" onclick="return confirm('Delete this key? This cannot be undone.');" />
             <?php }) ?>
@@ -49,9 +49,9 @@
 </table>
 
 <h4 style="margin-top: 1.5em;">Create New API Key</h4>
-<p>You can have up to <?= (int)$this->max_keys ?> keys. Currently using <?= count($this->api_keys) ?>.</p>
+<p>You can have up to <?= (int) $this->max_keys ?> keys. Currently using <?= count($this->api_keys) ?>.</p>
 
-<?= $this->formTag(['api_key#create'], ['method' => 'post'], function() { ?>
+<?= $this->formTag(['api_key#create'], ['method' => 'post'], function () { ?>
   <input type="hidden" name="csrf_token" value="<?= $this->h($this->csrf_token) ?>" />
   <table class="form">
     <tr>

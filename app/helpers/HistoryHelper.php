@@ -1,4 +1,5 @@
 <?php
+
 class HistoryHelper extends Rails\ActionView\Helper
 {
     protected $att_options;
@@ -14,8 +15,9 @@ class HistoryHelper extends Rails\ActionView\Helper
 
     public function get_attribute_options()
     {
-        if ($this->att_options)
+        if ($this->att_options) {
             return $this->att_options;
+        }
 
         $att_options = [
             # :suppress_fields => If this attribute was changed, don't display changes to specified
@@ -50,16 +52,16 @@ class HistoryHelper extends Rails\ActionView\Helper
                     'cached_tags' => [ 'primary_order' => 2 ], # show tag changes after other things
                     'source' => [ 'primary_order' => 3 ],
                 ],
-                'never_obsolete' => ['cached_tags' => true] # tags handle obsolete themselves per-tag
+                'never_obsolete' => ['cached_tags' => true], # tags handle obsolete themselves per-tag
             ],
 
             'Pool' => [
                 'primary_order' => 0,
 
                 'fields' => [
-                    'description' => [ 'primary_order' => 5 ] # we don't handle commas correctly if this isn't last
+                    'description' => [ 'primary_order' => 5 ], # we don't handle commas correctly if this isn't last
                 ],
-                'never_obsolete' => [ 'description' => true ] # changes to description aren't obsolete just because the text has changed again
+                'never_obsolete' => [ 'description' => true ], # changes to description aren't obsolete just because the text has changed again
             ],
 
             'PoolPost' => [
@@ -69,7 +71,7 @@ class HistoryHelper extends Rails\ActionView\Helper
                         'max_to_display' => 10,
                         'suppress_fields' => ['sequence'], # changing active usually changes sequence; this isn't interesting
                         'primary_order' => 2, # show pool post changes after other things
-                    ]
+                    ],
                 ],
                 'cached_tags' => [  ],
             ],
@@ -86,7 +88,7 @@ class HistoryHelper extends Rails\ActionView\Helper
                 'fields' => [],
                 'primary_order' => 1,
                 'never_obsolete' => [],
-                'force_show_initial' => []
+                'force_show_initial' => [],
             ], $att_options[$classname]);
 
             $c = $att_options[$classname]['fields'];
@@ -105,10 +107,12 @@ class HistoryHelper extends Rails\ActionView\Helper
         # Group the changes by class and field.
         $change_groups = [];
         foreach ($changes as $c) {
-            if (!isset($change_groups[$c->table_name]))
+            if (!isset($change_groups[$c->table_name])) {
                 $change_groups[$c->table_name] = [];
-            if (!isset($change_groups[$c->table_name][$c->column_name]))
+            }
+            if (!isset($change_groups[$c->table_name][$c->column_name])) {
                 $change_groups[$c->table_name][$c->column_name] = [];
+            }
             $change_groups[$c->table_name][$c->column_name][] = $c;
         }
 
@@ -127,8 +131,9 @@ class HistoryHelper extends Rails\ActionView\Helper
                 $to_suppress = array_merge($to_suppress, $field_options['suppress_fields']);
             }
 
-            foreach ($to_suppress as $suppress)
+            foreach ($to_suppress as $suppress) {
                 unset($fields[$suppress]);
+            }
 
             foreach ($fields as $field => $group) {
                 $class_name = $group[0]->master_class();
@@ -145,19 +150,22 @@ class HistoryHelper extends Rails\ActionView\Helper
 
                 # Format the rest.
                 foreach ($group as $c) {
-                    if (!$c->previous && $c->changes_to_default() && empty($table_options['force_show_initial']['field']))
+                    if (!$c->previous && $c->changes_to_default() && empty($table_options['force_show_initial']['field'])) {
                         continue;
+                    }
 
                     $part = $this->format_change($history, $c, $options, $table_options);
-                    if (!$part)
+                    if (!$part) {
                         continue;
+                    }
 
-                    if (!empty($field_options['primary_order']))
+                    if (!empty($field_options['primary_order'])) {
                         $primary_order = $field_options['primary_order'];
-                    elseif (!empty($table_options['primary_order']))
+                    } elseif (!empty($table_options['primary_order'])) {
                         $primary_order = $table_options['primary_order'];
-                    else
+                    } else {
                         $primary_order = null;
+                    }
 
                     $part = array_merge($part, ['primary_order' =>  $primary_order]);
                     $parts[] = $part;
@@ -165,26 +173,29 @@ class HistoryHelper extends Rails\ActionView\Helper
             }
         }
 
-        usort($parts, function($a, $b) {
+        usort($parts, function ($a, $b) {
             $comp = 0;
             foreach (['primary_order', 'field', 'sort_key'] as $field) {
-                if ($a[$field] < $b[$field])
+                if ($a[$field] < $b[$field]) {
                     $comp = -1;
-                elseif ($a[$field] == $b[$field])
+                } elseif ($a[$field] == $b[$field]) {
                     $comp = 0;
-                else
+                } else {
                     $comp = 1;
+                }
 
-                if ($comp != 0)
+                if ($comp != 0) {
                     break;
+                }
             }
             return $comp;
         });
 
         foreach (array_keys($parts) as $idx) {
-            if (!$idx || $parts[$idx]['field'] == $parts[$idx - 1]['field'])
+            if (!$idx || $parts[$idx]['field'] == $parts[$idx - 1]['field']) {
                 continue;
-            $parts[$idx-1]['html'] .= ', ';
+            }
+            $parts[$idx - 1]['html'] .= ', ';
         }
 
         $html = '';
@@ -197,12 +208,15 @@ class HistoryHelper extends Rails\ActionView\Helper
 
         if (!empty($history->aux()->note_body)) {
             $body = $history->aux()->note_body;
-            if (strlen($body) > 20)
+            if (strlen($body) > 20) {
                 $body = substr($body, 0, 20) . '...';
+            }
             $html .= 'note ' . $this->h($body) . ' ';
         }
 
-        $html .= implode(' ', array_map(function($part) { return $part['html']; }, $parts));
+        $html .= implode(' ', array_map(function ($part) {
+            return $part['html'];
+        }, $parts));
 
         if ($hidden > 0) {
             $html .= ' (' . $this->linkTo($hidden . ' more...', ['search' => 'change:' . $history->id]) . ')';
@@ -267,7 +281,7 @@ class HistoryHelper extends Rails\ActionView\Helper
                         break;
 
                     case 'source':
-                        if ($change->previous)  {
+                        if ($change->previous) {
                             $html .= sprintf("source changed from <span class='name-change'>%s</span> to <span class='name-change'>%s</span>", $this->source_link($change->previous->value, false), $this->source_link($change->value, false));
                         } else {
                             $html .= sprintf("source: <span class='name-change'>%s</span>", $this->source_link($change->value, false));
@@ -305,8 +319,9 @@ class HistoryHelper extends Rails\ActionView\Helper
                         $list[] = $this->tag_list($changes['added_tags'], ['obsolete' => $changes['obsolete_added_tags'], 'prefix' => '+', 'class' => 'added']);
                         $list[] = $this->tag_list($changes['removed_tags'], ['obsolete' => $changes['obsolete_removed_tags'], 'prefix' => '-', 'class' => 'removed']);
 
-                        if (!empty($options['show_all_tags']))
+                        if (!empty($options['show_all_tags'])) {
                             $list[] = $this->tag_list($changes['unchanged_tags'], ['prefix' => '', 'class' => 'unchanged']);
+                        }
                         $html .= trim(implode(' ', $list));
                         break;
                 }
@@ -328,37 +343,41 @@ class HistoryHelper extends Rails\ActionView\Helper
                         if ($change->value === '') {
                             $html .= 'description removed';
                         } else {
-                            if (!$change->previous)
+                            if (!$change->previous) {
                                 $html .= 'description: ';
-                            elseif ($change->previous->value === '')
+                            } elseif ($change->previous->value === '') {
                                 $html .= 'description added: ';
-                            else
+                            } else {
                                 $html .= 'description changed: ';
+                            }
 
                             # Show a diff if there's a previous description and it's not blank.  Otherwise,
                             # just show the new text.
                             $show_diff = $change->previous && $change->previous->value !== '';
-                            if ($show_diff)
+                            if ($show_diff) {
                                 $text = Moebooru\Diff::generate($change->previous->value, $change->value);
-                            else
+                            } else {
                                 $text = $this->h($change->value);
+                            }
 
                             # If there's only one line in the output, just show it inline.  Otherwise, show it
                             # as a separate block.
                             $multiple_lines = is_int(strpos($text, '<br>')) || is_int(strpos($text, '<br />'));
 
                             $show_in_detail = !empty($options['specific_history']) || !empty($options['specific_object']);
-                            if (!$multiple_lines)
+                            if (!$multiple_lines) {
                                 $display = $text;
-                            elseif ($show_diff)
+                            } elseif ($show_diff) {
                                 $display = "<div class='diff text-block'>${text}</div>";
-                            else
+                            } else {
                                 $display = "<div class='initial-diff text-block'>${text}</div>";
+                            }
 
-                            if ($multiple_lines && !$show_in_detail)
+                            if ($multiple_lines && !$show_in_detail) {
                                 $html .= "<a onclick='$(this).hide(); $(this).next().show()' href='#'>(show changes)</a><div style='display: none;'>${display}</div>";
-                            else
+                            } else {
                                 $html .= $display;
+                            }
                         }
                         break;
 
@@ -392,8 +411,9 @@ class HistoryHelper extends Rails\ActionView\Helper
                          * MI: For some reason the sequence is shown in the first HistoryChange created,
                          * while in Moebooru it doesn't. We will hide it here.
                          */
-                        if (!$change->previous)
+                        if (!$change->previous) {
                             return null;
+                        }
 
                         $seq = 'order:' . $change->obj()->post_id . ':' . $change->value;
                         $seq .= '←' . $change->previous->value;
@@ -423,7 +443,7 @@ class HistoryHelper extends Rails\ActionView\Helper
                 break;
 
             case 'notes':
-                switch($change->column_name) {
+                switch ($change->column_name) {
                     case 'body':
                         if ($change->previous) {
                             $html .= sprintf("body changed from <span class='name-change'>%s</span> to <span class='name-change'>%s</span>", $this->h($change->previous->value), $this->h($change->value));
@@ -459,14 +479,15 @@ class HistoryHelper extends Rails\ActionView\Helper
         return [
             'html' => $span,
             'field' => $change->column_name,
-            'sort_key' => $sort_key
+            'sort_key' => $sort_key,
         ];
     }
 
     public function tag_list($tags, array $options = [])
     {
-        if (!$tags)
+        if (!$tags) {
             return '';
+        }
 
         $html = '<span class="' . (!empty($options['class']) ? $options['class'] : '') . '">';
 
@@ -475,8 +496,9 @@ class HistoryHelper extends Rails\ActionView\Helper
             $tags_html[] = $this->tag_link($name, $options);
         }
 
-        if (!$tags_html)
+        if (!$tags_html) {
             return '';
+        }
 
         $html .= implode(' ', $tags_html);
         $html .= '</span>';

@@ -4,7 +4,7 @@
   <?php if ($this->deleted_posts > 0) : ?>
     <div id="posts-deleted-notice" class="has-deleted-posts" style="margin-bottom: 1em;">
       <?= $this->t([$this->deleted_posts == 1 ? '.posts_deleted.notice_singular_html' : '.posts_deleted.notice_plural_html',
-                    'recently_deleted' => $this->linkTo($this->t('.posts_deleted.recently'), ['#deleted_index', 'user_id' => current_user()->id])])
+          'recently_deleted' => $this->linkTo($this->t('.posts_deleted.recently'), ['#deleted_index', 'user_id' => current_user()->id])])
       ?>
       (<?= $this->linkToFunction($this->t('.posts_deleted.hide'), 'Post.acknowledge_new_deleted_posts();') ?>)
     </div>
@@ -15,9 +15,11 @@
       <h4><?= $this->t('.guidelines.title') ?></h4>
       <p><?= $this->t('.guidelines.info') ?></p>
       <ul>
-        <li><?= $this->t(['.guidelines.do_not.tags_html', 'tags' => substr_replace(($str = implode(', ', array_map(function($t){return $this->linkTo(str_replace('_', ' ', $t), ['wiki#show', 'title' => $t]);}, ['furry', 'yaoi', 'guro', 'toon', 'poorly_drawn']))), ' or', strrpos($str, ','), 1) ]) ?></li>
-        <li><?= $this->t(['.guidelines.do_not.with_html', 'with' => $this->linkTo($this->t('.guidelines.do_not.compression_artifacts'), array('wiki#show', 'title' => 'compression_artifacts'))]) ?></li>
-        <li><?= $this->t(['.guidelines.do_not.with_html', 'with' => $this->linkTo($this->t('.guidelines.do_not.obnoxious_watermarks'), array('wiki#show', 'title' => 'watermark'))]) ?></li>
+        <li><?= $this->t(['.guidelines.do_not.tags_html', 'tags' => substr_replace(($str = implode(', ', array_map(function ($t) {
+            return $this->linkTo(str_replace('_', ' ', $t), ['wiki#show', 'title' => $t]);
+        }, ['furry', 'yaoi', 'guro', 'toon', 'poorly_drawn']))), ' or', strrpos($str, ','), 1) ]) ?></li>
+        <li><?= $this->t(['.guidelines.do_not.with_html', 'with' => $this->linkTo($this->t('.guidelines.do_not.compression_artifacts'), ['wiki#show', 'title' => 'compression_artifacts'])]) ?></li>
+        <li><?= $this->t(['.guidelines.do_not.with_html', 'with' => $this->linkTo($this->t('.guidelines.do_not.obnoxious_watermarks'), ['wiki#show', 'title' => 'watermark'])]) ?></li>
         <li><?= $this->linkTo($this->t('.guidelines.group'), 'help#post_relationships') ?></li>
         <li><?= $this->t(['.guidelines.more_html', 'more_link' => $this->linkTo($this->t('.guidelines.more_link'), 'help#tags')]) ?></li>
       </ul>
@@ -25,10 +27,10 @@
     </div>
   <?php endif ?>
 
-  <?= $this->formTag('post#create', array('level' => 'member', 'multipart' => true, 'id' => 'edit-form'), function(){ ?>
+  <?= $this->formTag('post#create', ['level' => 'member', 'multipart' => true, 'id' => 'edit-form'], function () { ?>
     <div id="posts">
       <?php if ($this->params()->url) : ?>
-        <?= $this->tag('img', array('src' => $this->params()->url, 'alt' => $this->params()->url, 'title' => 'Preview', 'id' => 'image')) ?>
+        <?= $this->tag('img', ['src' => $this->params()->url, 'alt' => $this->params()->url, 'title' => 'Preview', 'id' => 'image']) ?>
         <p id="scale"></p>
         <script type="text/javascript">
         document.observe("dom:loaded", function() {
@@ -49,8 +51,8 @@
           <tr>
             <td></td>
             <td>
-              <?= $this->submitTag($this->t('.form.upload'), array('tabindex' => '8', 'accesskey' => 's', 'class' => 'submit', 'style' => 'margin: 0;')) ?>
-              <?= $this->submitTag($this->t('buttons.cancel'), array('tabindex' => '8', 'accesskey' => 's', 'class' => 'cancel', 'style' => 'display: none; vertical-align: bottom; margin: 0;')) ?>
+              <?= $this->submitTag($this->t('.form.upload'), ['tabindex' => '8', 'accesskey' => 's', 'class' => 'submit', 'style' => 'margin: 0;']) ?>
+              <?= $this->submitTag($this->t('buttons.cancel'), ['tabindex' => '8', 'accesskey' => 's', 'class' => 'cancel', 'style' => 'display: none; vertical-align: bottom; margin: 0;']) ?>
               <div id="progress" class="upload-progress-bar" style="display: none;">
                 <div class="upload-progress-bar-fill"></div>
               </div>
@@ -62,7 +64,7 @@
         <tbody>
           <tr>
             <th width="15%"><label for="post_file"><?= $this->t('.form.file') ?></label></th>
-            <td width="85%"><?= $this->fileField("post", "file", array('size' => '50', 'tabindex' => '1')) ?><span class="similar-results" style="display: none;"></span></td>
+            <td width="85%"><?= $this->fileField("post", "file", ['size' => '50', 'tabindex' => '1']) ?><span class="similar-results" style="display: none;"></span></td>
           </tr>
           <tr>
             <th>
@@ -72,7 +74,7 @@
               <?php endif ?>
             </th>
             <td>
-              <?= $this->textField("post", "source", array('value' => $this->params()->url, 'size' => '50', 'tabindex' => '2')) ?>
+              <?= $this->textField("post", "source", ['value' => $this->params()->url, 'size' => '50', 'tabindex' => '2']) ?>
               <?php if (CONFIG()->enable_artists) : ?>
                 <?= $this->linkToFunction($this->t('.form.find_artist'), "RelatedTags.find_artist(\$F('post_source'))") ?>
               <?php endif ?>
@@ -82,11 +84,11 @@
             <th>
               <label for="post_tags"><?= $this->t('.form.tags._') ?></label>
               <?php if (!current_user()->is_privileged_or_higher()) : ?>
-                <p><?= $this->t('.form.tags.info') ?>(<?= $this->linkTo($this->t('.form.help'), array('help#tags'), array('target' => '_blank')) ?>)</p>
+                <p><?= $this->t('.form.tags.info') ?>(<?= $this->linkTo($this->t('.form.help'), ['help#tags'], ['target' => '_blank']) ?>)</p>
               <?php endif ?>
             </th>
             <td>
-              <?= $this->textArea("post", "tags", array('value' => $this->params()->tags, 'size' => '60x2', 'tabindex' => '3')) ?>
+              <?= $this->textArea("post", "tags", ['value' => $this->params()->tags, 'size' => '60x2', 'tabindex' => '3']) ?>
               <?= $this->linkToFunction($this->t('.form.find_related.tags'), "RelatedTags.find('post_tags')") ?> |
               <?= $this->linkToFunction($this->t('.form.find_related.artists'), "RelatedTags.find('post_tags', 'artist')") ?> |
               <?= $this->linkToFunction($this->t('.form.find_related.characters'), "RelatedTags.find('post_tags', 'char')") ?> |
@@ -97,14 +99,14 @@
           <?php if (CONFIG()->enable_parent_posts) : ?>
             <tr>
               <th><label for="post_parent_id"><?= $this->t('.form.parent') ?></label></th>
-              <td><?= $this->textField("post", "parent_id", array('value' => $this->params()->parent, 'size' => '5', 'tabindex' => '4')) ?></td>
+              <td><?= $this->textField("post", "parent_id", ['value' => $this->params()->parent, 'size' => '5', 'tabindex' => '4']) ?></td>
             </tr>
           <?php endif ?>
           <tr>
             <th>
               <label for="post_rating_questionable"><?= $this->t('.form.rating._') ?></label>
               <?php if (!current_user()->is_privileged_or_higher()) : ?>
-                <p><?= $this->t('.form.rating.info') ?>(<?= $this->linkTo($this->t('.form.help'), array('help#ratings'), array('target' => '_blank')) ?>)</p>
+                <p><?= $this->t('.form.rating.info') ?>(<?= $this->linkTo($this->t('.form.help'), ['help#ratings'], ['target' => '_blank']) ?>)</p>
               <?php endif ?>
             </th>
             <td>
@@ -163,7 +165,7 @@
   });
 </script>
 
-<?= $this->contentFor('post_cookie_javascripts', function() { ?>
+<?= $this->contentFor('post_cookie_javascripts', function () { ?>
   <script type="text/javascript">
     RelatedTags.init(Cookie.unescape(Cookie.get('my_tags')), '<?= $this->params()->ref ?: $this->params()->url ?>')
   </script>

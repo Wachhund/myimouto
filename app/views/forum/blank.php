@@ -5,7 +5,7 @@
   </div>
 
   <div id="reply" style="clear: both;">
-    <?= $this->formTag(['action' => "create"], function(){ ?>
+    <?= $this->formTag(['action' => "create"], function () { ?>
       <?= $this->hiddenField("forum_post", "parent_id", ['value' => $this->params()->parent_id]) ?>
       <table>
         <tr>
@@ -24,7 +24,7 @@
 
 </div>
 
-<?php $this->contentFor('subnavbar', function(){ ?>
+<?php $this->contentFor('subnavbar', function () { ?>
   <li><?= $this->linkTo($this->t('forum.new.list'), ['action' => "index"]) ?></li>
   <li><?= $this->linkTo($this->t('forum.new.help'), ['controller' => "help", 'action' => "forum"]) ?></li>
 <?php }) ?>

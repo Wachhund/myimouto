@@ -1,7 +1,7 @@
 <?php $this->provide('title', $this->t('.title')) ?>
 <?php if (empty($this->urls)) : ?>
   <div id="batch-post-source">
-    <?= $this->formTag(["#create"], ['level' => 'contributor', 'method' => "get", 'id' => "edit-form"], function(){ ?>
+    <?= $this->formTag(["#create"], ['level' => 'contributor', 'method' => "get", 'id' => "edit-form"], function () { ?>
       <div id="posts">
         <table class="form">
           <tbody>
@@ -24,7 +24,7 @@
   <div id="post-add">
     <div id="static_notice" style="display: none;"></div>
 
-    <?= $this->formTag(['action' => "enqueue"], ['level' => 'contributor', 'multipart' => true, 'id' => "edit-form"], function(){ ?>
+    <?= $this->formTag(['action' => "enqueue"], ['level' => 'contributor', 'multipart' => true, 'id' => "edit-form"], function () { ?>
       <div id="posts">
         <table class="form">
           <tbody>
@@ -79,7 +79,7 @@
   </div>
 <?php endif ?>
 
-<?php $this->contentFor('post_cookie_javascripts', function(){ ?>
+<?php $this->contentFor('post_cookie_javascripts', function () { ?>
   <script type="text/javascript">
     if($("post_url"))
       $("post_url").focus();

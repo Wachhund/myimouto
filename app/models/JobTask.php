@@ -1,9 +1,10 @@
 <?php
+
 class JobTask extends Rails\ActiveRecord\Base
 {
     protected $data;
 
-    static public function execute_once()
+    public static function execute_once()
     {
         // Enqueue any due scheduled jobs before processing.
         self::enqueue_scheduled();
@@ -17,7 +18,7 @@ class JobTask extends Rails\ActiveRecord\Base
         $placeholders = implode(',', array_fill(0, count($taskTypes), '?'));
         $params = array_merge(
             ["SELECT id FROM job_tasks WHERE status = 'pending' AND task_type IN ({$placeholders}) ORDER BY id DESC"],
-            $taskTypes
+            $taskTypes,
         );
         $rows = call_user_func_array([$conn, 'select'], $params);
 
@@ -27,7 +28,7 @@ class JobTask extends Rails\ActiveRecord\Base
             $conn->executeSql("BEGIN");
             $locked = $conn->selectRow(
                 "SELECT id FROM job_tasks WHERE id = ? AND status = 'pending' FOR UPDATE SKIP LOCKED",
-                $row['id']
+                $row['id'],
             );
 
             if (!$locked) {
@@ -37,7 +38,7 @@ class JobTask extends Rails\ActiveRecord\Base
 
             $conn->executeSql(
                 "UPDATE job_tasks SET status = 'processing' WHERE id = ? AND status = 'pending'",
-                $row['id']
+                $row['id'],
             );
             $conn->executeSql("COMMIT");
 
@@ -66,12 +67,12 @@ class JobTask extends Rails\ActiveRecord\Base
             }
 
             $taskType = $job['task_type'];
-            $intervalSeconds = (int)($job['interval_seconds'] ?? 86400);
+            $intervalSeconds = (int) ($job['interval_seconds'] ?? 86400);
 
             // Skip if a pending or processing task of this type already exists.
-            $pendingCount = (int)self::connection()->selectValue(
+            $pendingCount = (int) self::connection()->selectValue(
                 "SELECT COUNT(*) FROM job_tasks WHERE task_type = ? AND status IN ('pending', 'processing')",
-                $taskType
+                $taskType,
             );
             if ($pendingCount > 0) {
                 continue;
@@ -81,11 +82,11 @@ class JobTask extends Rails\ActiveRecord\Base
             // Use DB TIMESTAMPDIFF to avoid PHP/DB clock skew.
             $elapsed = self::connection()->selectValue(
                 "SELECT TIMESTAMPDIFF(SECOND, MAX(updated_at), NOW()) FROM job_tasks WHERE task_type = ? AND status IN ('finished', 'error')",
-                $taskType
+                $taskType,
             );
 
             // $elapsed is NULL if no previous runs exist (first-time enqueue).
-            if ($elapsed !== null && (int)$elapsed < $intervalSeconds) {
+            if ($elapsed !== null && (int) $elapsed < $intervalSeconds) {
                 continue;
             }
 
@@ -109,7 +110,7 @@ class JobTask extends Rails\ActiveRecord\Base
                 $result = $this->data["result_tags"];
                 $user = User::find_name($this->data["updater_id"]);
 
-                return "start: ".$start.", result: ".$result.", user: ".$user;
+                return "start: " . $start . ", result: " . $result . ", user: " . $user;
                 break;
 
             case "approve_tag_alias":
@@ -143,29 +144,30 @@ class JobTask extends Rails\ActiveRecord\Base
 
                 return "last run: " . $lastRun . '; next run: ' . $nextRun;
 
-            // case "upload_posts_to_mirrors"
+                // case "upload_posts_to_mirrors"
                 // ret = ""
                 // if data["post_id"]
-                    // ret << "uploading post_id #{data["post_id"]}"
+                // ret << "uploading post_id #{data["post_id"]}"
                 // elsif data["left"]
-                    // ret << "sleeping"
+                // ret << "sleeping"
                 // else
-                    // ret << "idle"
+                // ret << "idle"
                 // end
                 // ret << (" (%i left) " % data["left"]) if data["left"]
                 // ret
 
             case "periodic_maintenance":
-                if ($this->status == "processing")
+                if ($this->status == "processing") {
                     return !empty($this->data->step) ? $this->data->step : 'unknown';
-                elseif ($this->status != "error") {
+                } elseif ($this->status != "error") {
                     $next_run = (!empty($this->data->next_run) ? strtotime($this->data->next_run) : 0) - time();
                     $next_run_in_minutes = $next_run / 60;
-                    if ($next_run_in_minutes > 0)
-                        $eta = "next run in ".round($next_run_in_minutes / 60.0)." hours";
-                    else
+                    if ($next_run_in_minutes > 0) {
+                        $eta = "next run in " . round($next_run_in_minutes / 60.0) . " hours";
+                    } else {
                         $eta = "next run imminent";
-                    return "sleeping (".$eta.")";
+                    }
+                    return "sleeping (" . $eta . ")";
                 }
                 break;
 
@@ -174,20 +176,20 @@ class JobTask extends Rails\ActiveRecord\Base
                 break;
 
             case "upload_batch_posts":
-                if ($this->status == "pending")
+                if ($this->status == "pending") {
                     return "idle";
-                elseif ($this->status == "processing") {
+                } elseif ($this->status == "processing") {
                     $user = User::find_name($this->data->user_id);
                     return "uploading " . $this->data->url . " for " . $user;
                 }
                 break;
-            // case "update_post_frames"
+                // case "update_post_frames"
                 // if status == "pending" then
-                    // return "idle"
+                // return "idle"
                 // elsif status == "processing" then
-                    // return data["status"]
+                // return data["status"]
                 // end
-            // end
+                // end
 
             case "exception_log_prune":
                 return $this->status_message ?: 'idle';
@@ -205,31 +207,33 @@ class JobTask extends Rails\ActiveRecord\Base
 
     public function execute()
     {
-        if ($this->repeat_count > 0)
+        if ($this->repeat_count > 0) {
             $count = $this->repeat_count - 1;
-        else
+        } else {
             $count = $this->repeat_count;
+        }
 
-        Rails::systemExit()->register(function(){
-            if ($this->status == 'processing')
+        Rails::systemExit()->register(function () {
+            if ($this->status == 'processing') {
                 $this->updateAttribute('status', 'pending');
+            }
         }, 'job_task');
 
         try {
             $this->updateAttribute('status', "processing");
-            $task_method = 'execute_'.$this->task_type;
+            $task_method = 'execute_' . $this->task_type;
             $this->$task_method();
 
-            if ($count == 0)
+            if ($count == 0) {
                 $this->updateAttribute('status', "finished");
-            else {
+            } else {
                 // This is necessary due to a bug with Rails that won't clear changed attributes,
                 // so when 'status' is changed back to 'pending', the system will think the attribute
                 // is being reversed to its previous value, and will remove it from the changedAttributes,
                 // array, therefore the new value 'pending' won't be set and will stay as 'processing'.
                 $this->clearChangedAttributes();
 
-                $this->updateAttributes(array('status' => "pending", 'repeat_count' => $count));
+                $this->updateAttributes(['status' => "pending", 'repeat_count' => $count]);
             }
         } catch (Exception $x) {
             $text  = "";
@@ -245,18 +249,19 @@ class JobTask extends Rails\ActiveRecord\Base
 
     public function execute_periodic_maintenance()
     {
-        if (!empty($this->data->next_run) && $this->data->next_run > time('Y-m-d H:i:s'))
+        if (!empty($this->data->next_run) && $this->data->next_run > time('Y-m-d H:i:s')) {
             return;
+        }
 
-        $this->update_data(array("step" => "recalculating post count"));
+        $this->update_data(["step" => "recalculating post count"]);
         Post::recalculate_row_count();
-        $this->update_data(array("step" => "recalculating tag post counts"));
+        $this->update_data(["step" => "recalculating tag post counts"]);
         Tag::recalculate_post_count();
-        $this->update_data(array("step" => "purging old tags"));
+        $this->update_data(["step" => "purging old tags"]);
         Tag::purge_tags();
 
         $next_run = strtotime('+6 hours');
-        $this->update_data(array("next_run" => date('Y-m-d H:i:s', $next_run), "step" => null));
+        $this->update_data(["next_run" => date('Y-m-d H:i:s', $next_run), "step" => null]);
     }
 
     public function execute_external_data_search()
@@ -265,8 +270,9 @@ class JobTask extends Rails\ActiveRecord\Base
         # Set the first admin as current user.
         User::set_current_user(User::where('level = ?', CONFIG()->user_levels['Admin'])->first());
 
-        if (empty($this->data->last_post_id))
+        if (empty($this->data->last_post_id)) {
             $this->data->last_post_id = 0;
+        }
 
         $post_id = $this->data->last_post_id + 1;
 
@@ -278,7 +284,7 @@ class JobTask extends Rails\ActiveRecord\Base
             'limit'      => 100,
             'set_rating' => false,
             'exclude_tags' => [],
-            'similarity' => 90
+            'similarity' => 90,
         ], CONFIG()->external_data_search_config);
 
         $limit          = $config['limit'];
@@ -287,7 +293,7 @@ class JobTask extends Rails\ActiveRecord\Base
             'type'         => 'post',
             'data_search'  => true,
             'services'     => $config['servers'],
-            'threshold'    => $config['similarity']
+            'threshold'    => $config['similarity'],
         ];
 
         $post_count = !$limit ? -1 : 0;
@@ -326,7 +332,8 @@ class JobTask extends Rails\ActiveRecord\Base
             $new_tags = array_filter(array_unique($new_tags));
             $post->new_tags = $new_tags;
 
-            if ($source); {
+            if ($source);
+            {
                 $post->source = $source;
             }
 
@@ -348,8 +355,9 @@ class JobTask extends Rails\ActiveRecord\Base
     public function execute_upload_batch_posts()
     {
         $upload = BatchUpload::where("status = 'pending'")->order("id ASC")->first();
-        if (!$upload)
+        if (!$upload) {
             return;
+        }
 
         $this->updateAttributes(['data' => ['id' => $upload->id, 'user_id' => $upload->user_id, 'url' => $upload->url]]);
         $upload->run();
@@ -424,12 +432,12 @@ class JobTask extends Rails\ActiveRecord\Base
         $events = $conn->select(
             "SELECT id, target_user_id, cleanup_status, cleanup_retries FROM user_deletion_events " .
             "WHERE cleanup_status IN ('pending', 'failed') AND cleanup_retries < ? ORDER BY id ASC LIMIT 50",
-            $maxRetries
+            $maxRetries,
         );
 
         foreach ($events as $event) {
-            $userId = (int)$event['target_user_id'];
-            $eventId = (int)$event['id'];
+            $userId = (int) $event['target_user_id'];
+            $eventId = (int) $event['id'];
             $userDeleted = 0;
 
             try {
@@ -437,7 +445,7 @@ class JobTask extends Rails\ActiveRecord\Base
                 do {
                     $stmt = $conn->executeSql(
                         "DELETE FROM post_votes WHERE user_id = ? LIMIT {$batchLimit}",
-                        $userId
+                        $userId,
                     );
                     $deleted = $stmt->rowCount();
                     $userDeleted += $deleted;
@@ -447,7 +455,7 @@ class JobTask extends Rails\ActiveRecord\Base
                 do {
                     $stmt = $conn->executeSql(
                         "DELETE FROM favorites WHERE user_id = ? LIMIT {$batchLimit}",
-                        $userId
+                        $userId,
                     );
                     $deleted = $stmt->rowCount();
                     $userDeleted += $deleted;
@@ -457,7 +465,7 @@ class JobTask extends Rails\ActiveRecord\Base
                 do {
                     $stmt = $conn->executeSql(
                         "DELETE FROM tag_subscriptions WHERE user_id = ? LIMIT {$batchLimit}",
-                        $userId
+                        $userId,
                     );
                     $deleted = $stmt->rowCount();
                     $userDeleted += $deleted;
@@ -466,7 +474,7 @@ class JobTask extends Rails\ActiveRecord\Base
                 // Mark event as completed.
                 $conn->executeSql(
                     "UPDATE user_deletion_events SET cleanup_status = 'completed' WHERE id = ?",
-                    $eventId
+                    $eventId,
                 );
 
                 $processedUsers++;
@@ -476,15 +484,15 @@ class JobTask extends Rails\ActiveRecord\Base
                 // Events exceeding max retries are excluded from future queries.
                 $conn->executeSql(
                     "UPDATE user_deletion_events SET cleanup_status = 'failed', cleanup_retries = cleanup_retries + 1 WHERE id = ?",
-                    $eventId
+                    $eventId,
                 );
                 Rails::log()->warning(sprintf(
                     'User deletion cleanup failed for event #%d (user #%d, retry %d/%d): %s',
                     $eventId,
                     $userId,
-                    (int)($event['cleanup_retries'] ?? 0) + 1,
+                    (int) ($event['cleanup_retries'] ?? 0) + 1,
                     $maxRetries,
-                    $e->getMessage()
+                    $e->getMessage(),
                 ));
             }
         }
@@ -492,7 +500,7 @@ class JobTask extends Rails\ActiveRecord\Base
         $message = sprintf(
             'Cleanup complete: %d users processed, %d records deleted',
             $processedUsers,
-            $totalDeleted
+            $totalDeleted,
         );
         $this->updateAttribute('status_message', $message);
         Rails::log()->info($message);
@@ -534,12 +542,12 @@ class JobTask extends Rails\ActiveRecord\Base
     public function setData($data)
     {
         $this->data_as_json = json_encode($data);
-        $this->data = (object)$data;
+        $this->data = (object) $data;
     }
 
     private function update_data($data)
     {
-        $data = array_merge((array)$this->data, $data);
-        $this->updateAttributes(array('data' => $data));
+        $data = array_merge((array) $this->data, $data);
+        $this->updateAttributes(['data' => $data]);
     }
 }

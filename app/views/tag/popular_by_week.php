@@ -4,7 +4,7 @@
   <?= $this->cloud_view($this->tags, 3) ?>
 </div>
 
-<?php $this->contentFor('footer', function(){ ?>
+<?php $this->contentFor('footer', function () { ?>
   <p><?= $this->linkTo($this->t('tag_popular_day'), ['action' => "popular_by_day"]) ?> | <?= $this->linkTo($this->t('tag_popular_week'), ['action' => "popular_by_week"]) ?> | <?= $this->linkTo($this->t('tag_popular_month'), ['action' => "popular_by_month"]) ?></p>
 <?php }) ?>
 

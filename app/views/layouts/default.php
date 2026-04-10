@@ -10,12 +10,12 @@
   <link rel="top" title="<?= CONFIG()->app_name ?>" href="/">
   <?php
     $image_host = parse_url(CONFIG()->url_base, PHP_URL_HOST);
-    $page_host  = $this->request()->host();
-    if ($image_host && $image_host !== $page_host) {
-        echo '  <link rel="preconnect" href="' . rtrim(CONFIG()->url_base, '/') . "\">\n";
-    }
-  ?>
-  <?php # The javascript-hide class is used to hide elements (eg. blacklisted posts) from JavaScript. ?>
+$page_host  = $this->request()->host();
+if ($image_host && $image_host !== $page_host) {
+    echo '  <link rel="preconnect" href="' . rtrim(CONFIG()->url_base, '/') . "\">\n";
+}
+?>
+  <?php # The javascript-hide class is used to hide elements (eg. blacklisted posts) from JavaScript.?>
   <script type="text/javascript">
     var css = ".javascript-hide { display: none !important; }";
     var style = document.createElement("style"); style.type = "text/css";
@@ -27,7 +27,7 @@
   </script>
 
   <?= $this->content('html_header') ?> 
-  <?= $this->autoDiscoveryLinkTag('atom', 'post#atom', array('tags' => $this->h($this->params()->tags))) ?> 
+  <?= $this->autoDiscoveryLinkTag('atom', 'post#atom', ['tags' => $this->h($this->params()->tags)]) ?> 
 
   <?php foreach (CONFIG()->asset_stylesheets as $asset) : ?> 
   <?= $this->stylesheetLinkTag($asset) ?>
@@ -39,7 +39,7 @@
   <!--[if lt IE 8]>
   <script src="/IE8.js" type="text/javascript"></script>
   <![endif]-->
-  <?php // iTODO: echo $this->tag('link', array('rel' => 'search', 'type' => 'Mime':'OPENSEARCH', 'href' => 'opensearch_path'('xml'), 'title' => 'CONFIG'()->app_name) ?>
+  <?php // iTODO: echo $this->tag('link', array('rel' => 'search', 'type' => 'Mime':'OPENSEARCH', 'href' => 'opensearch_path'('xml'), 'title' => 'CONFIG'()->app_name)?>
   <?= CONFIG()->custom_html_headers ?>
   <!--[if lt IE 7]>
     <style type="text/css">
@@ -56,7 +56,7 @@
   <a href="#content" class="skip-link"><?= $this->t('skip_to_content', 'Skip to content') ?></a>
   <?= $this->partial('layouts/news') ?>
   <div id="header">
-    <div id="title"><h2 id="site-title"><?= $this->linkTo($this->imageTag('images/logo_small.png', array('alt' => CONFIG()->app_name, 'size' => '484x75', 'id' => 'logo')), CONFIG()->url_base) ?><span><?= $this->tag_header($this->h($this->params()->tags)) ?></span></h2></div>
+    <div id="title"><h2 id="site-title"><?= $this->linkTo($this->imageTag('images/logo_small.png', ['alt' => CONFIG()->app_name, 'size' => '484x75', 'id' => 'logo']), CONFIG()->url_base) ?><span><?= $this->tag_header($this->h($this->params()->tags)) ?></span></h2></div>
     <?= $this->partial('layouts/menu') ?>
   </div>
   <?= $this->partial('layouts/login') ?>
@@ -109,6 +109,8 @@
   <![endif]-->
   
   <?= $this->content('post_cookie_javascripts') ?>
-  <?php if (CONFIG()->ga_tracking_id) echo $this->partial('layouts/ga') ?>
+  <?php if (CONFIG()->ga_tracking_id) {
+      echo $this->partial('layouts/ga');
+  } ?>
 </body>
 </html>

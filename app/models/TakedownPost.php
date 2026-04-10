@@ -1,17 +1,18 @@
 <?php
+
 class TakedownPost extends Rails\ActiveRecord\Base
 {
-    const STATUS_PENDING = 'pending';
-    const STATUS_APPROVED = 'approved';
-    const STATUS_DENIED = 'denied';
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_APPROVED = 'approved';
+    public const STATUS_DENIED = 'denied';
 
     protected function associations()
     {
         return [
             'belongs_to' => [
                 'takedown',
-                'post'
-            ]
+                'post',
+            ],
         ];
     }
 
@@ -19,18 +20,18 @@ class TakedownPost extends Rails\ActiveRecord\Base
     {
         return [
             'takedown_id' => ['presence' => true],
-            'post_id' => ['presence' => true]
+            'post_id' => ['presence' => true],
         ];
     }
 
     public function api_attributes()
     {
         return [
-            'id' => (int)$this->id,
-            'takedown_id' => (int)$this->takedown_id,
-            'post_id' => (int)$this->post_id,
-            'status' => (string)$this->status,
-            'created_at' => $this->created_at
+            'id' => (int) $this->id,
+            'takedown_id' => (int) $this->takedown_id,
+            'post_id' => (int) $this->post_id,
+            'status' => (string) $this->status,
+            'created_at' => $this->created_at,
         ];
     }
 

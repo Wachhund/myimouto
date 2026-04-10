@@ -1,5 +1,5 @@
 <div id="takedown-show">
-  <h4>Takedown #<?= (int)$this->takedown->id ?></h4>
+  <h4>Takedown #<?= (int) $this->takedown->id ?></h4>
 
   <table width="100%">
     <tbody>
@@ -44,9 +44,9 @@
         <td>
           <?php if ($this->takedown->creator_id) : ?>
             <?php try { ?>
-              <?= $this->linkTo($this->h(User::find_name((int)$this->takedown->creator_id)), ['user#show', 'id' => $this->takedown->creator_id]) ?>
+              <?= $this->linkTo($this->h(User::find_name((int) $this->takedown->creator_id)), ['user#show', 'id' => $this->takedown->creator_id]) ?>
             <?php } catch (Exception $e) { ?>
-              User #<?= (int)$this->takedown->creator_id ?>
+              User #<?= (int) $this->takedown->creator_id ?>
             <?php } ?>
           <?php else : ?>
             -
@@ -58,9 +58,9 @@
           <th>Approver</th>
           <td>
             <?php try { ?>
-              <?= $this->linkTo($this->h(User::find_name((int)$this->takedown->approver_id)), ['user#show', 'id' => $this->takedown->approver_id]) ?>
+              <?= $this->linkTo($this->h(User::find_name((int) $this->takedown->approver_id)), ['user#show', 'id' => $this->takedown->approver_id]) ?>
             <?php } catch (Exception $e) { ?>
-              User #<?= (int)$this->takedown->approver_id ?>
+              User #<?= (int) $this->takedown->approver_id ?>
             <?php } ?>
           </td>
         </tr>
@@ -94,13 +94,13 @@
       <tbody>
         <?php foreach ($this->takedown_posts as $tp) : ?>
           <tr class="<?= $this->cycle('even', 'odd') ?>">
-            <td><?= $this->linkTo('#' . (int)$tp->post_id, ['post#show', 'id' => $tp->post_id]) ?></td>
+            <td><?= $this->linkTo('#' . (int) $tp->post_id, ['post#show', 'id' => $tp->post_id]) ?></td>
             <td><?= $this->h($tp->status) ?></td>
             <td><?= $this->h($tp->created_at) ?></td>
             <td>
-              <?= $this->formTag(['action' => 'remove_posts', 'id' => $this->takedown->id], ['method' => 'post', 'style' => 'display:inline;'], function() use ($tp) { ?>
+              <?= $this->formTag(['action' => 'remove_posts', 'id' => $this->takedown->id], ['method' => 'post', 'style' => 'display:inline;'], function () use ($tp) { ?>
                 <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
-                <?= $this->hiddenFieldTag('post_ids', (int)$tp->post_id) ?>
+                <?= $this->hiddenFieldTag('post_ids', (int) $tp->post_id) ?>
                 <?= $this->submitTag('Remove', ['onclick' => "return confirm('Remove this post from takedown?')"]) ?>
               <?php }) ?>
             </td>
@@ -114,7 +114,7 @@
 
   <!-- Add posts form -->
   <div style="margin-top: 1em;">
-    <?= $this->formTag(['action' => 'add_posts', 'id' => $this->takedown->id], ['method' => 'post'], function() { ?>
+    <?= $this->formTag(['action' => 'add_posts', 'id' => $this->takedown->id], ['method' => 'post'], function () { ?>
       <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
       <label>Add Post IDs (space or comma separated):</label><br/>
       <?= $this->textFieldTag('post_ids', '', ['size' => 40, 'placeholder' => 'e.g. 123 456 789']) ?>
@@ -123,10 +123,10 @@
   </div>
 
   <!-- Process takedown form -->
-  <?php if (in_array((string)$this->takedown->status, [Takedown::STATUS_PENDING, Takedown::STATUS_PARTIAL], true)) : ?>
+  <?php if (in_array((string) $this->takedown->status, [Takedown::STATUS_PENDING, Takedown::STATUS_PARTIAL], true)) : ?>
     <div style="margin-top: 1.5em;">
       <h5>Process Takedown</h5>
-      <?= $this->formTag(['action' => 'update', 'id' => $this->takedown->id], ['method' => 'post'], function() { ?>
+      <?= $this->formTag(['action' => 'update', 'id' => $this->takedown->id], ['method' => 'post'], function () { ?>
         <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
 
         <table>
@@ -159,7 +159,7 @@
 
   <?php if (current_user()->is_admin()) : ?>
     <div style="margin-top: 1em;">
-      <?= $this->formTag(['action' => 'destroy', 'id' => $this->takedown->id], ['method' => 'post', 'style' => 'display:inline;'], function() { ?>
+      <?= $this->formTag(['action' => 'destroy', 'id' => $this->takedown->id], ['method' => 'post', 'style' => 'display:inline;'], function () { ?>
         <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
         <?= $this->submitTag('Delete Takedown', ['onclick' => "return confirm('Permanently delete this takedown?')"]) ?>
       <?php }) ?>

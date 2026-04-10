@@ -1,1 +1,1 @@
-<?= $this->partial("message", ['collection' => $this->dmails]) ?>
+<?= $this->partial("message", ['collection' => $this->dmails]);

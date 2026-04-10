@@ -5,9 +5,9 @@
   <?php endif ?>
   <div style="margin-top: 1em;">
   <ul id="post-list-posts">
-    <?php foreach($this->posts as $post) : ?>
-      <?= $this->print_preview($post, ['onclick' => "return remove_post_confirm(".$post->id.", ".$this->pool->id.")",
-                             'user' => current_user(), 'display' => $this->browse_mode == 1? 'large' : 'block', 'hide_directlink' => $this->browse_mode == 1]) ?>
+    <?php foreach ($this->posts as $post) : ?>
+      <?= $this->print_preview($post, ['onclick' => "return remove_post_confirm(" . $post->id . ", " . $this->pool->id . ")",
+          'user' => current_user(), 'display' => $this->browse_mode == 1 ? 'large' : 'block', 'hide_directlink' => $this->browse_mode == 1]) ?>
     <?php endforeach ?>
   </ul>
   </div>
@@ -32,22 +32,22 @@
   <div style="display: none;" id="info"><?= $this->t('.delete_mode_info') ?></div>
 </div>
 
-<?php $this->contentFor('footer', function(){ ?>
+<?php $this->contentFor('footer', function () { ?>
   <?php if (CONFIG()->pool_zips && current_user()->can_see_posts()) : ?>
     <?php $zip_params = [] ?>
     <?php $has_jpeg = CONFIG()->jpeg_enable && $this->pool->has_jpeg_zip($zip_params) ?>
     <?php if ($has_jpeg) : ?>
       <li><?= $this->link_to_pool_zip($this->t('.links.jpeg'), $this->pool, array_merge($zip_params, ['jpeg' => true])) ?></li>
     <?php endif ?>
-    <?php $li_class = $has_jpeg ? "advanced-editing":"" ?>
+    <?php $li_class = $has_jpeg ? "advanced-editing" : "" ?>
     <li class="<?= $li_class ?>"><?= $this->link_to_pool_zip($this->t('.links.png'), $this->pool, $zip_params, ['has_jpeg' => $has_jpeg]) ?></li>
     <?php if (CONFIG()->allow_pool_zip_pretty_filenames) : ?>
     <li class="del-mode"><?= $this->checkBoxTag('pretty_filenames') ?> <label for="pretty_filenames">Pretty filenames</label></li>
     <?php endif ?>
   <?php endif ?>
-  <li><?= $this->linkTo($this->t('.links.index_view'), ['controller' => "post", 'action' => "index", 'tags' => "pool:".$this->pool->id]) ?> </li>
+  <li><?= $this->linkTo($this->t('.links.index_view'), ['controller' => "post", 'action' => "index", 'tags' => "pool:" . $this->pool->id]) ?> </li>
   <?php if (!current_user()->is_anonymous()) : ?>
-  <li><?= $this->linkToFunction($this->t('.links.toggle_view'), "User.set_pool_browse_mode(".(1-$this->browse_mode).");") ?></li>
+  <li><?= $this->linkToFunction($this->t('.links.toggle_view'), "User.set_pool_browse_mode(" . (1 - $this->browse_mode) . ");") ?></li>
   <?php endif ?>
   <?php if (current_user()->has_permission($this->pool)) : ?>
     <li><?= $this->linkTo($this->t('.links.edit'), ['action' => "update", 'id' => $this->params()->id]) ?></li>
@@ -55,7 +55,7 @@
   <?php endif ?>
 <?php }) ?>
 
-<?php $this->contentFor('footer_final', function(){ ?>
+<?php $this->contentFor('footer_final', function () { ?>
   <br />
   <?php if (current_user()->can_change($this->pool, 'posts')) : ?>
     <li><?= $this->linkTo($this->t('.links.order'), ['action' => "order", 'id' => $this->params()->id]) ?></li>
@@ -65,7 +65,7 @@
       <li><?= $this->linkTo($this->t('.links.transfer'), ['action' => "transfer_metadata", 'to' => $this->params()->id]) ?></li>
     <?php endif ?>
   <?php endif ?>
-  <li><?= $this->linkTo($this->t('.links.history'), ['controller' => "history", 'action' => "index", 'search' => "pool:".$this->params()->id]) ?></li>
+  <li><?= $this->linkTo($this->t('.links.history'), ['controller' => "history", 'action' => "index", 'search' => "pool:" . $this->params()->id]) ?></li>
   <?php if (current_user()->can_change($this->pool, 'posts')) : ?>
   <li class="advanced-editing del-mode">
     <input type="checkbox" id="del-mode" onclick="Element.toggle('info')">

@@ -1,6 +1,6 @@
 
 <?php if (!$this->from) : ?>
-  <?= $this->formTag([], ['method' => "get"], function() { ?>
+  <?= $this->formTag([], ['method' => "get"], function () { ?>
   <?= $this->hiddenFieldTag('to', $this->to->id) ?>
   <?= $this->t('.from.from_number') ?>
   <?= $this->textFieldTag('from', "", ['class' => "fp", 'size' => 5, 'tabindex' => 1]) ?>
@@ -14,10 +14,10 @@
 <h3>
   <?=
     $this->t('.title_html', [
-      'from' => $this->linkTo($this->h($this->from->pretty_name()), ['#show', 'id' => $this->from->id]),
-      'to' => $this->linkTo($this->h($this->to->pretty_name()), ['#show', 'id' => $this->to->id])
+        'from' => $this->linkTo($this->h($this->from->pretty_name()), ['#show', 'id' => $this->from->id]),
+        'to' => $this->linkTo($this->h($this->to->pretty_name()), ['#show', 'id' => $this->to->id]),
     ])
-  ?>
+    ?>
 </h3>
 
 <div>
@@ -32,7 +32,7 @@
 
 <div><?= $this->t('.reverse_text_html', ['reverse' => $this->linkTo($this->t('.reverse'), ['action' => "transfer_metadata", 'from' => $this->to->id, 'to' => $this->from->id])]) ?></div>
 
-<?= $this->formTag("post#update_batch", function() { ?>
+<?= $this->formTag("post#update_batch", function () { ?>
 <?= $this->hiddenFieldTag("url", ($this->urlFor(["pool#show", 'id' => $this->to->id]))) ?>
   <table>
     <thead>
@@ -44,7 +44,8 @@
     </thead>
     <tbody>
       <?php foreach ($this->posts as $pp) : ?>
-        <?php $fp = $pp['from']; $tp = $pp['to'] ?>
+        <?php $fp = $pp['from'];
+          $tp = $pp['to'] ?>
         <tr>
           <td>
             <?php if ($fp->can_be_seen_by($this->current_user)) : ?>

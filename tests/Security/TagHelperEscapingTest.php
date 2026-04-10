@@ -7,12 +7,12 @@ namespace Rails\ActionView {
     {
         public function h($value)
         {
-            return htmlspecialchars((string)$value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
         }
 
         public function u($value)
         {
-            return rawurlencode((string)$value);
+            return rawurlencode((string) $value);
         }
 
         public function params()
@@ -22,7 +22,7 @@ namespace Rails\ActionView {
 
         public function escapeJavascript($value)
         {
-            return addslashes((string)$value);
+            return addslashes((string) $value);
         }
     }
 }
@@ -146,7 +146,7 @@ namespace {
             $this->assertStringContainsString('data-name="&quot;&gt;&lt;img src=x onerror=alert(1)&gt;"', $html);
             $this->assertStringContainsString(
                 'href="/wiki/show?title=%22%3E%3Cimg%20src%3Dx%20onerror%3Dalert%281%29%3E"',
-                $html
+                $html,
             );
             $this->assertStringNotContainsString('<img src=x onerror=alert(1)>', $html);
             $this->assertStringNotContainsString('data-type="general" onclick="alert(1)"', $html);

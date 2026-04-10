@@ -6,7 +6,7 @@
 </div>
 
 <div style="margin-top: 1em;">
-  <?= $this->formTag('settings_api#update', ['method' => 'put'], function(){ ?>
+  <?= $this->formTag('settings_api#update', ['method' => 'put'], function () { ?>
     <?= $this->submitTag($this->t('.reset')) ?>
   <?php }) ?>
 </div>

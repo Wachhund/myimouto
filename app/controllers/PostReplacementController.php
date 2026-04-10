@@ -1,4 +1,5 @@
 <?php
+
 use MyImouto\PostReplacement\ApplyService;
 use MyImouto\PostReplacement\NotificationService;
 use MyImouto\PostReplacement\StagingService;
@@ -9,8 +10,8 @@ class PostReplacementController extends ApplicationController
     {
         return [
             'before' => [
-                'member_only'
-            ]
+                'member_only',
+            ],
         ];
     }
 
@@ -21,7 +22,7 @@ class PostReplacementController extends ApplicationController
             $query->where('creator_id = ?', current_user()->id);
         }
 
-        $post_id = (int)$this->params()->post_id;
+        $post_id = (int) $this->params()->post_id;
         if ($post_id > 0) {
             $query->where('post_id = ?', $post_id);
         }
@@ -35,16 +36,16 @@ class PostReplacementController extends ApplicationController
 
         $this->respondTo([
             'html',
-            'json' => function() {
+            'json' => function () {
                 $payload = [];
                 foreach ($this->post_replacements as $replacement) {
                     $payload[] = $replacement->asJson();
                 }
                 $this->render(['json' => $payload]);
             },
-            'xml' => function() {
+            'xml' => function () {
                 $this->render(['xml' => ['count' => $this->post_replacements->size()], 'root' => 'post_replacements']);
-            }
+            },
         ]);
     }
 
@@ -61,8 +62,8 @@ class PostReplacementController extends ApplicationController
         }
 
         $payload = $this->replacement_payload();
-        $source_url = trim((string)$payload['source_url']);
-        $reason = trim((string)$payload['reason']);
+        $source_url = trim((string) $payload['source_url']);
+        $reason = trim((string) $payload['reason']);
         if ($reason === '') {
             $reason = null;
         }
@@ -78,7 +79,7 @@ class PostReplacementController extends ApplicationController
             $this->respond_to_error(
                 'Replacement requires either an upload file or a source URL',
                 ['post#show', 'id' => $post->id],
-                ['status' => 424]
+                ['status' => 424],
             );
             return;
         }
@@ -86,8 +87,8 @@ class PostReplacementController extends ApplicationController
         $replacement = null;
         $duplicate_message = 'Post already has a pending replacement request';
         try {
-            PostReplacement::transaction(function() use ($post, $reason, $source_url, $staged_upload, &$replacement, $duplicate_message) {
-                $this->lock_post_for_update((int)$post->id);
+            PostReplacement::transaction(function () use ($post, $reason, $source_url, $staged_upload, &$replacement, $duplicate_message) {
+                $this->lock_post_for_update((int) $post->id);
                 if (PostReplacement::where('post_id = ? AND status = ?', $post->id, PostReplacement::STATUS_PENDING)->exists()) {
                     throw new RuntimeException($duplicate_message);
                 }
@@ -99,7 +100,7 @@ class PostReplacementController extends ApplicationController
                     'reason' => $reason,
                     'source_url' => $source_url ?: null,
                     'replacement_file_path' => $staged_upload ? $staged_upload['path'] : null,
-                    'replacement_file_name' => $staged_upload ? $staged_upload['name'] : null
+                    'replacement_file_name' => $staged_upload ? $staged_upload['name'] : null,
                 ]);
             });
         } catch (RuntimeException $e) {
@@ -107,11 +108,11 @@ class PostReplacementController extends ApplicationController
                 StagingService::cleanup($staged_upload['path']);
             }
 
-            $status_code = ((string)$e->getMessage() === $duplicate_message) ? 423 : 424;
+            $status_code = ((string) $e->getMessage() === $duplicate_message) ? 423 : 424;
             $this->respond_to_error(
                 $e->getMessage(),
                 ['post_replacement#index', 'post_id' => $post->id],
-                ['status' => $status_code]
+                ['status' => $status_code],
             );
             return;
         }
@@ -137,7 +138,7 @@ class PostReplacementController extends ApplicationController
         $this->respond_to_success(
             'Replacement request submitted',
             ['post_replacement#index', 'post_id' => $post->id],
-            ['api' => ['post_replacement' => $replacement->asJson()]]
+            ['api' => ['post_replacement' => $replacement->asJson()]],
         );
     }
 
@@ -153,20 +154,20 @@ class PostReplacementController extends ApplicationController
             return;
         }
 
-        if ((string)$replacement->status === PostReplacement::STATUS_APPROVED) {
+        if ((string) $replacement->status === PostReplacement::STATUS_APPROVED) {
             $this->respond_to_success(
                 'Replacement already approved',
                 ['post_replacement#index', 'post_id' => $replacement->post_id],
-                ['api' => ['post_replacement' => $replacement->asJson()]]
+                ['api' => ['post_replacement' => $replacement->asJson()]],
             );
             return;
         }
 
-        if ((string)$replacement->status !== PostReplacement::STATUS_PENDING) {
+        if ((string) $replacement->status !== PostReplacement::STATUS_PENDING) {
             $this->respond_to_error(
                 'Replacement is not in pending state',
                 ['post_replacement#index', 'post_id' => $replacement->post_id],
-                ['status' => 424]
+                ['status' => 424],
             );
             return;
         }
@@ -177,7 +178,7 @@ class PostReplacementController extends ApplicationController
             $this->respond_to_error(
                 'Cannot approve replacement for a deleted post',
                 ['post_replacement#index', 'post_id' => $replacement->post_id],
-                ['status' => 422]
+                ['status' => 422],
             );
             return;
         }
@@ -199,13 +200,13 @@ class PostReplacementController extends ApplicationController
         }
 
         try {
-            $this->with_replacement_mutex((int)$replacement->id, function() use ($replacement, &$approved, $resolved_upload) {
+            $this->with_replacement_mutex((int) $replacement->id, function () use ($replacement, &$approved, $resolved_upload) {
                 $current = null;
 
                 // Keep the DB transaction short: only lock/check current state.
-                PostReplacement::transaction(function() use ($replacement, &$current) {
-                    $current = $this->lock_replacement_for_update((int)$replacement->id);
-                    if ((string)$current->status !== PostReplacement::STATUS_PENDING) {
+                PostReplacement::transaction(function () use ($replacement, &$current) {
+                    $current = $this->lock_replacement_for_update((int) $replacement->id);
+                    if ((string) $current->status !== PostReplacement::STATUS_PENDING) {
                         throw new RuntimeException('Replacement is no longer pending');
                     }
                 });
@@ -215,7 +216,7 @@ class PostReplacementController extends ApplicationController
                     $current,
                     current_user(),
                     $this->params()->moderation_reason,
-                    $resolved_upload
+                    $resolved_upload,
                 );
             });
         } catch (RuntimeException $e) {
@@ -233,7 +234,7 @@ class PostReplacementController extends ApplicationController
         $this->respond_to_success(
             'Replacement approved',
             ['post#show', 'id' => $approved->post_id],
-            ['api' => ['post_replacement' => $approved->asJson()]]
+            ['api' => ['post_replacement' => $approved->asJson()]],
         );
     }
 
@@ -249,11 +250,11 @@ class PostReplacementController extends ApplicationController
             return;
         }
 
-        if ((string)$replacement->status === PostReplacement::STATUS_REJECTED) {
+        if ((string) $replacement->status === PostReplacement::STATUS_REJECTED) {
             $this->respond_to_success(
                 'Replacement already rejected',
                 ['post_replacement#index', 'post_id' => $replacement->post_id],
-                ['api' => ['post_replacement' => $replacement->asJson()]]
+                ['api' => ['post_replacement' => $replacement->asJson()]],
             );
             return;
         }
@@ -263,21 +264,21 @@ class PostReplacementController extends ApplicationController
         $did_transition = false;
         $staged_path = null;
         try {
-            $this->with_replacement_mutex((int)$replacement->id, function() use ($replacement, &$rejected, &$already_rejected, &$did_transition, &$staged_path) {
-                PostReplacement::transaction(function() use ($replacement, &$rejected, &$already_rejected, &$did_transition, &$staged_path) {
-                    $current = $this->lock_replacement_for_update((int)$replacement->id);
+            $this->with_replacement_mutex((int) $replacement->id, function () use ($replacement, &$rejected, &$already_rejected, &$did_transition, &$staged_path) {
+                PostReplacement::transaction(function () use ($replacement, &$rejected, &$already_rejected, &$did_transition, &$staged_path) {
+                    $current = $this->lock_replacement_for_update((int) $replacement->id);
 
-                    if ((string)$current->status === PostReplacement::STATUS_REJECTED) {
+                    if ((string) $current->status === PostReplacement::STATUS_REJECTED) {
                         $already_rejected = true;
                         $rejected = $current;
                         return;
                     }
 
-                    if ((string)$current->status !== PostReplacement::STATUS_PENDING) {
+                    if ((string) $current->status !== PostReplacement::STATUS_PENDING) {
                         throw new RuntimeException('Replacement is not in pending state');
                     }
 
-                    $staged_path = !empty($current->replacement_file_path) ? (string)$current->replacement_file_path : null;
+                    $staged_path = !empty($current->replacement_file_path) ? (string) $current->replacement_file_path : null;
                     $current->replacement_file_path = null;
                     $current->replacement_file_name = null;
                     $current->status = PostReplacement::STATUS_REJECTED;
@@ -305,7 +306,7 @@ class PostReplacementController extends ApplicationController
             $this->respond_to_success(
                 'Replacement already rejected',
                 ['post_replacement#index', 'post_id' => $rejected->post_id],
-                ['api' => ['post_replacement' => $rejected->asJson()]]
+                ['api' => ['post_replacement' => $rejected->asJson()]],
             );
             return;
         }
@@ -319,7 +320,7 @@ class PostReplacementController extends ApplicationController
         $this->respond_to_success(
             'Replacement rejected',
             ['post_replacement#index', 'post_id' => $rejected->post_id],
-            ['api' => ['post_replacement' => $rejected->asJson()]]
+            ['api' => ['post_replacement' => $rejected->asJson()]],
         );
     }
 
@@ -330,20 +331,20 @@ class PostReplacementController extends ApplicationController
             return;
         }
 
-        $can_cancel_own_pending = ((string)$replacement->status === PostReplacement::STATUS_PENDING)
+        $can_cancel_own_pending = ((string) $replacement->status === PostReplacement::STATUS_PENDING)
             && isset($replacement->creator_id)
-            && ((int)$replacement->creator_id === (int)current_user()->id);
+            && ((int) $replacement->creator_id === (int) current_user()->id);
 
         if (!$replacement->can_be_moderated_by(current_user()) && !$can_cancel_own_pending) {
             $this->access_denied();
             return;
         }
 
-        if ((string)$replacement->status === PostReplacement::STATUS_DELETED) {
+        if ((string) $replacement->status === PostReplacement::STATUS_DELETED) {
             $this->respond_to_success(
                 'Replacement already deleted',
                 ['post_replacement#index', 'post_id' => $replacement->post_id],
-                ['api' => ['post_replacement' => $replacement->asJson()]]
+                ['api' => ['post_replacement' => $replacement->asJson()]],
             );
             return;
         }
@@ -353,21 +354,21 @@ class PostReplacementController extends ApplicationController
         $did_transition = false;
         $staged_path = null;
         try {
-            $this->with_replacement_mutex((int)$replacement->id, function() use ($replacement, &$deleted, &$already_deleted, &$did_transition, &$staged_path) {
-                PostReplacement::transaction(function() use ($replacement, &$deleted, &$already_deleted, &$did_transition, &$staged_path) {
-                    $current = $this->lock_replacement_for_update((int)$replacement->id);
+            $this->with_replacement_mutex((int) $replacement->id, function () use ($replacement, &$deleted, &$already_deleted, &$did_transition, &$staged_path) {
+                PostReplacement::transaction(function () use ($replacement, &$deleted, &$already_deleted, &$did_transition, &$staged_path) {
+                    $current = $this->lock_replacement_for_update((int) $replacement->id);
 
-                    if ((string)$current->status === PostReplacement::STATUS_DELETED) {
+                    if ((string) $current->status === PostReplacement::STATUS_DELETED) {
                         $already_deleted = true;
                         $deleted = $current;
                         return;
                     }
 
-                    if ((string)$current->status !== PostReplacement::STATUS_PENDING) {
+                    if ((string) $current->status !== PostReplacement::STATUS_PENDING) {
                         throw new RuntimeException('Replacement is not in pending state');
                     }
 
-                    $staged_path = !empty($current->replacement_file_path) ? (string)$current->replacement_file_path : null;
+                    $staged_path = !empty($current->replacement_file_path) ? (string) $current->replacement_file_path : null;
                     $current->replacement_file_path = null;
                     $current->replacement_file_name = null;
                     $current->status = PostReplacement::STATUS_DELETED;
@@ -395,7 +396,7 @@ class PostReplacementController extends ApplicationController
             $this->respond_to_success(
                 'Replacement already deleted',
                 ['post_replacement#index', 'post_id' => $deleted->post_id],
-                ['api' => ['post_replacement' => $deleted->asJson()]]
+                ['api' => ['post_replacement' => $deleted->asJson()]],
             );
             return;
         }
@@ -404,15 +405,15 @@ class PostReplacementController extends ApplicationController
             StagingService::cleanup($staged_path);
         }
 
-        $moderator_id = (int)current_user()->id;
-        if ((int)$deleted->creator_id !== $moderator_id) {
+        $moderator_id = (int) current_user()->id;
+        if ((int) $deleted->creator_id !== $moderator_id) {
             NotificationService::emitModerationOutcome($deleted);
         }
 
         $this->respond_to_success(
             'Replacement deleted',
             ['post_replacement#index', 'post_id' => $deleted->post_id],
-            ['api' => ['post_replacement' => $deleted->asJson()]]
+            ['api' => ['post_replacement' => $deleted->asJson()]],
         );
     }
 
@@ -423,10 +424,10 @@ class PostReplacementController extends ApplicationController
         }
 
         $min_level = isset(CONFIG()->post_replacement_min_level)
-            ? (int)CONFIG()->post_replacement_min_level
-            : (int)CONFIG()->user_levels['Contributor'];
+            ? (int) CONFIG()->post_replacement_min_level
+            : (int) CONFIG()->user_levels['Contributor'];
 
-        return (int)$user->level >= $min_level;
+        return (int) $user->level >= $min_level;
     }
 
     protected function is_staff_user(User $user = null)
@@ -436,12 +437,12 @@ class PostReplacementController extends ApplicationController
 
     protected function normalize_status($status)
     {
-        $status = strtolower(trim((string)$status));
+        $status = strtolower(trim((string) $status));
         if (in_array($status, [
             PostReplacement::STATUS_PENDING,
             PostReplacement::STATUS_APPROVED,
             PostReplacement::STATUS_REJECTED,
-            PostReplacement::STATUS_DELETED
+            PostReplacement::STATUS_DELETED,
         ], true)) {
             return $status;
         }
@@ -468,7 +469,7 @@ class PostReplacementController extends ApplicationController
     protected function find_post_from_params()
     {
         $payload = $this->replacement_payload();
-        $post_id = (int)$payload['post_id'];
+        $post_id = (int) $payload['post_id'];
         if ($post_id <= 0) {
             $this->respond_to_error('Post not found', ['post#index'], ['status' => 404]);
             return null;
@@ -484,7 +485,7 @@ class PostReplacementController extends ApplicationController
 
     protected function find_replacement_from_params()
     {
-        $replacement_id = (int)$this->params()->id;
+        $replacement_id = (int) $this->params()->id;
         if ($replacement_id <= 0) {
             $this->respond_to_error('Replacement not found', ['post_replacement#index'], ['status' => 404]);
             return null;
@@ -503,7 +504,7 @@ class PostReplacementController extends ApplicationController
         $table = PostReplacement::tableName();
         $rows = PostReplacement::findBySql(
             sprintf('SELECT * FROM `%s` WHERE id = ? FOR UPDATE', $table),
-            [(int)$replacement_id]
+            [(int) $replacement_id],
         );
 
         $members = is_object($rows) && method_exists($rows, 'members')
@@ -512,7 +513,7 @@ class PostReplacementController extends ApplicationController
 
         if (empty($members)) {
             throw new Rails\ActiveRecord\Exception\RecordNotFoundException(
-                'Could not find PostReplacement with ID ' . (int)$replacement_id
+                'Could not find PostReplacement with ID ' . (int) $replacement_id,
             );
         }
 
@@ -524,13 +525,13 @@ class PostReplacementController extends ApplicationController
         $table = Post::tableName();
         Post::connection()->executeSql(
             sprintf('SELECT id FROM `%s` WHERE id = ? FOR UPDATE', $table),
-            (int)$post_id
+            (int) $post_id,
         );
     }
 
     protected function with_replacement_mutex($replacement_id, callable $callback)
     {
-        $lock_name = 'post_replacement:' . (int)$replacement_id;
+        $lock_name = 'post_replacement:' . (int) $replacement_id;
         if (!$this->acquire_advisory_lock($lock_name)) {
             throw new RuntimeException('Replacement is currently being processed');
         }
@@ -545,8 +546,8 @@ class PostReplacementController extends ApplicationController
     protected function acquire_advisory_lock($lock_name, $timeout_seconds = 10)
     {
         try {
-            $result = PostReplacement::connection()->selectValue('SELECT GET_LOCK(?, ?)', (string)$lock_name, (int)$timeout_seconds);
-            return ((string)$result === '1' || (int)$result === 1);
+            $result = PostReplacement::connection()->selectValue('SELECT GET_LOCK(?, ?)', (string) $lock_name, (int) $timeout_seconds);
+            return ((string) $result === '1' || (int) $result === 1);
         } catch (Exception $e) {
             return false;
         }
@@ -555,7 +556,7 @@ class PostReplacementController extends ApplicationController
     protected function release_advisory_lock($lock_name)
     {
         try {
-            PostReplacement::connection()->selectValue('SELECT RELEASE_LOCK(?)', (string)$lock_name);
+            PostReplacement::connection()->selectValue('SELECT RELEASE_LOCK(?)', (string) $lock_name);
         } catch (Exception $e) {
             // Best-effort unlock.
         }
@@ -563,7 +564,7 @@ class PostReplacementController extends ApplicationController
 
     protected function normalize_optional_text($text)
     {
-        $text = trim((string)$text);
+        $text = trim((string) $text);
         return $text === '' ? null : $text;
     }
 

@@ -1,4 +1,4 @@
-<?php $this->contentFor('content', function() { ?>
+<?php $this->contentFor('content', function () { ?>
   <div id="header">
     <div id="title">
       <h2 id="site-title">

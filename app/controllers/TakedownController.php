@@ -1,12 +1,13 @@
 <?php
+
 class TakedownController extends ApplicationController
 {
     protected function filters()
     {
         return [
             'before' => [
-                'mod_only' => ['only' => ['index', 'show', 'create', 'update', 'destroy', 'add_posts', 'remove_posts', 'add_posts_by_tags']]
-            ]
+                'mod_only' => ['only' => ['index', 'show', 'create', 'update', 'destroy', 'add_posts', 'remove_posts', 'add_posts_by_tags']],
+            ],
         ];
     }
 
@@ -29,7 +30,7 @@ class TakedownController extends ApplicationController
                     $data[] = $takedown->api_attributes();
                 }
                 $this->render(['json' => $data]);
-            }
+            },
         ]);
     }
 
@@ -55,7 +56,7 @@ class TakedownController extends ApplicationController
                     $payload['posts'][] = $tp->api_attributes();
                 }
                 $this->render(['json' => $payload]);
-            }
+            },
         ]);
     }
 
@@ -75,7 +76,7 @@ class TakedownController extends ApplicationController
             'source' => $takedown_params['source'] ?? ($this->params()->source ?: null),
             'instructions' => $takedown_params['instructions'] ?? ($this->params()->instructions ?: null),
             'notes' => $takedown_params['notes'] ?? ($this->params()->notes ?: null),
-            'created_at' => date('Y-m-d H:i:s')
+            'created_at' => date('Y-m-d H:i:s'),
         ];
 
         $this->takedown = Takedown::create($attrs);
@@ -91,7 +92,7 @@ class TakedownController extends ApplicationController
             }
 
             $this->respond_to_success('Takedown created', ['#show', 'id' => $this->takedown->id], [
-                'api' => ['takedown' => $this->takedown->api_attributes()]
+                'api' => ['takedown' => $this->takedown->api_attributes()],
             ]);
             return;
         }
@@ -113,10 +114,10 @@ class TakedownController extends ApplicationController
 
         // Update optional fields
         if ($instructions !== null) {
-            $this->takedown->instructions = trim((string)$instructions);
+            $this->takedown->instructions = trim((string) $instructions);
         }
         if ($notes !== null) {
-            $this->takedown->notes = trim((string)$notes);
+            $this->takedown->notes = trim((string) $notes);
         }
 
         if ($status !== null && in_array($status, [Takedown::STATUS_APPROVED, Takedown::STATUS_DENIED, Takedown::STATUS_PARTIAL], true)) {
@@ -128,7 +129,7 @@ class TakedownController extends ApplicationController
 
         if ($result) {
             $this->respond_to_success('Takedown updated', ['#show', 'id' => $this->takedown->id], [
-                'api' => ['takedown' => $this->takedown->api_attributes()]
+                'api' => ['takedown' => $this->takedown->api_attributes()],
             ]);
         } else {
             $this->respond_to_error('Failed to update takedown', ['#show', 'id' => $this->takedown->id]);
@@ -170,7 +171,7 @@ class TakedownController extends ApplicationController
         $summary = sprintf(
             'Posts added to takedown (added: %d, invalid: %d)',
             count($result['added']),
-            count($result['invalid'])
+            count($result['invalid']),
         );
 
         $this->respond_to_success($summary, ['#show', 'id' => $this->takedown->id], ['api' => $result]);
@@ -202,7 +203,7 @@ class TakedownController extends ApplicationController
      */
     public function status()
     {
-        $vericode = trim((string)$this->params()->vericode);
+        $vericode = trim((string) $this->params()->vericode);
 
         if ($vericode === '') {
             // Show the form if no vericode provided
@@ -230,7 +231,7 @@ class TakedownController extends ApplicationController
                 } else {
                     $this->render(['json' => ['success' => false, 'reason' => 'not found'], 'status' => 404]);
                 }
-            }
+            },
         ]);
     }
 
@@ -241,7 +242,7 @@ class TakedownController extends ApplicationController
             return;
         }
 
-        $tags = trim((string)($this->params()->tags ?: ''));
+        $tags = trim((string) ($this->params()->tags ?: ''));
 
         if ($tags === '') {
             $this->respond_to_error('No tags provided', ['#show', 'id' => $this->takedown->id], ['status' => 424]);
@@ -263,7 +264,7 @@ class TakedownController extends ApplicationController
                 'from_api' => true,
                 'order' => 'p.id DESC',
                 'limit' => $cap + 1,
-                'select' => 'p.id'
+                'select' => 'p.id',
             ]);
         } catch (\Throwable $e) {
             $this->respond_to_error('Tag query error: ' . $e->getMessage(), ['#show', 'id' => $this->takedown->id], ['status' => 424]);
@@ -273,7 +274,7 @@ class TakedownController extends ApplicationController
         $results = Post::findBySql($sql, $params);
         $post_ids = [];
         foreach ($results as $post) {
-            $post_ids[] = (int)$post->id;
+            $post_ids[] = (int) $post->id;
         }
 
         if (empty($post_ids)) {
@@ -300,7 +301,7 @@ class TakedownController extends ApplicationController
 
     protected function find_takedown_from_params()
     {
-        $id = (int)$this->params()->id;
+        $id = (int) $this->params()->id;
         if ($id <= 0) {
             $this->respond_to_error('Takedown not found', ['#index'], ['status' => 404]);
             return null;
@@ -320,10 +321,10 @@ class TakedownController extends ApplicationController
             $value = implode(' ', $value);
         }
 
-        $parts = preg_split('/[\s,]+/', (string)$value);
+        $parts = preg_split('/[\s,]+/', (string) $value);
         $normalized = [];
         foreach ($parts as $part) {
-            $id = (int)$part;
+            $id = (int) $part;
             if ($id > 0) {
                 $normalized[] = $id;
             }

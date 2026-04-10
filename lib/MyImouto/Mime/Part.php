@@ -46,9 +46,9 @@ class Part
             if (!empty($meta['seekable'])) {
                 rewind($content);
             }
-            return (string)$data;
+            return (string) $data;
         }
 
-        return (string)$content;
+        return (string) $content;
     }
 }

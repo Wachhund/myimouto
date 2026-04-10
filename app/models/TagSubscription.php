@@ -1,12 +1,13 @@
 <?php
+
 class TagSubscription extends Rails\ActiveRecord\Base
 {
     protected function associations()
     {
         return [
             'belongs_to' => [
-                'user'
-            ]
+                'user',
+            ],
         ];
     }
 
@@ -14,20 +15,20 @@ class TagSubscription extends Rails\ActiveRecord\Base
     {
         return [
             'before_save' => [
-                'normalize_name'
+                'normalize_name',
             ],
             'before_create' => [
-                'initialize_post_ids'
-            ]
+                'initialize_post_ids',
+            ],
         ];
     }
 
     protected function scopes()
     {
         return [
-            'visible' => function() {
+            'visible' => function () {
                 $this->where(['is_visible_on_profile' => true]);
-            }
+            },
         ];
     }
 
@@ -48,7 +49,7 @@ class TagSubscription extends Rails\ActiveRecord\Base
         }
     }
 
-    static public function find_post_ids($user_id, $name = null, $limit = null)
+    public static function find_post_ids($user_id, $name = null, $limit = null)
     {
         if (!$limit) {
             $limit = CONFIG()->tag_subscription_post_limit;
@@ -64,7 +65,7 @@ class TagSubscription extends Rails\ActiveRecord\Base
         foreach ($post_ids as $subs) {
             $ids = explode(',', $subs->cached_post_ids);
             foreach ($ids as &$id) {
-                $id = (int)$id;
+                $id = (int) $id;
             }
             $parsed_ids = array_merge($parsed_ids, $ids);
         }
@@ -73,17 +74,17 @@ class TagSubscription extends Rails\ActiveRecord\Base
         return array_slice(array_reverse(array_unique($parsed_ids)), 0, $limit);
     }
 
-    static public function find_posts($user_id, $name = null, $limit = null)
+    public static function find_posts($user_id, $name = null, $limit = null)
     {
         return Post::available()->where('id IN (?)', self::find_post_ids($user_id, $name, $limit))->order('id DESC')->take();
     }
 
-    static public function process_all()
+    public static function process_all()
     {
         foreach (self::all() as $tag_subscription) {
             if ($tag_subscription->user->is_privileged_or_higher()) {
                 try {
-                    self::transaction(function() use ($tag_subscription) {
+                    self::transaction(function () use ($tag_subscription) {
                         $tags = preg_split('/\s+/', $tag_subscription->tag_query);
                         $post_ids = [];
                         foreach ($tags as $tag) {
@@ -94,9 +95,9 @@ class TagSubscription extends Rails\ActiveRecord\Base
                                     [
                                         'limit' => ceil(CONFIG()->tag_subscription_post_limit / 3),
                                         'select' => 'p.id',
-                                        'order' => 'p.id desc'
-                                    ]
-                                )->getAttributes('id')
+                                        'order' => 'p.id desc',
+                                    ],
+                                )->getAttributes('id'),
                             );
                         }
                         sort($post_ids);

@@ -6,12 +6,12 @@
     <strong>Creator:</strong>
     <?= $this->linkTo($this->h(User::find_name($this->post_set->creator_id)), ['user#show', 'id' => $this->post_set->creator_id]) ?><br/>
     <strong>Visibility:</strong> <?= $this->post_set->is_public ? 'public' : 'private' ?><br/>
-    <strong>Post count:</strong> <?= (int)$this->post_set->post_count ?><br/>
+    <strong>Post count:</strong> <?= (int) $this->post_set->post_count ?><br/>
     <strong>Created:</strong> <?= $this->h($this->post_set->created_at) ?><br/>
     <strong>Updated:</strong> <?= $this->h($this->post_set->updated_at) ?>
   </p>
 
-  <?php if (trim((string)$this->post_set->description) !== '') : ?>
+  <?php if (trim((string) $this->post_set->description) !== '') : ?>
     <div style="margin-bottom: 1em;">
       <strong>Description:</strong><br/>
       <?= nl2br($this->h($this->post_set->description)) ?>
@@ -31,7 +31,7 @@
 
   <?php if (!current_user()->is_anonymous() && !$this->post_set->is_owner(current_user()) && !$this->post_set->is_maintainer(current_user()) && !$this->post_set->has_pending_invite(current_user())) : ?>
     <div style="margin-bottom: 1em;">
-      <?= $this->formTag('post_set_maintainer#request_access', ['method' => 'post'], function() { ?>
+      <?= $this->formTag('post_set_maintainer#request_access', ['method' => 'post'], function () { ?>
         <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
         <?= $this->hiddenFieldTag('post_set_id', $this->post_set->id) ?>
         <?= $this->submitTag('Request maintainer access') ?>
@@ -41,7 +41,7 @@
 
   <?php if ($this->post_set->can_edit_posts_by(current_user())) : ?>
     <div style="margin-bottom: 1em;">
-      <?= $this->formTag(['action' => 'add_post'], ['method' => 'post'], function() { ?>
+      <?= $this->formTag(['action' => 'add_post'], ['method' => 'post'], function () { ?>
         <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
         <?= $this->hiddenFieldTag('post_set_id', $this->post_set->id) ?>
         <?= $this->textFieldTag('post_id', '', ['size' => 10, 'placeholder' => 'post id']) ?>
@@ -56,7 +56,7 @@
   <?php else : ?>
     <ul>
       <?php foreach ($this->post_ids as $post_id) : ?>
-        <li><?= $this->linkTo('#' . (int)$post_id, ['post#show', 'id' => $post_id]) ?></li>
+        <li><?= $this->linkTo('#' . (int) $post_id, ['post#show', 'id' => $post_id]) ?></li>
       <?php endforeach ?>
     </ul>
   <?php endif ?>

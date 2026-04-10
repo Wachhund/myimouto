@@ -6,13 +6,13 @@
   <?php foreach ($this->posts as $post) : ?>
     <div class="post">
       <div class="col1">
-        <?= $this->linkTo($this->imageTag($post->preview_url(), array('title' => $post->tags(), 'class' => 'preview javascript-hide', 'id' => 'p'.$post->id, 'width' => $post->preview_dimensions()[0], 'height' => $post->preview_dimensions()[1], 'loading' => 'lazy')), array('post#show', 'id' => $post->id)) ?>&nbsp;
+        <?= $this->linkTo($this->imageTag($post->preview_url(), ['title' => $post->tags(), 'class' => 'preview javascript-hide', 'id' => 'p' . $post->id, 'width' => $post->preview_dimensions()[0], 'height' => $post->preview_dimensions()[1], 'loading' => 'lazy']), ['post#show', 'id' => $post->id]) ?>&nbsp;
       </div>
       <div class="col2" id="comments-for-p<?= $post->id ?>">
         <div class="header">
           <div>
             <span class="info"><strong><?= $this->t('.date') ?></strong> <?= $this->compact_time($post->created_at) ?></span>
-            <span class="info"><strong><?= $this->t('.user') ?></strong> <?= $this->linkTo($this->h($post->author()), array('user#show', 'id' => $post->user->id)) ?></span>
+            <span class="info"><strong><?= $this->t('.user') ?></strong> <?= $this->linkTo($this->h($post->author()), ['user#show', 'id' => $post->user->id]) ?></span>
             <span class="info"><strong><?= $this->t('ratings._') ?></strong> <?= $post->pretty_rating() ?></span>
             <span class="info vote-container"><strong><?= $this->t('.score') ?></strong>
               <span id="post-score-<?= $post->id ?>"><?= $post->score ?></span>
@@ -21,19 +21,19 @@
             </span>
 
             <?php if ($post->comments->size() > 6) : ?>
-              <span class="info"><strong><?= $this->t('.hidden') ?></strong> <?= $this->linkTo($post->comments->size() - 6, array('post#show', 'id' => $post->id)) ?></span>
+              <span class="info"><strong><?= $this->t('.hidden') ?></strong> <?= $this->linkTo($post->comments->size() - 6, ['post#show', 'id' => $post->id]) ?></span>
             <?php endif ?>
           </div>
           <div class="tags">
             <strong><?= $this->t('.tags') ?></strong>
             <?php foreach ($post->tags() as $name) : ?>
               <span class="tag-type-<?= Tag::type_name($name) ?>">
-                <?= $this->linkTo(str_replace('_', ' ', $name), array('post#', 'tags' => $name)) ?>
+                <?= $this->linkTo(str_replace('_', ' ', $name), ['post#', 'tags' => $name]) ?>
               </span>
             <?php endforeach ?>
           </div>
         </div>
-        <?= $this->partial("comments", array('comments' => $post->recent_comments(), 'post_id' => $post->id, 'hide' => 'true')) ?>
+        <?= $this->partial("comments", ['comments' => $post->recent_comments(), 'post_id' => $post->id, 'hide' => 'true']) ?>
       </div>
     </div>
   <?php endforeach ?>
@@ -43,8 +43,8 @@
   </div>
 
   <?php if (!empty($this->page_uses_translations)) : ?>
-    <?php $this->contentFor('above_footer', function(){ ?>
-      <?= $this->t(array('.translation_html', 'p' => $this->linkTo('Google', 'http://translate.google.com'))) ?>
+    <?php $this->contentFor('above_footer', function () { ?>
+      <?= $this->t(['.translation_html', 'p' => $this->linkTo('Google', 'http://translate.google.com')]) ?>
       <br>
     <?php }) ?>
   <?php endif ?>

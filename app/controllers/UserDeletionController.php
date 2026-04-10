@@ -1,12 +1,13 @@
 <?php
+
 class UserDeletionController extends ApplicationController
 {
     protected function filters()
     {
         return [
             'before' => [
-                'mod_only' => ['only' => ['confirm', 'execute']]
-            ]
+                'mod_only' => ['only' => ['confirm', 'execute']],
+            ],
         ];
     }
 
@@ -27,7 +28,7 @@ class UserDeletionController extends ApplicationController
         if (current_user()->level <= $this->user->level) {
             $this->respond_to_error(
                 "Cannot delete user of equal or higher privilege",
-                ['user#show', 'id' => $this->user->id]
+                ['user#show', 'id' => $this->user->id],
             );
             return;
         }
@@ -36,7 +37,7 @@ class UserDeletionController extends ApplicationController
         if (current_user()->id == $this->user->id) {
             $this->respond_to_error(
                 "Cannot delete yourself",
-                ['user#show', 'id' => $this->user->id]
+                ['user#show', 'id' => $this->user->id],
             );
             return;
         }
@@ -56,11 +57,11 @@ class UserDeletionController extends ApplicationController
             return;
         }
 
-        $reason = trim((string)($this->params()->reason ?: ''));
+        $reason = trim((string) ($this->params()->reason ?: ''));
         if ($reason === '') {
             $this->respond_to_error(
                 "A reason is required",
-                ['user_deletion#confirm', 'id' => $this->user->id]
+                ['user_deletion#confirm', 'id' => $this->user->id],
             );
             return;
         }
@@ -68,7 +69,7 @@ class UserDeletionController extends ApplicationController
         if (!$this->params()->confirm_deletion) {
             $this->respond_to_error(
                 "You must confirm the deletion",
-                ['user_deletion#confirm', 'id' => $this->user->id]
+                ['user_deletion#confirm', 'id' => $this->user->id],
             );
             return;
         }
@@ -77,17 +78,17 @@ class UserDeletionController extends ApplicationController
             \MyImouto\UserDeletion\DeletionService::staffDelete(
                 $this->user,
                 current_user(),
-                $reason
+                $reason,
             );
 
             $this->respond_to_success(
                 "User has been anonymized",
-                ['user#show', 'id' => $this->user->id]
+                ['user#show', 'id' => $this->user->id],
             );
         } catch (\RuntimeException $e) {
             $this->respond_to_error(
                 $e->getMessage(),
-                ['user_deletion#confirm', 'id' => $this->user->id]
+                ['user_deletion#confirm', 'id' => $this->user->id],
             );
         }
     }

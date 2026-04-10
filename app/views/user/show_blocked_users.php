@@ -1,6 +1,6 @@
 <div class="section">
   <h6><?= $this->t('user_blocked') ?></h6>
-  <?= $this->formTag(['action' => 'unblock'], function(){ ?>
+  <?= $this->formTag(['action' => 'unblock'], function () { ?>
     <table width="100%" class="highlightable">
       <thead>
         <tr>
@@ -19,7 +19,7 @@
       <tbody>
         <?php foreach ($this->users as $user) : ?>
           <tr class="<?= $this->cycle('even', 'odd') ?>">
-            <td><?= $this->checkBoxTag("user[".$user->id."]") ?></td>
+            <td><?= $this->checkBoxTag("user[" . $user->id . "]") ?></td>
             <td><?= $this->linkTo($this->h($user->pretty_name()), ['user#show', 'id' => $user->id]) ?></td>
             <td><?= $this->timeAgoInWords($user->ban->expires_at) ?></td>
             <td><?= $user->ban->expires_at ?></td>
@@ -31,7 +31,7 @@
   <?php }) ?>
 
   <h6><?= $this->t('user_blocked_ips') ?></h6>
-  <?= $this->formTag('blocks#unblock_ip', function() { ?>
+  <?= $this->formTag('blocks#unblock_ip', function () { ?>
     <table width="100%" class="highlightable">
       <thead>
         <tr>
@@ -50,7 +50,7 @@
       <tbody>
         <?php foreach ($this->ip_bans as $ban) : ?>
           <tr class="<?= $this->cycle('even', 'odd') ?>">
-            <td><?= $this->checkBoxTag("ip_ban[".$ban->id."]") ?></td>
+            <td><?= $this->checkBoxTag("ip_ban[" . $ban->id . "]") ?></td>
             <td><?= $this->h($ban->ip_addr) ?></td>
             <td><?= $ban->expires_at ? $this->timeAgoInWords($ban->expires_at) : "never" ?></td>
             <td><?= $this->linkTo($this->h($ban->user->pretty_name()), ['user#show', 'id' => $ban->user->id]) ?></td>
@@ -60,7 +60,7 @@
       </tbody>
     </table>
   <?php }) ?>
-  <?= $this->formTag('blocks#block_ip', function(){ ?>
+  <?= $this->formTag('blocks#block_ip', function () { ?>
     <table class="form">
       <tfoot>
         <tr>
@@ -71,7 +71,7 @@
       <tbody>
         <tr>
           <th><label for="ip_addr"><?= $this->t('user_address') ?></label>
-            <p><?= "IP masks <strong>not</strong> yet supported" //$this->t('user_address_text') ?></p></th>
+            <p><?= "IP masks <strong>not</strong> yet supported" //$this->t('user_address_text')?></p></th>
           <td><?=$this->textField("ban", "ip_addr", ['size' => '40']) ?></td>
         </tr>
         <tr>

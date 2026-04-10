@@ -11,7 +11,7 @@
   </ul>
 </div>
 
-<?= $this->formTag(['action' => 'execute_delete_account'], function(){ ?>
+<?= $this->formTag(['action' => 'execute_delete_account'], function () { ?>
   <table class="form">
     <tbody>
       <tr>

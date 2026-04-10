@@ -3,7 +3,7 @@
 
   <p>Enter your verification code to check the status of a takedown request.</p>
 
-  <?= $this->formTag(['takedown#status'], ['method' => 'get'], function() { ?>
+  <?= $this->formTag(['takedown#status'], ['method' => 'get'], function () { ?>
     <label for="vericode">Verification Code:</label><br/>
     <?= $this->textFieldTag('vericode', $this->h($this->params()->vericode), ['size' => 40, 'placeholder' => 'e.g. a1b2c3d4e5f6...', 'id' => 'vericode']) ?>
     <?= $this->submitTag('Check Status') ?>
@@ -21,7 +21,7 @@
         <tbody>
           <tr>
             <th width="30%">Takedown ID</th>
-            <td>#<?= (int)$this->takedown->id ?></td>
+            <td>#<?= (int) $this->takedown->id ?></td>
           </tr>
           <tr>
             <th>Status</th>

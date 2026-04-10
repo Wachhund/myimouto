@@ -1,4 +1,5 @@
 <?php
+
 namespace MyImouto;
 
 /**
@@ -80,7 +81,7 @@ abstract class DefaultConfig
     #
     # Moebooru is getting confusing. For now, the max value will be used as JPEG quality.
     public $jpeg_ratio = 1.25;
-    public $jpeg_quality = array('min' => 94, 'max' => 97, 'filesize' => 4194304 /*1024*1024*4*/);
+    public $jpeg_quality = ['min' => 94, 'max' => 97, 'filesize' => 4194304 /*1024*1024*4*/];
 
     # If enabled, URLs will be of the form:
     # http://host/image/00112233445566778899aabbccddeeff/12345 tag tag2 tag3.jpg
@@ -128,7 +129,7 @@ abstract class DefaultConfig
         "Contributor" => 33,
         "Janitor"     => 35,
         "Mod"         => 40,
-        "Admin"       => 50
+        "Admin"       => 50,
     ];
 
     # Defines the various tag types. You can also define shortcuts.
@@ -150,7 +151,7 @@ abstract class DefaultConfig
         "Faults"    => 6,
         "faults"    => 6,
         "fault"     => 6,
-        "flt"       => 6
+        "flt"       => 6,
     ];
 
     # Tag type ordering in various locations.
@@ -159,11 +160,11 @@ abstract class DefaultConfig
         'artist',
         'copyright',
         'character',
-        'general'
+        'general',
     ];
 
     # Tag type IDs to not list in recent tag summaries, such as on the side of post/index:
-    public $exclude_from_tag_sidebar = array(0, 6);
+    public $exclude_from_tag_sidebar = [0, 6];
 
     # Determine who can see a post.
     public function can_see_post(\User $user, \Post $post)
@@ -187,10 +188,10 @@ abstract class DefaultConfig
     }
 
     # Defines the default blacklists for new users.
-    public $default_blacklists = array (
+    public $default_blacklists =  [
         "rating:q",
-        "rating:e"
-    );
+        "rating:e",
+    ];
 
     # Enable the artists interface.
     public $enable_artists = true;
@@ -226,7 +227,7 @@ abstract class DefaultConfig
     public $image_service_list = [
         "danbooru.donmai.us" => "http://iqdb.org/index.xml",
         "yande.re"           => "http://iqdb.org/index.xml",
-        "konachan.com"       => "http://iqdb.org/index.xml"
+        "konachan.com"       => "http://iqdb.org/index.xml",
     ];
 
     public $dupe_check_on_upload = false;
@@ -339,7 +340,7 @@ abstract class DefaultConfig
         'exception_log_prune',
         'user_deletion_cleanup',
         'forum_digest_send',
-        'api_key_expiration_check'
+        'api_key_expiration_check',
     ];
 
     # Retention period for exception logs in days. Used by the scheduled prune job.
@@ -386,12 +387,12 @@ abstract class DefaultConfig
     # Javascripts assets manifest files.
     public $asset_javascripts = [
         'application',
-        'moe-legacy/application'
+        'moe-legacy/application',
     ];
 
     # Stylesheets assets manifest files.
     public $asset_stylesheets = [
-        'application'
+        'application',
     ];
 
     # Adds delete option to Post Mode menu in post#index, only available for admins.
@@ -489,7 +490,7 @@ abstract class DefaultConfig
         # image_service_list option; i.e., the names listed here must also be
         # listed in image_service_list.
         'servers' => [
-            "danbooru.donmai.us"
+            "danbooru.donmai.us",
         ],
 
         # Interval between requests, in seconds.
@@ -517,7 +518,7 @@ abstract class DefaultConfig
         # Image similarity threshold. Images with lower similarity ratio
         # will be ignored.
         # Set to 0 for automatic threshold.
-        'similarity' => 90
+        'similarity' => 90,
     ];
 
     /**
@@ -590,7 +591,7 @@ abstract class DefaultConfig
     public function filename_to_source($filename)
     {
         if (preg_match("/^(?:moe|yande\.re) (\d+) /", $filename, $m)) {
-            return 'https://yande.re/post/show/'.$m[1];
+            return 'https://yande.re/post/show/' . $m[1];
         }
     }
 }

@@ -16,7 +16,7 @@ class StagingService
 
     public static function cleanup($path): void
     {
-        self::$cleanedPaths[] = (string)$path;
+        self::$cleanedPaths[] = (string) $path;
     }
 
     public static function reset(): void

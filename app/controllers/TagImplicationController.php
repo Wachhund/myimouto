@@ -1,21 +1,22 @@
 <?php
+
 class TagImplicationController extends ApplicationController
 {
     protected function filters()
     {
         return [
             'before' => [
-                'member_only' => ['only' => ['create']]
-            ]
+                'member_only' => ['only' => ['create']],
+            ],
         ];
     }
-    
+
     public function create()
     {
         $tag_implication = $this->params()->tag_implication;
         $tag_implication['is_pending'] = true;
         $ti = new TagImplication($tag_implication);
-        
+
         if ($ti->save()) {
             $this->notice("Tag implication created");
         } else {
@@ -24,13 +25,14 @@ class TagImplicationController extends ApplicationController
 
         $this->redirectTo("#index");
     }
-    
+
     public function index()
     {
         $this->set_title("Tag Implications");
 
-        if ($this->params()->commit == "Search Aliases")
-            $this->redirectTo(array('tag_alias#index', 'query' => $this->params()->query));
+        if ($this->params()->commit == "Search Aliases") {
+            $this->redirectTo(['tag_alias#index', 'query' => $this->params()->query]);
+        }
 
         if ($this->params()->query) {
             $name = "%" . $this->params()->query . "%";
@@ -44,16 +46,16 @@ class TagImplicationController extends ApplicationController
 
         $this->respond_to_list("implications");
     }
-    
+
     public function update()
     {
         !is_array($this->params()->implications) && $this->params()->implications = [];
         $ids = array_keys($this->params()->implications);
 
-        switch($this->params()->commit) {
+        switch ($this->params()->commit) {
             case "Delete":
                 $can_delete = true;
-                
+
                 # iTODO:
                 # 'creator_id' column isn't, apparently, filled when creating implications or aliases.
                 foreach ($ids as $x) {
@@ -61,19 +63,19 @@ class TagImplicationController extends ApplicationController
                     $can_delete = ($ti->is_pending && $ti->creator_id == current_user()->id);
                     $tis[] = $ti;
                 }
-                
+
                 if (current_user()->is_mod_or_higher() || $can_delete) {
                     foreach ($tis as $ti) {
                         $ti->destroy_and_notify(current_user(), $this->params()->reason);
                     }
-                
+
                     $this->notice("Tag implications deleted");
                     $this->redirectTo("#index");
                 } else {
                     $this->access_denied();
                 }
                 break;
-            
+
             case "Approve":
                 if (current_user()->is_mod_or_higher()) {
                     foreach ($ids as $x) {
@@ -84,14 +86,14 @@ class TagImplicationController extends ApplicationController
                             $ti->approve(current_user(), $this->request()->remoteIp());
                         }
                     }
-                    
+
                     $this->notice("Tag implication approval jobs created");
                     $this->redirectTo('job_task#index');
                 } else {
                     $this->access_denied();
                 }
                 break;
-            
+
             default:
                 $this->access_denied();
                 break;

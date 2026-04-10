@@ -1,40 +1,41 @@
 <?php
+
 trait PostTagMethods
 {
     public $new_tags;
-    
+
     public $old_tags;
-    
+
     public $old_cached_tags;
-    
+
     protected $tags_list = [];
-    
+
     private $tags_string;
 
-    static public function find_by_tags($tags, array $options = array())
+    public static function find_by_tags($tags, array $options = [])
     {
-        list ($sql, $params) = Post::generate_sql($tags, $options);
+        list($sql, $params) = Post::generate_sql($tags, $options);
         return Post::findBySql($sql, $params);
     }
 
-    static public function recalculate_cached_tags($id = null)
+    public static function recalculate_cached_tags($id = null)
     {
         // conds = array()
         // cond_params = array()
 
         // sql = %{
-            // UPDATE posts p SET cached_tags = (
-                // SELECT array_to_string(coalesce(array(
-                    // SELECT t.name
-                    // FROM tags t, posts_tags pt
-                    // WHERE t.id = pt.tag_id AND pt.post_id = p.id
-                    // ORDER BY t.name
-                // ), 'array()'::textarray()), ' ')
-            // )
+        // UPDATE posts p SET cached_tags = (
+        // SELECT array_to_string(coalesce(array(
+        // SELECT t.name
+        // FROM tags t, posts_tags pt
+        // WHERE t.id = pt.tag_id AND pt.post_id = p.id
+        // ORDER BY t.name
+        // ), 'array()'::textarray()), ' ')
+        // )
         // }
         // if ((id) {) {
-            // conds << "WHERE p.id = ?"
-            // cond_params << id
+        // conds << "WHERE p.id = ?"
+        // cond_params << id
         // }
 
         // sql = [sql, conds].join(" ")
@@ -43,14 +44,15 @@ trait PostTagMethods
 
     # new, previous and latest are History objects for cached_tags.  Split
     # the tag changes apart.
-    static public function tag_changes($new, $previous, $latest)
+    public static function tag_changes($new, $previous, $latest)
     {
         $new_tags = explode(' ', $new->value);
-        if ($previous && $previous->value)
+        if ($previous && $previous->value) {
             $old_tags = explode(' ', $previous->value);
-        else
+        } else {
             $old_tags = [];
-        
+        }
+
         $latest_tags = explode(' ', $latest->value);
 
         return [
@@ -66,7 +68,7 @@ trait PostTagMethods
     {
         $current_tags = explode(' ', $this->cached_tags);
         $prev = $change->previous;
-        
+
         if ($redo_changes) {
             list($change, $prev) = [$prev, $change];
         }
@@ -103,7 +105,7 @@ trait PostTagMethods
     {
         return $this->getTags();
     }
-    
+
     public function getTags()
     {
         return explode(' ', $this->cached_tags);
@@ -118,10 +120,11 @@ trait PostTagMethods
         $this->new_tags = array_filter(Tag::scan_tags($tags));
 
         $current_tags = explode(' ', $this->cached_tags);
-        
-        if ($this->new_tags != $current_tags)
+
+        if ($this->new_tags != $current_tags) {
             $this->touch_change_seq();
-        
+        }
+
         $this->tags_list = $tags;
     }
 
@@ -130,7 +133,7 @@ trait PostTagMethods
     {
         return "rating:" . $this->rating . ' ' . $this->cached_tags;
     }
-    
+
     # Commit metatags; this is done before save, so any changes are stored normally.
     /**
      * Moved commit_metatags to be executed before commit_tags to avoid re-saving the
@@ -146,28 +149,28 @@ trait PostTagMethods
                 $this->source = $m[1];
                 continue;
             }
-            
+
             switch ($tag) {
                 case 'hold':
                     $this->is_held = true;
                     unset($this->new_tags[$k]);
                     break;
-                
+
                 case 'unhold':
                     $this->is_held = false;
                     unset($this->new_tags[$k]);
                     break;
-                
+
                 case 'show':
                     $this->is_shown_in_index = true;
                     unset($this->new_tags[$k]);
                     break;
-                
+
                 case 'hide':
                     $this->is_shown_in_index = false;
                     unset($this->new_tags[$k]);
                     break;
-                
+
                 case '+flag':
                     unset($this->new_tags[$k]);
                     # Permissions for this are checked on commit.
@@ -190,9 +193,10 @@ trait PostTagMethods
      */
     protected function commit_tags()
     {
-        if ($this->isNewRecord() || !$this->new_tags)
+        if ($this->isNewRecord() || !$this->new_tags) {
             return;
-        
+        }
+
         if ($this->old_tags) {
             # If someone else committed changes to this post before we did,
             # then try to merge the tag changes together.
@@ -200,12 +204,12 @@ trait PostTagMethods
             $this->old_tags = Tag::scan_tags($this->old_tags);
             $this->new_tags = array_filter(array_merge(array_diff(array_merge($current_tags, $this->new_tags), $this->old_tags), array_intersect($current_tags, $this->new_tags)));
         }
-        
+
         $this->commit_metatags();
-        
+
         $meta_tags = ['-pool:', 'pool:', 'rating:', 'parent:', 'child:', 'source:'];
         $ratings = ['q', 's', 'e'];
-        
+
         $had_metatags = false;
         foreach ($this->new_tags as $k => $tag) {
             # To avoid preg_match.
@@ -216,66 +220,74 @@ trait PostTagMethods
                     break;
                 }
             }
-            if (!$is_mt)
+            if (!$is_mt) {
                 continue;
-            
+            }
+
             $had_metatags = true;
-            
+
             unset($this->new_tags[$k]);
-            
-            if (in_array($tag, $ratings))
-                $tag = 'rating:'.$tag;
-            
+
+            if (in_array($tag, $ratings)) {
+                $tag = 'rating:' . $tag;
+            }
+
             $subparam = explode(':', $tag, 3);
             $metatag  = array_shift($subparam);
             $param    = array_shift($subparam);
             $subparam = empty($subparam) ? null : array_shift($subparam);
-            
-            switch($metatag) {
+
+            switch ($metatag) {
                 case 'rating':
                     # Change rating. This will override rating selected on radio buttons.
-                    if (in_array($param, $ratings))
+                    if (in_array($param, $ratings)) {
                         $this->rating = $param;
+                    }
                     break;
-                
+
                 case 'pool':
                     try {
                         $name = $param;
                         $seq = $subparam;
-                        
+
                         # Workaround: I don't understand how can the pool be found when finding_by_name
                         # using the id.
-                        if (ctype_digit($name))
+                        if (ctype_digit($name)) {
                             $pool = Pool::where(['id' => $name])->first();
-                        else
+                        } else {
                             $pool = Pool::where(['name' => $name])->first();
-                        
+                        }
+
                         # Set :ignore_already_exists, so pool:1:2 can be used to change the sequence number
                         # of a post that already exists in the pool.
-                        $options = array('user' => User::where('id = ?', $this->updater_user_id)->first(), 'ignore_already_exists' => true);
-                        if ($seq)
+                        $options = ['user' => User::where('id = ?', $this->updater_user_id)->first(), 'ignore_already_exists' => true];
+                        if ($seq) {
                             $options['sequence'] = $seq;
-                        
-                        if (!$pool and !ctype_digit($name))
-                            $pool = Pool::create(array('name' => $name, 'is_public' => false, 'user_id' => $this->updater_user_id));
-                        
-                        if (!$pool || !$pool->can_change(current_user(), null))
+                        }
+
+                        if (!$pool and !ctype_digit($name)) {
+                            $pool = Pool::create(['name' => $name, 'is_public' => false, 'user_id' => $this->updater_user_id]);
+                        }
+
+                        if (!$pool || !$pool->can_change(current_user(), null)) {
                             continue 2;
-                        
+                        }
+
                         $pool->add_post($this->id, $options);
-                        
-                    } catch(Pool_PostAlreadyExistsError $e) {
+
+                    } catch (Pool_PostAlreadyExistsError $e) {
                     } catch (Pool_AccessDeniedError $e) {
                     }
                     break;
-                    
+
                 case '-pool':
                     $name = $param;
                     $cmd = $subparam;
 
                     $pool = Pool::where(['name' => $name])->first();
-                    if (!$pool->can_change(current_user(), null))
+                    if (!$pool->can_change(current_user(), null)) {
                         break;
+                    }
 
                     if ($cmd == "parent") {
                         # If we have a parent, remove ourself from the pool and add our parent in
@@ -287,38 +299,40 @@ trait PostTagMethods
                     }
                     $pool && $pool->remove_post($id);
                     break;
-                    
+
                 case 'source':
                     $this->source = $param;
                     break;
-                    
+
                 case 'parent':
                     if (is_numeric($param)) {
-                        $this->parent_id = (int)$param;;
+                        $this->parent_id = (int) $param;
+                        ;
                     }
                     break;
-                
+
                 case 'child':
                     unset($this->new_tags[$k]);
                     break;
             }
         }
-        
+
         if (!$this->new_tags) {
-            if ($had_metatags)
+            if ($had_metatags) {
                 return;
+            }
             $this->new_tags[] = "tagme";
         }
-        
+
         // $this->tags = implode(' ', array_unique(TagImplication::with_implied(TagAlias::to_aliased($this->new_tags))));
         $this->new_tags = TagAlias::to_aliased($this->new_tags);
         $this->new_tags = array_unique(TagImplication::with_implied($this->new_tags));
         sort($this->new_tags);
         // $this->tags = implode(' ', $this->tags());
-        
+
         # TODO: be more selective in deleting from the join table
         self::connection()->executeSql("DELETE FROM posts_tags WHERE post_id = ?", $this->id);
-        
+
         $new_tags_ids   = [];
         $new_tags_names = [];
         $this->new_tags = array_map(function ($x) use (&$new_tags_ids, &$new_tags_names) {
@@ -331,7 +345,7 @@ trait PostTagMethods
         }, $this->new_tags);
         unset($new_tags_ids);
         $this->new_tags = array_filter($this->new_tags);
-        
+
         # If any tags are newly active, expire the tag cache.
         if ($this->new_tags) {
             $any_new_tags = false;
@@ -351,11 +365,11 @@ trait PostTagMethods
                 Moebooru\CacheHelper::expire_tag_version();
             }
         }
-        
+
         # Sort
         sort($new_tags_names);
         sort($this->new_tags);
-        
+
         $this->cached_tags = implode(' ', $new_tags_names);
 
         $placeholders = implode(", ", array_fill(0, count($this->new_tags), "(?, ?)"));
@@ -366,7 +380,7 @@ trait PostTagMethods
         }
         $sql = "INSERT INTO posts_tags (post_id, tag_id) VALUES " . $placeholders;
         self::connection()->executeSql($sql, ...$insert_params);
-        
+
         # Store the old cached_tags, so we can expire them.
         $this->old_cached_tags = $this->cached_tags;
         // Commenting the following line; it will cause cached_tags to not to be updated.
@@ -384,12 +398,12 @@ trait PostTagMethods
                 'post_id' => $this->id,
                 'tags'    => $new_cached_tags,
                 'user_id' => $this->user_id,
-                'ip_addr' => current_user() && current_user()->ip_addr ? current_user()->ip_addr : "127.0.0.1"
+                'ip_addr' => current_user() && current_user()->ip_addr ? current_user()->ip_addr : "127.0.0.1",
             ]);
         }
     }
 
-    
+
     public function tag_names()
     {
         return $this->cached_tags;

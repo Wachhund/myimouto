@@ -1,4 +1,4 @@
-<?= $this->contentFor('subnavbar', function() { ?>
+<?= $this->contentFor('subnavbar', function () { ?>
   <li><?= $this->linkTo($this->t('.list'), '#index') ?></li>
   <li><?= $this->linkTo($this->t('.search'), '#search') ?></li>
   <?php if (current_user()->is_janitor_or_higher()) : ?>

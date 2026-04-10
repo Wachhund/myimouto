@@ -1,4 +1,5 @@
 <?php
+
 class SettingsApiController extends ApplicationController
 {
     protected function filters()
@@ -7,8 +8,8 @@ class SettingsApiController extends ApplicationController
             'before' => [
                 'no_anonymous',
                 'set_settings_layout',
-                'ensure_api_key'
-            ]
+                'ensure_api_key',
+            ],
         ];
     }
 

@@ -1,4 +1,5 @@
 <?php
+
 class UserRecord extends Rails\ActiveRecord\Base
 {
     protected function associations()
@@ -6,8 +7,8 @@ class UserRecord extends Rails\ActiveRecord\Base
         return [
             'belongs_to' => [
                 'user',
-                'reporter' => ['foreign_key' => "reported_by", 'class_name' => "User"]
-            ]
+                'reporter' => ['foreign_key' => "reported_by", 'class_name' => "User"],
+            ],
         ];
     }
 
@@ -16,7 +17,7 @@ class UserRecord extends Rails\ActiveRecord\Base
         return [
             'user_id'     => ['presence' => true],
             'reported_by' => ['presence' => true],
-            'validate_not_self_record'
+            'validate_not_self_record',
         ];
     }
 
@@ -40,7 +41,7 @@ class UserRecord extends Rails\ActiveRecord\Base
         return $this->updateAttributes([
             'is_deleted'  => 1,
             'deleted_by'  => $deleted_by_id,
-            'updated_at'  => date('Y-m-d H:i:s')
+            'updated_at'  => date('Y-m-d H:i:s'),
         ]);
     }
 
@@ -73,7 +74,7 @@ class UserRecord extends Rails\ActiveRecord\Base
             'body'        => $this->body,
             'created_at'  => $this->created_at,
             'updated_at'  => $this->updated_at,
-            'is_deleted'  => (bool)$this->is_deleted
+            'is_deleted'  => (bool) $this->is_deleted,
         ];
     }
 }

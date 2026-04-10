@@ -1,5 +1,5 @@
 <div>
-  <?= $this->formTag(array('action' => 'index'), array('method' => 'get'), function(){ ?>
+  <?= $this->formTag(['action' => 'index'], ['method' => 'get'], function () { ?>
     <table class="form">
       <tbody>
         <tr>
@@ -7,15 +7,15 @@
             <label for="name"><?= $this->t('tag_name') ?></label>
             <p><?= $this->t('tag_wild') ?></p>
           </th>
-          <td width="85%"><?= $this->textFieldTag("name", $this->h($this->params()->name), array('size' => '40')) ?></td>
+          <td width="85%"><?= $this->textFieldTag("name", $this->h($this->params()->name), ['size' => '40']) ?></td>
         </tr>
         <tr>
           <th><label for="type"><?= $this->t('tag_type') ?></label></th>
-          <td><?= $this->selectTag('type', array(array_merge(array('Any' => 'any'), array_unique(CONFIG()->tag_types)), $this->params()->type)) ?></td>
+          <td><?= $this->selectTag('type', [array_merge(['Any' => 'any'], array_unique(CONFIG()->tag_types)), $this->params()->type]) ?></td>
         </tr>
         <tr>
           <th><label for="order"><?= $this->t('tag_order') ?></label></th>
-          <td><?= $this->selectTag('order', array(array('Name' => 'name', 'Count' => 'count', 'Date' => 'date'), $this->params()->order)) ?></td>
+          <td><?= $this->selectTag('order', [['Name' => 'name', 'Count' => 'count', 'Date' => 'date'], $this->params()->order]) ?></td>
         </tr>
       </tbody>
       <tfoot>
@@ -42,17 +42,17 @@
       <tr class="<?= $this->cycle('even', 'odd') ?>">
         <td align="right"><?= $tag->post_count ?></td>
         <td class="tag-type-<?= $tag->type_name ?>">
-          <?= $this->linkTo('?', array('controller' => 'wiki', 'action' => 'show', 'title' => $tag->name)) ?>
-          <?= $this->linkTo($tag->name, array('controller' => 'post', 'action' => 'index', 'tags' => $tag->name)) ?>
+          <?= $this->linkTo('?', ['controller' => 'wiki', 'action' => 'show', 'title' => $tag->name]) ?>
+          <?= $this->linkTo($tag->name, ['controller' => 'post', 'action' => 'index', 'tags' => $tag->name]) ?>
         </td>
         <td><?= $tag->type_name . ($tag->is_ambiguous ? ", ambiguous" : "") ?></td>
         <td width="<?= $this->can_delete_tags ? '80' : '60' ?>px">
-            <?= $this->linkTo($this->t('tag_edit'), array('action' => 'edit', 'id' => $tag->id)) ?>
+            <?= $this->linkTo($this->t('tag_edit'), ['action' => 'edit', 'id' => $tag->id]) ?>
             <?php if ($this->can_delete_tags) : ?>
             (<form method="post" action="<?= $this->urlFor(array_merge(['#delete', 'id' => $tag->id], $this->params()->get())) ?>" style="display:inline"><?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?><button type="submit" style="background:none;border:none;padding:0;color:inherit;cursor:pointer;text-decoration:underline;font:inherit" title="Delete tag">d</button></form>)
             <?php endif ?>
         </td>
-        <td width="60px"><?= $this->linkTo($this->t('tag_history'), array('controller' => 'history', 'search' => 'tag:'.$tag->id)) ?></td>
+        <td width="60px"><?= $this->linkTo($this->t('tag_history'), ['controller' => 'history', 'search' => 'tag:' . $tag->id]) ?></td>
       </tr>
     <?php endforeach ?>
   </tbody>

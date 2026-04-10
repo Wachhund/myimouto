@@ -1,4 +1,4 @@
-<?= $this->formTag("#create", function(){ ?>
+<?= $this->formTag("#create", function () { ?>
   <?= $this->hiddenFieldTag("dmail[parent_id]", ($this->dmail->parent_id ?: $this->dmail->id), ['id' => "dmail_parent_id"]) ?>
 
   <table width="100%">

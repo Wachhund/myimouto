@@ -10,6 +10,6 @@
   <p>While you can <a href="/tag_implication/index">suggest new implications</a>, only an administrator can approve them.</p>
 </div>
 
-<?php $this->contentFor("subnavbar", function() { ?>
+<?php $this->contentFor("subnavbar", function () { ?>
   <li><?= $this->linkTo("Help", "#index") ?></li>
 <?php }) ?>

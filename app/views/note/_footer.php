@@ -1,4 +1,4 @@
-<?php $this->contentFor('subnavbar', function() { ?>
+<?php $this->contentFor('subnavbar', function () { ?>
   <li><?= $this->linkTo($this->t('.list'), '#index') ?></li>
   <li><?= $this->linkTo($this->t('.search'), '#search') ?></li>
   <li><?= $this->linkTo($this->t('.history'), '#history') ?></li>

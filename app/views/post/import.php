@@ -1,10 +1,11 @@
 <?php if ($this->request()->isPost()) : ?>
   <?php if (!$this->errors) : ?>
-    <?= $this->print_preview($this->post, array('display' => 'large', 'disable_jpeg_direct_links' => true, 'hide_directlink' => true)) ?>
+    <?= $this->print_preview($this->post, ['display' => 'large', 'disable_jpeg_direct_links' => true, 'hide_directlink' => true]) ?>
   <?php else: ?>
     <li style="width:160px;text-align:center">
       There was an error with<br />
-      "<em><?= substr($this->params()->post['filename'], 0, 50); strlen($this->params()->post['filename']) > 50 && print '...' ?></em>":
+      "<em><?= substr($this->params()->post['filename'], 0, 50);
+      strlen($this->params()->post['filename']) > 50 && print '...' ?></em>":
       <h6><?= $this->errors ?></h6>
       <a class="directlink largeimg" href="#">
         <span class="directlink-info"><img class="directlink-icon directlink-icon-large" src="/images/ddl_large.gif" alt=""></span>
@@ -38,7 +39,7 @@ td.err {
 Data entered here will be applied to all posts.</p>
 
 <div style="margin-bottom:10px;">
-  <span id="file-count">Files found: <?= count($this->files) ?></span> / Errors: <span id="error-count"><?= count($this->invalid_files)+count($this->invalid_folders) ?></span>
+  <span id="file-count">Files found: <?= count($this->files) ?></span> / Errors: <span id="error-count"><?= count($this->invalid_files) + count($this->invalid_folders) ?></span>
   <a href="#" id="details-toggle" onclick="$('details-container').toggle();return false;">(Show/hide details)</a>
   
   <div id="details-container" style="border:1px solid #ccc;padding:3px;width:910px;display:none">
@@ -86,7 +87,7 @@ Data entered here will be applied to all posts.</p>
       </tr>
       <?php endforeach;endif ?>
       
-      <?php if ($this->files):foreach(range(0, count($this->files) - 1) as $i) : ?>
+      <?php if ($this->files):foreach (range(0, count($this->files) - 1) as $i) : ?>
       <tr id="file<?= $i ?>" class="<?= $this->cycle('even', 'odd') ?>">
         <td><?= $this->import_file_detail_name($this->files[$i]) ?></td>
         <td>Waiting</td>
@@ -162,7 +163,9 @@ Data entered here will be applied to all posts.</p>
 <script>
 RelatedTags.init(Cookie.get('my_tags'), '')
 
-var files = [<?php if ($this->files) echo "'" . implode("', '", $this->files) . "'" ?>]
+var files = [<?php if ($this->files) {
+    echo "'" . implode("', '", $this->files) . "'";
+} ?>]
 var url = '/post/import'
 
 Import = {

@@ -1,4 +1,5 @@
 <?php
+
 namespace MyImouto\UserDeletion;
 
 class DeletionService
@@ -70,17 +71,17 @@ class DeletionService
         $conn = \Rails\ActiveRecord\Base::connection();
         $counts = [];
 
-        $counts['post_votes'] = (int)$conn->selectValue(
+        $counts['post_votes'] = (int) $conn->selectValue(
             "SELECT COUNT(*) FROM post_votes WHERE user_id = ?",
-            $target->id
+            $target->id,
         );
-        $counts['favorites'] = (int)$conn->selectValue(
+        $counts['favorites'] = (int) $conn->selectValue(
             "SELECT COUNT(*) FROM favorites WHERE user_id = ?",
-            $target->id
+            $target->id,
         );
-        $counts['tag_subscriptions'] = (int)$conn->selectValue(
+        $counts['tag_subscriptions'] = (int) $conn->selectValue(
             "SELECT COUNT(*) FROM tag_subscriptions WHERE user_id = ?",
-            $target->id
+            $target->id,
         );
 
         return $counts;
@@ -114,7 +115,7 @@ class DeletionService
                 "remember_token = NULL, reset_token = NULL, level = ?, avatar_post_id = NULL WHERE id = ?",
                 $new_name,
                 \CONFIG()->user_levels['Blocked'],
-                $target->id
+                $target->id,
             );
 
             // Create audit record with cleanup_status = 'pending'.
@@ -140,7 +141,7 @@ class DeletionService
                     'user_id' => $target->id,
                     'user_name' => $original_name,
                     'reason' => $reason,
-                    'strategy' => 'anonymize'
+                    'strategy' => 'anonymize',
                 ]);
             }
 

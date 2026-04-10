@@ -1,7 +1,7 @@
 <div>
   <h4><?= $this->t('.title') ?></h4>
 
-  <?= $this->formTag(function() { ?>
+  <?= $this->formTag(function () { ?>
     <table class="form">
       <tfoot>
         <tr>

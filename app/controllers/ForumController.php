@@ -1,11 +1,12 @@
 <?php
+
 class ForumController extends ApplicationController
 {
     protected function init()
     {
         $this->helper('Avatar');
     }
-    
+
     protected function filters()
     {
         return [
@@ -13,8 +14,8 @@ class ForumController extends ApplicationController
                 'sanitize_id' => ['only' => ['show']],
                 'mod_only' => ['only' => ['stick', 'unstick', 'lock', 'unlock']],
                 'member_only' => ['only' => ['destroy', 'update', 'edit', 'add', 'markAllRead', 'preview', 'subscribe', 'unsubscribe', 'vote', 'unvote']],
-                'post_member_only' => ['only' => ['create']]
-            ]
+                'post_member_only' => ['only' => ['create']],
+            ],
         ];
     }
 
@@ -44,7 +45,7 @@ class ForumController extends ApplicationController
             $this->render(['text' => ""]);
         }
     }
-    
+
     # Changed method name from "new" to "blank".
     public function blank()
     {
@@ -62,8 +63,9 @@ class ForumController extends ApplicationController
     public function create()
     {
         $params = array_intersect_key($this->params()->forum_post ?: [], array_flip(['title', 'body', 'parent_id']));
-        if (empty($params['parent_id']) || !ctype_digit($params['parent_id']))
+        if (empty($params['parent_id']) || !ctype_digit($params['parent_id'])) {
             $params['parent_id'] = null;
+        }
 
         $this->forum_post = ForumPost::create(array_merge($params, ['creator_id' => $this->current_user->id, 'ip_addr' => $this->request()->remoteIp()]));
 
@@ -80,9 +82,7 @@ class ForumController extends ApplicationController
         }
     }
 
-    public function add()
-    {
-    }
+    public function add() {}
 
     public function destroy()
     {
@@ -107,8 +107,9 @@ class ForumController extends ApplicationController
     {
         $this->forum_post = ForumPost::find($this->params()->id);
 
-        if (!$this->current_user->has_permission($this->forum_post, 'creator_id'))
+        if (!$this->current_user->has_permission($this->forum_post, 'creator_id')) {
             $this->access_denied();
+        }
     }
 
     public function update()
@@ -124,7 +125,7 @@ class ForumController extends ApplicationController
         $this->forum_post->assignAttributes(array_merge($permitted, ['updater_ip_addr' => $this->request()->remoteIp()]));
         if ($this->forum_post->save()) {
             $this->notice("Post updated");
-            
+
             $page = $this->params()->page ? $this->page_number() : ceil($this->forum_post->root()->response_count / 30.0);
             $this->redirectTo(["#show", 'id' => $this->forum_post->root_id(), 'page' => $page]);
         } else {
@@ -167,15 +168,15 @@ class ForumController extends ApplicationController
     public function index()
     {
         $this->set_title("Forum");
-        
+
         $query = ForumPost::order("is_sticky desc, updated_at DESC");
-        
+
         if ($this->params()->parent_id) {
             $this->forum_posts = ForumPost::where("parent_id = ?", $this->params()->parent_id)->order("is_sticky desc, updated_at DESC")->paginate($this->page_number(), 100);
         } else {
             $this->forum_posts = ForumPost::where("parent_id IS NULL")->order("is_sticky desc, updated_at DESC")->paginate($this->page_number(), 30);
         }
-        
+
         $this->respond_to_list("forum_posts");
     }
 
@@ -213,7 +214,7 @@ class ForumController extends ApplicationController
 
     public function subscribe()
     {
-        $topic_id = (int)$this->params()->id;
+        $topic_id = (int) $this->params()->id;
         $topic = ForumPost::find($topic_id);
 
         if (!$topic->is_parent()) {
@@ -227,7 +228,7 @@ class ForumController extends ApplicationController
 
     public function unsubscribe()
     {
-        $topic_id = (int)$this->params()->id;
+        $topic_id = (int) $this->params()->id;
         $topic = ForumPost::find($topic_id);
 
         if (!$topic->is_parent()) {
@@ -241,30 +242,30 @@ class ForumController extends ApplicationController
 
     public function vote()
     {
-        $post_id = (int)$this->params()->id;
-        $score = (int)$this->params()->score;
+        $post_id = (int) $this->params()->id;
+        $score = (int) $this->params()->score;
 
         $forum_post = ForumPost::find($post_id);
         ForumPostVote::vote($this->current_user->id, $post_id, $score);
 
         $this->respondTo([
-            'html' => function() use ($forum_post) {
+            'html' => function () use ($forum_post) {
                 $this->notice("Vote recorded");
                 $this->redirectTo(['action' => "show", 'id' => $forum_post->root_id()]);
             },
-            'json' => function() use ($post_id) {
+            'json' => function () use ($post_id) {
                 $this->render(['json' => [
                     'success'    => true,
                     'post_id'    => $post_id,
-                    'post_score' => ForumPostVote::post_score($post_id)
+                    'post_score' => ForumPostVote::post_score($post_id),
                 ]]);
-            }
+            },
         ]);
     }
 
     public function unvote()
     {
-        $post_id = (int)$this->params()->id;
+        $post_id = (int) $this->params()->id;
 
         $forum_post = ForumPost::find($post_id);
         ForumPostVote::unvote($this->current_user->id, $post_id);
@@ -272,17 +273,17 @@ class ForumController extends ApplicationController
         $current_score = ForumPostVote::post_score($post_id);
 
         $this->respondTo([
-            'html' => function() use ($forum_post) {
+            'html' => function () use ($forum_post) {
                 $this->notice("Vote removed");
                 $this->redirectTo(['action' => "show", 'id' => $forum_post->root_id()]);
             },
-            'json' => function() use ($post_id, $current_score) {
+            'json' => function () use ($post_id, $current_score) {
                 $this->render(['json' => [
                     'success'    => true,
                     'post_id'    => $post_id,
-                    'post_score' => $current_score
+                    'post_score' => $current_score,
                 ]]);
-            }
+            },
         ]);
     }
 }

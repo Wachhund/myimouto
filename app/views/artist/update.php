@@ -4,7 +4,7 @@
   <div id="preview" style="display: none; margin: 1em 0;">
   </div>
 
-  <?= $this->formTag(['action' => "update"], ['level' => 'member'], function(){ ?>
+  <?= $this->formTag(['action' => "update"], ['level' => 'member'], function () { ?>
     <?= $this->hiddenFieldTag("id", $this->artist->id) ?>
 
     <table class="form">

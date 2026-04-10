@@ -1,4 +1,5 @@
 <?php
+
 class TagSubscriptionHelper extends Rails\ActionView\Helper
 {
     public function tag_subscription_listing($user)
@@ -19,7 +20,7 @@ class TagSubscriptionHelper extends Rails\ActionView\Helper
 
             $subscription_link = $this->linkTo(
                 $this->h($name),
-                ['post#index', 'tags' => 'sub:' . $user->name . ':' . $name]
+                ['post#index', 'tags' => 'sub:' . $user->name . ':' . $name],
             );
 
             $html[] = '<span class="group"><strong>' . $subscription_link . '</strong>: ' . implode(' ', $group_links) . '</span>';

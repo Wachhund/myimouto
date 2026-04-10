@@ -1,4 +1,5 @@
 <?php
+
 class TosController extends ApplicationController
 {
     protected function filters()
@@ -6,8 +7,8 @@ class TosController extends ApplicationController
         return [
             'before' => [
                 'member_only' => ['only' => ['accept']],
-                'admin_only' => ['only' => ['bump_version']]
-            ]
+                'admin_only' => ['only' => ['bump_version']],
+            ],
         ];
     }
 
@@ -17,7 +18,7 @@ class TosController extends ApplicationController
     public static function effective_tos_version()
     {
         $dbVersion = SiteSetting::get('tos_version');
-        return $dbVersion !== null ? (int)$dbVersion : (int)CONFIG()->tos_version;
+        return $dbVersion !== null ? (int) $dbVersion : (int) CONFIG()->tos_version;
     }
 
     public function show()
@@ -56,7 +57,7 @@ class TosController extends ApplicationController
         $tos_version = self::effective_tos_version();
         $this->current_user->updateAttributes([
             'tos_accepted_version' => $tos_version,
-            'tos_accepted_at' => date('Y-m-d H:i:s')
+            'tos_accepted_at' => date('Y-m-d H:i:s'),
         ]);
 
         $this->notice('Terms of Service accepted.');
@@ -74,11 +75,11 @@ class TosController extends ApplicationController
         $current = self::effective_tos_version();
         $new_version = $current + 1;
 
-        SiteSetting::set('tos_version', (string)$new_version);
+        SiteSetting::set('tos_version', (string) $new_version);
 
         ModAction::log('tos_version_bump', [
             'old_version' => $current,
-            'new_version' => $new_version
+            'new_version' => $new_version,
         ]);
 
         $this->notice('ToS version bumped from ' . $current . ' to ' . $new_version . '.');

@@ -1,4 +1,3 @@
 <?php
-class ExceptionController extends Rails\ActionController\ExceptionHandler
-{
-}
+
+class ExceptionController extends Rails\ActionController\ExceptionHandler {}

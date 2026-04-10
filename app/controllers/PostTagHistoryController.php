@@ -1,4 +1,5 @@
 <?php
+
 class PostTagHistoryController extends ApplicationController
 {
     public function index()
@@ -34,7 +35,7 @@ class PostTagHistoryController extends ApplicationController
             },
             'xml' => function () {
                 $this->render(['xml' => $this->histories, 'root' => 'histories']);
-            }
+            },
         ]);
     }
 }

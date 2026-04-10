@@ -36,8 +36,10 @@
           <li> <?= $this->linkTo($this->t('.use_all_services'), array_merge(['post#similar'], $this->params()->get(), ['services' => 'all'])) ?>
           <?php foreach (CONFIG()->image_service_list as $service => $server) : ?>
           <li>
-            <span class="service-link<?php if (in_array($service, $this->services)) echo " service-active" ?>">
-              <?= $this->imageTag($this->get_service_icon($service), ['class'=>"service-icon", 'id'=>"list"]) ?>
+            <span class="service-link<?php if (in_array($service, $this->services)) {
+                echo " service-active";
+            } ?>">
+              <?= $this->imageTag($this->get_service_icon($service), ['class' => "service-icon", 'id' => "list"]) ?>
               <?= $this->linkTo($service, array_merge($this->params()->get(), ['controller' => 'post', 'action' => 'similar', 'services' => $service])) ?>
               <?php if ($this->errors and !empty($this->errors['server']['message'])) : ?>
                 (<?= $this->t('.down') ?>)
@@ -50,19 +52,19 @@
       <div>
         <h5><?= $this->t('.options') ?></h5>
         <ul>
-          <li><?= $this->linkTo(($this->params()->forcegray ? $this->t('.mode_color') : $this->t('.mode_gray')), array_merge($this->params()->get(), [ ['forcegray' => (bool)$this->params()->forcegray] ])) ?>
+          <li><?= $this->linkTo(($this->params()->forcegray ? $this->t('.mode_color') : $this->t('.mode_gray')), array_merge($this->params()->get(), [ ['forcegray' => (bool) $this->params()->forcegray] ])) ?>
           <?php if (!$this->params()->threshold) : ?>
           <li><?= $this->linkTo($this->t('.show_more'), array_merge($this->params()->get(), [ ['threshold' => 0 ] ])) ?></li>
           <?php endif ?>
           <?php if ($this->params()->url) : ?>
           <li>
           <?= $this->linkTo($this->t('.upload'), ["post#upload",
-                  'url'     => ($this->params()->full_url ?: $this->params()->url),
-                  'tags'    => $this->params()->tags,
-                  'rating'  => $this->params()->rating,
-                  'parent'  => $this->params()->parent
-              ])
-          ?>
+              'url'     => ($this->params()->full_url ?: $this->params()->url),
+              'tags'    => $this->params()->tags,
+              'rating'  => $this->params()->rating,
+              'parent'  => $this->params()->parent,
+          ])
+              ?>
           </li>
           <?php endif ?>
         </ul>
@@ -94,7 +96,7 @@
     <div class="content">
       <div id="quick-edit" style="display: none; margin-bottom: 1em;">
         <h4><?= $this->t('.edit_tags') ?></h4>
-        <?= $this->formTag("#update", function(){ ?>
+        <?= $this->formTag("#update", function () { ?>
           <?= $this->hiddenFieldTag("id", "") ?>
           <?= $this->hiddenFieldTag("post[old_tags]", "") ?>
           <?= $this->textAreaTag("post[tags]", "", ['size' => "60x2", 'id' => "post_tags"]) ?>
@@ -104,7 +106,7 @@
       </div>
 
       <?php if (!$this->initial) : ?>
-      <?= $this->formTag(null, ['multipart' => true, 'id' => "similar-form"], function(){ ?>
+      <?= $this->formTag(null, ['multipart' => true, 'id' => "similar-form"], function () { ?>
         <input name="forcegray" type="hidden" value="<?= $this->h($this->params['forcegray']) ?>">
         <input name="services" type="hidden" value="<?= $this->h($this->params['services']) ?>">
         <input name="threshold" type="hidden" value="<?= $this->h($this->params['threshold']) ?>">
@@ -154,7 +156,7 @@
       <?php endif ?>
     </div>
 </div>
-<?php $this->contentFor('post_cookie_javascripts', function(){ ?>
+<?php $this->contentFor('post_cookie_javascripts', function () { ?>
 <script type="text/javascript">
   <?php if (!$this->initial) : ?>
   $("url").focus();

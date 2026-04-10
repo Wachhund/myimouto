@@ -40,7 +40,7 @@
   </tr>
 </table>
 
-<?= $this->formTag(['controller' => 'user_deletion', 'action' => 'execute', 'id' => $this->user->id], function(){ ?>
+<?= $this->formTag(['controller' => 'user_deletion', 'action' => 'execute', 'id' => $this->user->id], function () { ?>
   <table class="form" style="margin-top: 1em;">
     <tbody>
       <tr>

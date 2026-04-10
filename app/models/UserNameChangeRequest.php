@@ -1,18 +1,19 @@
 <?php
+
 class UserNameChangeRequest extends Rails\ActiveRecord\Base
 {
-    const STATUS_PENDING = 'pending';
-    const STATUS_APPROVED = 'approved';
-    const STATUS_REJECTED = 'rejected';
-    const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_APPROVED = 'approved';
+    public const STATUS_REJECTED = 'rejected';
+    public const STATUS_CANCELLED = 'cancelled';
 
     protected function associations()
     {
         return [
             'belongs_to' => [
                 'user',
-                'staff' => ['class_name' => 'User', 'foreign_key' => 'staff_id']
-            ]
+                'staff' => ['class_name' => 'User', 'foreign_key' => 'staff_id'],
+            ],
         ];
     }
 
@@ -22,9 +23,9 @@ class UserNameChangeRequest extends Rails\ActiveRecord\Base
             'desired_name' => [
                 'presence' => true,
                 'length' => ['in' => [2, 20]],
-                'format' => ['with' => '/\A[^\s;,]+\Z/', 'message' => 'must not contain spaces, semicolons, or commas']
+                'format' => ['with' => '/\A[^\s;,]+\Z/', 'message' => 'must not contain spaces, semicolons, or commas'],
             ],
-            'validate_desired_name_available'
+            'validate_desired_name_available',
         ];
     }
 
@@ -36,18 +37,18 @@ class UserNameChangeRequest extends Rails\ActiveRecord\Base
     protected function callbacks()
     {
         return [
-            'before_validation' => ['normalize_fields']
+            'before_validation' => ['normalize_fields'],
         ];
     }
 
     public function normalize_fields()
     {
-        $this->desired_name = trim((string)$this->desired_name);
-        $this->reason = trim((string)$this->reason);
+        $this->desired_name = trim((string) $this->desired_name);
+        $this->reason = trim((string) $this->reason);
         if ($this->reason === '') {
             $this->reason = null;
         }
-        $this->staff_reason = trim((string)$this->staff_reason);
+        $this->staff_reason = trim((string) $this->staff_reason);
         if ($this->staff_reason === '') {
             $this->staff_reason = null;
         }
@@ -60,7 +61,7 @@ class UserNameChangeRequest extends Rails\ActiveRecord\Base
         }
 
         $existing = User::where('LOWER(name) = LOWER(?)', $this->desired_name)->first();
-        if ($existing && (int)$existing->id !== (int)$this->user_id) {
+        if ($existing && (int) $existing->id !== (int) $this->user_id) {
             $this->errors()->add('desired_name', 'is already taken');
         }
     }
@@ -73,7 +74,7 @@ class UserNameChangeRequest extends Rails\ActiveRecord\Base
      */
     public function approve($staff_user)
     {
-        if ((string)$this->status !== self::STATUS_PENDING) {
+        if ((string) $this->status !== self::STATUS_PENDING) {
             $this->errors()->add('status', 'request is not pending');
             return false;
         }
@@ -84,7 +85,7 @@ class UserNameChangeRequest extends Rails\ActiveRecord\Base
             self::transaction(function () use ($staff_user, &$success) {
                 # Re-check name availability inside transaction
                 $name_taken = User::where('LOWER(name) = LOWER(?)', $this->desired_name)
-                    ->where('id <> ?', (int)$this->user_id)
+                    ->where('id <> ?', (int) $this->user_id)
                     ->first();
 
                 if ($name_taken) {
@@ -93,32 +94,32 @@ class UserNameChangeRequest extends Rails\ActiveRecord\Base
                 }
 
                 # Update the user's name
-                $user = User::find((int)$this->user_id);
+                $user = User::find((int) $this->user_id);
                 $user->updateAttribute('name', $this->desired_name);
 
                 # Create history record
                 $history = new UserNameChangeHistory();
-                $history->user_id = (int)$this->user_id;
+                $history->user_id = (int) $this->user_id;
                 $history->old_name = $this->old_name;
                 $history->new_name = $this->desired_name;
-                $history->changed_by = (int)$staff_user->id;
-                $history->request_id = (int)$this->id;
+                $history->changed_by = (int) $staff_user->id;
+                $history->request_id = (int) $this->id;
                 $history->created_at = date('Y-m-d H:i:s');
                 $history->save();
 
                 # Update the request
                 $now = date('Y-m-d H:i:s');
                 $this->status = self::STATUS_APPROVED;
-                $this->staff_id = (int)$staff_user->id;
+                $this->staff_id = (int) $staff_user->id;
                 $this->resolved_at = $now;
                 $this->updated_at = $now;
                 $this->save();
 
                 # Log the moderation action
                 ModAction::log('username_change_approve', [
-                    'user_id' => (int)$this->user_id,
+                    'user_id' => (int) $this->user_id,
                     'old_name' => $this->old_name,
-                    'new_name' => $this->desired_name
+                    'new_name' => $this->desired_name,
                 ]);
 
                 $success = true;
@@ -140,14 +141,14 @@ class UserNameChangeRequest extends Rails\ActiveRecord\Base
      */
     public function reject($staff_user, $reason = null)
     {
-        if ((string)$this->status !== self::STATUS_PENDING) {
+        if ((string) $this->status !== self::STATUS_PENDING) {
             $this->errors()->add('status', 'request is not pending');
             return false;
         }
 
         $now = date('Y-m-d H:i:s');
         $this->status = self::STATUS_REJECTED;
-        $this->staff_id = (int)$staff_user->id;
+        $this->staff_id = (int) $staff_user->id;
         $this->staff_reason = $reason;
         $this->resolved_at = $now;
         $this->updated_at = $now;
@@ -156,9 +157,9 @@ class UserNameChangeRequest extends Rails\ActiveRecord\Base
 
         if ($saved) {
             ModAction::log('username_change_reject', [
-                'user_id' => (int)$this->user_id,
+                'user_id' => (int) $this->user_id,
                 'user_name' => $this->old_name,
-                'reason' => $reason
+                'reason' => $reason,
             ]);
         }
 
@@ -172,7 +173,7 @@ class UserNameChangeRequest extends Rails\ActiveRecord\Base
      */
     public function cancel()
     {
-        if ((string)$this->status !== self::STATUS_PENDING) {
+        if ((string) $this->status !== self::STATUS_PENDING) {
             $this->errors()->add('status', 'request is not pending');
             return false;
         }
@@ -205,7 +206,7 @@ class UserNameChangeRequest extends Rails\ActiveRecord\Base
 
         # Check cooldown period
         $cooldown_days = CONFIG()->username_change_cooldown_days ?: 90;
-        $cutoff = date('Y-m-d H:i:s', strtotime('-' . (int)$cooldown_days . ' days'));
+        $cutoff = date('Y-m-d H:i:s', strtotime('-' . (int) $cooldown_days . ' days'));
 
         $recent = UserNameChangeHistory::where('user_id = ?', $user->id)
             ->where('created_at > ?', $cutoff)
@@ -213,7 +214,7 @@ class UserNameChangeRequest extends Rails\ActiveRecord\Base
             ->first();
 
         if ($recent) {
-            $next_allowed = date('Y-m-d', strtotime($recent->created_at . ' +' . (int)$cooldown_days . ' days'));
+            $next_allowed = date('Y-m-d', strtotime($recent->created_at . ' +' . (int) $cooldown_days . ' days'));
             return ['allowed' => false, 'reason' => 'You can request a username change again after ' . $next_allowed];
         }
 
@@ -223,17 +224,17 @@ class UserNameChangeRequest extends Rails\ActiveRecord\Base
     public function api_attributes()
     {
         return [
-            'id' => (int)$this->id,
-            'user_id' => (int)$this->user_id,
+            'id' => (int) $this->id,
+            'user_id' => (int) $this->user_id,
             'old_name' => $this->old_name,
             'desired_name' => $this->desired_name,
             'reason' => $this->reason,
-            'status' => (string)$this->status,
-            'staff_id' => $this->staff_id ? (int)$this->staff_id : null,
+            'status' => (string) $this->status,
+            'staff_id' => $this->staff_id ? (int) $this->staff_id : null,
             'staff_reason' => $this->staff_reason,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            'resolved_at' => $this->resolved_at
+            'resolved_at' => $this->resolved_at,
         ];
     }
 

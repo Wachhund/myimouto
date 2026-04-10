@@ -1,6 +1,6 @@
 <div id="forum">
   <div id="search" style="margin-bottom: 1em;">
-    <?= $this->formTag(['action' => "search"], ['method' => 'get'], function(){ ?>
+    <?= $this->formTag(['action' => "search"], ['method' => 'get'], function () { ?>
       <?= $this->textFieldTag("query", $this->h($this->params()->query), ['size' => 40]) ?>
       <?= $this->submitTag($this->t('.search')) ?>
     <?php }) ?>
@@ -47,7 +47,7 @@
     <?= $this->willPaginate($this->forum_posts) ?>
   </div>
 
-  <?php $this->contentFor('subnavbar', function(){ ?>
+  <?php $this->contentFor('subnavbar', function () { ?>
     <li><?= $this->linkTo("New topic", ["#blank"]) ?></li>
     <?php if (!current_user()->is_anonymous()) : ?>
       <li><?= $this->linkToFunction($this->t('.mark'), "Forum.mark_all_read()") ?></li>
@@ -59,7 +59,7 @@
   </div>
 
   <div id="reply" style="display: none;">
-    <?= $this->formTag(['action' => "create"], ['level' => 'member'], function() { ?>
+    <?= $this->formTag(['action' => "create"], ['level' => 'member'], function () { ?>
       <?= $this->hiddenField("forum_post", "parent_id", ['value' => $this->params()->parent_id]) ?>
       <table>
         <tr>

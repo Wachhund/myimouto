@@ -1,18 +1,19 @@
 <?php
+
 class Report
 {
-    static public function usage_by_user($table_name, $start, $stop, $limit, $level, array $conds = [], array $params = [], $column = 'created_at')
+    public static function usage_by_user($table_name, $start, $stop, $limit, $level, array $conds = [], array $params = [], $column = 'created_at')
     {
-        $limit = max(1, min(100, (int)$limit));
+        $limit = max(1, min(100, (int) $limit));
         $connection = User::connection();
 
         $conds[] = "{$table_name}.{$column} BETWEEN ? AND ?";
         $params[] = $start;
         $params[] = $stop;
 
-        if ($level !== null && (int)$level !== 0) {
+        if ($level !== null && (int) $level !== 0) {
             $conds[] = "users.level = ?";
-            $params[] = (int)$level;
+            $params[] = (int) $level;
         }
 
         $sql = "SELECT users.id AS id, COUNT(*) AS change_count
@@ -30,8 +31,8 @@ class Report
 
         $user_ids = [];
         foreach ($users as &$user) {
-            $user['id'] = (int)$user['id'];
-            $user['change_count'] = (int)$user['change_count'];
+            $user['id'] = (int) $user['id'];
+            $user['change_count'] = (int) $user['change_count'];
             $user['user'] = User::where('id = ?', $user['id'])->first();
             $user['name'] = $user['user'] ? $user['user']->name : User::find_name($user['id']);
             $user_ids[] = $user['id'];
@@ -49,53 +50,53 @@ class Report
                       FROM {$table_name}
                       JOIN users ON users.id = {$table_name}.user_id
                       WHERE " . implode(" AND ", $other_conds);
-        $other_count = (int)call_user_func_array([$connection, 'selectValue'], array_merge([$other_sql], $other_params));
+        $other_count = (int) call_user_func_array([$connection, 'selectValue'], array_merge([$other_sql], $other_params));
 
         $users[] = [
             'id' => null,
             'change_count' => $other_count,
             'user' => null,
-            'name' => 'Other'
+            'name' => 'Other',
         ];
 
         return self::add_sum($users);
     }
 
-    static public function tag_updates($start, $stop, $limit, $level)
+    public static function tag_updates($start, $stop, $limit, $level)
     {
         $users = self::usage_by_user('post_tag_histories', $start, $stop, $limit, $level);
 
         $bottom = array_pop($users);
         foreach ($users as &$user) {
             $upload_count = Post::where("user_id = ? AND created_at BETWEEN ? AND ?", $user['id'], $start, $stop)->count();
-            $user['change_count'] = max(0, (int)$user['change_count'] - (int)$upload_count);
+            $user['change_count'] = max(0, (int) $user['change_count'] - (int) $upload_count);
         }
         unset($user);
 
-        usort($users, function($a, $b) {
-            return (int)$b['change_count'] - (int)$a['change_count'];
+        usort($users, function ($a, $b) {
+            return (int) $b['change_count'] - (int) $a['change_count'];
         });
 
         $users[] = $bottom;
         return self::add_sum($users);
     }
 
-    static public function post_uploads($start, $stop, $limit, $level)
+    public static function post_uploads($start, $stop, $limit, $level)
     {
         return self::usage_by_user('posts', $start, $stop, $limit, $level);
     }
 
-    static public function wiki_updates($start, $stop, $limit, $level)
+    public static function wiki_updates($start, $stop, $limit, $level)
     {
         return self::usage_by_user('wiki_page_versions', $start, $stop, $limit, $level);
     }
 
-    static public function note_updates($start, $stop, $limit, $level)
+    public static function note_updates($start, $stop, $limit, $level)
     {
         return self::usage_by_user('note_versions', $start, $stop, $limit, $level);
     }
 
-    static public function votes($start, $stop, $limit, $level)
+    public static function votes($start, $stop, $limit, $level)
     {
         $users = self::usage_by_user('post_votes', $start, $stop, $limit, $level, ['score > 0'], [], 'updated_at');
         $connection = User::connection();
@@ -103,7 +104,7 @@ class Report
         $known_user_ids = [];
         foreach ($users as $user) {
             if ($user['id']) {
-                $known_user_ids[] = (int)$user['id'];
+                $known_user_ids[] = (int) $user['id'];
             }
         }
 
@@ -113,7 +114,7 @@ class Report
 
             if ($user['id']) {
                 $conds[] = "user_id = ?";
-                $params[] = (int)$user['id'];
+                $params[] = (int) $user['id'];
             } elseif ($known_user_ids) {
                 $conds[] = "user_id NOT IN (?)";
                 $params[] = $known_user_ids;
@@ -129,8 +130,8 @@ class Report
             $user['votes'] = [];
             if ($votes) {
                 foreach ($votes as $vote) {
-                    $score = (int)$vote['score'];
-                    $user['votes'][$score] = (int)$vote['sum'];
+                    $score = (int) $vote['score'];
+                    $user['votes'][$score] = (int) $vote['sum'];
                 }
             }
         }
@@ -139,15 +140,15 @@ class Report
         return $users;
     }
 
-    static public function add_sum(array $users)
+    public static function add_sum(array $users)
     {
         $sum = 0;
         foreach ($users as $user) {
-            $sum += (int)$user['change_count'];
+            $sum += (int) $user['change_count'];
         }
 
         foreach ($users as &$user) {
-            $user['sum'] = (float)$sum;
+            $user['sum'] = (float) $sum;
         }
         unset($user);
 

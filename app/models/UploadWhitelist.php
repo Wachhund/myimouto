@@ -1,7 +1,8 @@
 <?php
+
 class UploadWhitelist extends Rails\ActiveRecord\Base
 {
-    static public function tableName()
+    public static function tableName()
     {
         return 'upload_whitelists';
     }
@@ -9,7 +10,7 @@ class UploadWhitelist extends Rails\ActiveRecord\Base
     protected function validations()
     {
         return [
-            'pattern' => ['presence' => true]
+            'pattern' => ['presence' => true],
         ];
     }
 
@@ -17,7 +18,7 @@ class UploadWhitelist extends Rails\ActiveRecord\Base
     {
         return [
             'before_create' => ['set_created_at'],
-            'before_save' => ['set_updated_at']
+            'before_save' => ['set_updated_at'],
         ];
     }
 
@@ -144,11 +145,11 @@ class UploadWhitelist extends Rails\ActiveRecord\Base
     public function api_attributes()
     {
         return [
-            'id' => (int)$this->id,
+            'id' => (int) $this->id,
             'pattern' => $this->pattern,
-            'allowed' => (bool)$this->allowed,
+            'allowed' => (bool) $this->allowed,
             'reason' => $this->reason,
-            'hidden' => (bool)$this->hidden,
+            'hidden' => (bool) $this->hidden,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

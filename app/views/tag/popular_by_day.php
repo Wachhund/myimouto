@@ -3,7 +3,7 @@
   <?= $this->cloud_view($this->tags, 1.5) ?>
 </div>
 
-<?php $this->contentFor('footer', function(){ ?>
+<?php $this->contentFor('footer', function () { ?>
   <li><?= $this->linkTo($this->t('static7'), ['action' => "popular_by_day"]) ?></li>
   <li><?= $this->linkTo($this->t('static8'), ['action' => "popular_by_week"]) ?></li>
   <li><?= $this->linkTo($this->t('static9'), ['action' => "popular_by_month"]) ?></li>

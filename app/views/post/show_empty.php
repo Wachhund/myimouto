@@ -3,8 +3,8 @@
     <div>
       <h5><?= $this->t('.related._') ?></h5>
       <ul>
-        <li><?= $this->linkTo($this->t('.related.previous'), array('post#show', 'id' => $this->params()->id - 1)) ?></li>
-        <li><?= $this->linkTo($this->t('.related.next'), array('post#show', 'id' => $this->params()->id + 1)) ?></li>
+        <li><?= $this->linkTo($this->t('.related.previous'), ['post#show', 'id' => $this->params()->id - 1]) ?></li>
+        <li><?= $this->linkTo($this->t('.related.next'), ['post#show', 'id' => $this->params()->id + 1]) ?></li>
         <li><?= $this->linkTo($this->t('.related.random'), 'post#random') ?></li>
       </ul>
     </div>

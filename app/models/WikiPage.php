@@ -1,9 +1,10 @@
 <?php
+
 class WikiPage extends Rails\ActiveRecord\Base
 {
     use Rails\ActsAsVersioned\Versioning;
-  
-    static public function generate_sql(array $options = array())
+
+    public static function generate_sql(array $options = [])
     {
         $joins = [];
         $conds = [];
@@ -24,20 +25,22 @@ class WikiPage extends Rails\ActiveRecord\Base
 
         return [$joins, $conds];
     }
-    
-    static public function find_page($title, $version = null)
+
+    public static function find_page($title, $version = null)
     {
-        if (!$title)
+        if (!$title) {
             return false;
+        }
 
         $page = self::find_by_title($title);
-        if ($version && $page)
+        if ($version && $page) {
             $page->revertTo($version);
-        
+        }
+
         return $page ?: false;
     }
 
-    static public function find_by_title($title)
+    public static function find_by_title($title)
     {
         return self::where("lower(title) = lower(?)", str_replace(' ', '_', $title))->first();
     }
@@ -49,7 +52,7 @@ class WikiPage extends Rails\ActiveRecord\Base
 
     public function last_version()
     {
-        return (int)$this->version == ($this->nextVersion() - 1);
+        return (int) $this->version == ($this->nextVersion() - 1);
     }
 
     public function first_version()
@@ -80,7 +83,7 @@ class WikiPage extends Rails\ActiveRecord\Base
     public function lock()
     {
         $this->is_locked = true;
-        
+
         // transaction do
         self::connection()->executeSql("UPDATE wiki_pages SET is_locked = TRUE WHERE id = ?", $this->id);
         self::connection()->executeSql("UPDATE wiki_page_versions SET is_locked = TRUE WHERE wiki_page_id = ?", $this->id);
@@ -90,7 +93,7 @@ class WikiPage extends Rails\ActiveRecord\Base
     public function unlock()
     {
         $this->is_locked = false;
-        
+
         // transaction do
         self::connection()->executeSql("UPDATE wiki_pages SET is_locked = FALSE WHERE id = ?", $this->id);
         self::connection()->executeSql("UPDATE wiki_page_versions SET is_locked = FALSE WHERE wiki_page_id = ?", $this->id);
@@ -100,19 +103,19 @@ class WikiPage extends Rails\ActiveRecord\Base
     public function rename($new_title)
     {
         // if (self::exists(['wiki_pages WHERE title = ? AND id != ?', $new_title, $this->id]))
-            // return false;
-        
+        // return false;
+
         self::connection()->executeSql("UPDATE wiki_pages SET title = ? WHERE id = ?", $new_title, $this->id);
         self::connection()->executeSql("UPDATE wiki_page_versions SET title = ? WHERE wiki_page_id = ?", $new_title, $this->id);
-        
+
         return true;
     }
-    
+
     public function toXml(array $options = [])
     {
-        return parent::toXml(array_merge($options, ['root' => 'wiki_page', 'attributes' => ['id' => $this->id, 'created_at' => $this->created_at, 'updated_at' => $this->updated_at, 'title' => $this->title, 'body' => $this->body, 'updater_id' => $this->user_id, 'locked' => (bool)(int)$this->is_locked, 'version' => $this->version]]));
+        return parent::toXml(array_merge($options, ['root' => 'wiki_page', 'attributes' => ['id' => $this->id, 'created_at' => $this->created_at, 'updated_at' => $this->updated_at, 'title' => $this->title, 'body' => $this->body, 'updater_id' => $this->user_id, 'locked' => (bool) (int) $this->is_locked, 'version' => $this->version]]));
     }
-    
+
     public function asJson()
     {
         return ['id' => $this->id, 'created_at' => $this->created_at, 'updated_at' => $this->updated_at, 'title' => $this->title, 'body' => $this->body, 'updater_id' => $this->user_id, 'locked' => $this->is_locked, 'version' => $this->version];
@@ -120,46 +123,47 @@ class WikiPage extends Rails\ActiveRecord\Base
 
     protected function ensure_changed()
     {
-        if (!$this->titleChanged() || !$this->bodyChanged())
+        if (!$this->titleChanged() || !$this->bodyChanged()) {
             $this->errors()->add('base', 'no_change');
+        }
     }
-    
+
     protected function callbacks()
     {
         return [
             'before_save' => ['normalize_title'],
-            'before_validation_on_update' => ['ensure_changed']
+            'before_validation_on_update' => ['ensure_changed'],
         ];
     }
-    
+
     protected function associations()
     {
         return [
-            'belongs_to' => ['user']
+            'belongs_to' => ['user'],
         ];
     }
-    
+
     protected function validations()
     {
         return [
             'title' => [
                 'uniqueness' => true,
-                'presence'   => true
+                'presence'   => true,
             ],
             'body' => [
                 'presence' => true,
-            ]
+            ],
         ];
     }
-    
+
     protected function actsAsVersionedConfig()
     {
         return [
             'table_name' => "wiki_page_versions",
-            'foreign_key' => 'wiki_page_id'
+            'foreign_key' => 'wiki_page_id',
         ];
     }
-    
+
     protected function versioningRelation()
     {
         return self::order("updated_at DESC");

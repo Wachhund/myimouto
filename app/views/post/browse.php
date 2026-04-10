@@ -1,4 +1,4 @@
-<?= $this->contentFor('html_header', function() { ?>
+<?= $this->contentFor('html_header', function () { ?>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script type="text/javascript">
     if(navigator.platform == "iPad")

@@ -1,4 +1,5 @@
 <?php
+
 class ApiKeyController extends ApplicationController
 {
     protected function filters()
@@ -6,8 +7,8 @@ class ApiKeyController extends ApplicationController
         return [
             'before' => [
                 'member_only',
-                'set_settings_layout'
-            ]
+                'set_settings_layout',
+            ],
         ];
     }
 
@@ -22,7 +23,7 @@ class ApiKeyController extends ApplicationController
         $this->api_keys = ApiKey::where(['user_id' => current_user()->id])
             ->order('created_at DESC')
             ->take();
-        $this->max_keys = ApiKey::max_keys_for_level((int)current_user()->level);
+        $this->max_keys = ApiKey::max_keys_for_level((int) current_user()->level);
 
         // Check if we have a newly created key to display
         if ($this->session()->new_api_key_raw) {
@@ -32,32 +33,32 @@ class ApiKeyController extends ApplicationController
 
         $this->respondTo([
             'html',
-            'json' => function() {
+            'json' => function () {
                 $payload = [];
                 foreach ($this->api_keys as $key) {
                     $payload[] = $key->asJson();
                 }
                 $this->render(['json' => $payload]);
-            }
+            },
         ]);
     }
 
     public function create()
     {
         $existing_count = ApiKey::where(['user_id' => current_user()->id])->count();
-        $max = ApiKey::max_keys_for_level((int)current_user()->level);
+        $max = ApiKey::max_keys_for_level((int) current_user()->level);
 
         if ($existing_count >= $max) {
             $this->respond_to_error(
                 'You have reached the maximum number of API keys (' . $max . ')',
                 '#index',
-                ['status' => 420]
+                ['status' => 420],
             );
             return;
         }
 
         $params = is_array($this->params()->api_key) ? $this->params()->api_key : [];
-        $name = trim((string)($params['name'] ?? ''));
+        $name = trim((string) ($params['name'] ?? ''));
         if ($name === '') {
             $this->respond_to_error('Name is required', '#index', ['status' => 424]);
             return;
@@ -86,15 +87,15 @@ class ApiKeyController extends ApplicationController
             $this->session()->new_api_key_raw = $pair['raw_key'];
 
             $this->respondTo([
-                'html' => function() {
+                'html' => function () {
                     $this->notice('API key created. Copy the key now -- it will not be shown again.');
                     $this->redirectTo('#index');
                 },
-                'json' => function() use ($pair, $api_key) {
+                'json' => function () use ($pair, $api_key) {
                     $attrs = $api_key->api_attributes();
                     $attrs['raw_key'] = $pair['raw_key'];
                     $this->render(['json' => array_merge(['success' => true], $attrs)]);
-                }
+                },
             ]);
         } else {
             $this->respond_to_error($api_key, '#index');
@@ -126,21 +127,21 @@ class ApiKeyController extends ApplicationController
         $this->session()->new_api_key_raw = $raw_key;
 
         $this->respondTo([
-            'html' => function() {
+            'html' => function () {
                 $this->notice('API key regenerated. Copy the new key now -- it will not be shown again.');
                 $this->redirectTo('#index');
             },
-            'json' => function() use ($raw_key, $key) {
+            'json' => function () use ($raw_key, $key) {
                 $attrs = $key->api_attributes();
                 $attrs['raw_key'] = $raw_key;
                 $this->render(['json' => array_merge(['success' => true], $attrs)]);
-            }
+            },
         ]);
     }
 
     protected function find_own_key()
     {
-        $key_id = (int)$this->params()->id;
+        $key_id = (int) $this->params()->id;
         if ($key_id <= 0) {
             $this->respond_to_error('Key not found', '#index', ['status' => 404]);
             return null;

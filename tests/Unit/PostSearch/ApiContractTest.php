@@ -19,7 +19,7 @@ final class ApiContractTest extends TestCase
                 'page' => 2,
                 'per_page' => 10,
                 'api_version' => '2',
-            ]
+            ],
         );
 
         self::assertTrue($envelope['success']);
@@ -46,7 +46,7 @@ final class ApiContractTest extends TestCase
                     'pool_posts' => [['post_id' => 10]],
                     'votes' => ['10' => 1],
                 ],
-            ]
+            ],
         );
 
         self::assertSame([['name' => 'tag_a']], $envelope['tags']);

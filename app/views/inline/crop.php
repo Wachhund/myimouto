@@ -6,7 +6,7 @@
     <?= $this->inline_image_tag($this->image, ['use_sample' => true], ['id' => "image"]) ?>
   </div>
 
-  <?= $this->formTag([], ['id' => "crop", 'level' => 'member'], function(){ ?>
+  <?= $this->formTag([], ['id' => "crop", 'level' => 'member'], function () { ?>
     <?= $this->hiddenFieldTag("id", $this->image->id) ?>
     <?= $this->hiddenFieldTag("left", 0) ?>
     <?= $this->hiddenFieldTag("right", 0) ?>

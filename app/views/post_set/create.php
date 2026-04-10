@@ -1,7 +1,7 @@
 <div id="post-set-create">
   <h2>Create Post Set</h2>
 
-  <?= $this->formTag(['action' => 'create'], ['method' => 'post'], function() { ?>
+  <?= $this->formTag(['action' => 'create'], ['method' => 'post'], function () { ?>
     <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
 
     <table>

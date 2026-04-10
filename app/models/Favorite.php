@@ -1,5 +1,3 @@
 <?php
-class Favorite extends Rails\ActiveRecord\Base
-{
-    
-}
+
+class Favorite extends Rails\ActiveRecord\Base {}

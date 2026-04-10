@@ -39,6 +39,6 @@
   </table>
 </div>
 
-<?php $this->contentFor("subnavbar", function() { ?>
+<?php $this->contentFor("subnavbar", function () { ?>
   <li><?= $this->linkTo("Help", "#index") ?></li>
 <?php }) ?>

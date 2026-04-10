@@ -33,19 +33,19 @@ class PHPMailerTransport
         $mailer = new PHPMailer(true);
         // Keep legacy compatibility: local domains like admin@myimouto are used in old configs.
         PHPMailer::$validator = static function ($address) {
-            $address = (string)$address;
+            $address = (string) $address;
             return strpos($address, '@') !== false &&
                    strpos($address, "\n") === false &&
                    strpos($address, "\r") === false;
         };
 
         $this->logInfo('mail.transport.selected', [
-            'transport' => (string)$this->settings['transport_label'],
-            'host' => (string)$this->settings['host'],
-            'port' => (int)$this->settings['port'],
-            'auth' => strtolower(trim((string)$this->settings['authentication'])),
+            'transport' => (string) $this->settings['transport_label'],
+            'host' => (string) $this->settings['host'],
+            'port' => (int) $this->settings['port'],
+            'auth' => strtolower(trim((string) $this->settings['authentication'])),
             'starttls' => !empty($this->settings['enable_starttls_auto']),
-            'timeout' => (int)$this->settings['timeout'],
+            'timeout' => (int) $this->settings['timeout'],
         ]);
 
         try {
@@ -55,20 +55,20 @@ class PHPMailerTransport
             $mailer->send();
 
             $this->logInfo('mail.delivery.success', [
-                'transport' => (string)$this->settings['transport_label'],
-                'host' => (string)$this->settings['host'],
+                'transport' => (string) $this->settings['transport_label'],
+                'host' => (string) $this->settings['host'],
             ]);
         } catch (PHPMailerException $e) {
             $this->logWarning('mail.delivery.failure', [
-                'transport' => (string)$this->settings['transport_label'],
-                'host' => (string)$this->settings['host'],
+                'transport' => (string) $this->settings['transport_label'],
+                'host' => (string) $this->settings['host'],
                 'error' => $e->getMessage(),
             ]);
             throw new RuntimeException('PHPMailer transport failed: ' . $e->getMessage(), 0, $e);
         } catch (Throwable $e) {
             $this->logWarning('mail.delivery.failure', [
-                'transport' => (string)$this->settings['transport_label'],
-                'host' => (string)$this->settings['host'],
+                'transport' => (string) $this->settings['transport_label'],
+                'host' => (string) $this->settings['host'],
                 'error' => $e->getMessage(),
             ]);
             throw $e;
@@ -78,19 +78,19 @@ class PHPMailerTransport
     protected function configureSmtp(PHPMailer $mailer)
     {
         $mailer->isSMTP();
-        $mailer->Host = (string)$this->settings['host'];
-        $mailer->Port = (int)$this->settings['port'];
-        $mailer->Helo = (string)$this->settings['domain'];
-        $mailer->Timeout = (int)$this->settings['timeout'];
+        $mailer->Host = (string) $this->settings['host'];
+        $mailer->Port = (int) $this->settings['port'];
+        $mailer->Helo = (string) $this->settings['domain'];
+        $mailer->Timeout = (int) $this->settings['timeout'];
 
-        $auth = strtolower(trim((string)$this->settings['authentication']));
+        $auth = strtolower(trim((string) $this->settings['authentication']));
         $authRequired = !in_array($auth, ['', 'none'], true);
 
         if ($authRequired) {
             $mailer->SMTPAuth = true;
             $mailer->AuthType = $this->toPhpmailerAuthType($auth);
-            $mailer->Username = (string)$this->settings['user_name'];
-            $mailer->Password = (string)$this->settings['password'];
+            $mailer->Username = (string) $this->settings['user_name'];
+            $mailer->Password = (string) $this->settings['password'];
         } else {
             $mailer->SMTPAuth = false;
         }
@@ -102,7 +102,7 @@ class PHPMailerTransport
 
     protected function applyEnvelope(PHPMailer $mailer, $message)
     {
-        $charset = (string)$this->safeCall($message, 'getEncoding', '');
+        $charset = (string) $this->safeCall($message, 'getEncoding', '');
         if ($charset !== '') {
             $mailer->CharSet = $charset;
         }
@@ -113,7 +113,7 @@ class PHPMailerTransport
         $this->appendAddresses($mailer, 'addBCC', $this->safeCall($message, 'getBcc'));
         $this->appendAddresses($mailer, 'addReplyTo', $this->safeCall($message, 'getReplyTo'));
 
-        $mailer->Subject = (string)$this->safeCall($message, 'getSubject', '');
+        $mailer->Subject = (string) $this->safeCall($message, 'getSubject', '');
     }
 
     protected function setFrom(PHPMailer $mailer, $addresses)
@@ -143,7 +143,7 @@ class PHPMailerTransport
         }
 
         $mailer->isHTML(false);
-        $mailer->Body = (string)$body;
+        $mailer->Body = (string) $body;
     }
 
     protected function applyMimeBody(PHPMailer $mailer, $body)
@@ -220,14 +220,14 @@ class PHPMailerTransport
             if (!empty($meta['seekable'])) {
                 rewind($content);
             }
-            return (string)$data;
+            return (string) $data;
         }
 
         if ($content === '' && is_object($part) && method_exists($part, '__toString')) {
-            return (string)$part;
+            return (string) $part;
         }
 
-        return (string)$content;
+        return (string) $content;
     }
 
     protected function toPhpmailerEncoding($encoding)
@@ -251,7 +251,7 @@ class PHPMailerTransport
 
     protected function toPhpmailerAuthType($auth)
     {
-        $auth = strtolower(trim((string)$auth));
+        $auth = strtolower(trim((string) $auth));
 
         switch ($auth) {
             case 'plain':
@@ -274,7 +274,7 @@ class PHPMailerTransport
         }
 
         try {
-            return (bool)$message->isValid();
+            return (bool) $message->isValid();
         } catch (Throwable $e) {
             $this->logWarning('mail.delivery.failure', ['error' => $e->getMessage()]);
             return false;
@@ -321,26 +321,26 @@ class PHPMailerTransport
 
         if (is_array($address)) {
             if (isset($address['email'])) {
-                $email = trim((string)$address['email']);
+                $email = trim((string) $address['email']);
                 if ($email === '') {
                     return null;
                 }
 
                 return [
                     'email' => $email,
-                    'name' => isset($address['name']) ? (string)$address['name'] : '',
+                    'name' => isset($address['name']) ? (string) $address['name'] : '',
                 ];
             }
 
             if (count($address) === 1) {
-                $email = trim((string)key($address));
+                $email = trim((string) key($address));
                 if ($email === '') {
                     return null;
                 }
 
                 return [
                     'email' => $email,
-                    'name' => (string)current($address),
+                    'name' => (string) current($address),
                 ];
             }
         }
@@ -350,9 +350,9 @@ class PHPMailerTransport
             $name = '';
 
             if (method_exists($address, 'getEmail')) {
-                $email = trim((string)$address->getEmail());
+                $email = trim((string) $address->getEmail());
             } elseif (isset($address->email)) {
-                $email = trim((string)$address->email);
+                $email = trim((string) $address->email);
             }
 
             if ($email === '') {
@@ -360,9 +360,9 @@ class PHPMailerTransport
             }
 
             if (method_exists($address, 'getName')) {
-                $name = (string)$address->getName();
+                $name = (string) $address->getName();
             } elseif (isset($address->name)) {
-                $name = (string)$address->name;
+                $name = (string) $address->name;
             }
 
             return ['email' => $email, 'name' => $name];
@@ -378,12 +378,12 @@ class PHPMailerTransport
         }
 
         if (isset($part->{$name})) {
-            return trim((string)$part->{$name});
+            return trim((string) $part->{$name});
         }
 
         $method = 'get' . ucfirst($name);
         if (method_exists($part, $method)) {
-            return trim((string)$part->{$method}());
+            return trim((string) $part->{$method}());
         }
 
         return '';
@@ -421,11 +421,11 @@ class PHPMailerTransport
 
         $context = $this->sanitizeContext($context);
         $message = json_encode([
-            'event' => (string)$event,
+            'event' => (string) $event,
             'context' => $context,
         ]);
         if ($message === false) {
-            $message = (string)$event;
+            $message = (string) $event;
         }
 
         if (method_exists($logger, $level)) {

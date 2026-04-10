@@ -1,4 +1,5 @@
 <?php
+
 class TagController extends ApplicationController
 {
     protected function filters()
@@ -6,8 +7,8 @@ class TagController extends ApplicationController
         return [
             'before' => [
                 'mod_only' => ['only' => ['massEdit', 'editPreview']],
-                'member_only' => ['only' => ['update', 'edit']]
-            ]
+                'member_only' => ['only' => ['update', 'edit']],
+            ],
         ];
     }
 
@@ -16,8 +17,9 @@ class TagController extends ApplicationController
         $this->tags = Tag::where("post_count > 0")->order("post_count DESC")->limit(100)->take()->sort(function ($a, $b) {
             $a_name = strlen($a->name);
             $b_name = strlen($b->name);
-            if ($a_name == $b_name)
+            if ($a_name == $b_name) {
                 return 0;
+            }
             return ($a_name < $b_name) ? -1 : 1;
         });
     }
@@ -35,30 +37,31 @@ class TagController extends ApplicationController
 
     public function summary()
     {
-         if ($this->params()->version) {
+        if ($this->params()->version) {
             # HTTP caching is unreliable for XHR.    If a version is supplied, and the version
             # hasn't changed since then, return; an empty response.
             $version = Tag::get_summary_version();
-            if ((int)$this->params()->version == $version) {
-                $this->render(array('json' => array('version' => $version, 'unchanged' => true)));
+            if ((int) $this->params()->version == $version) {
+                $this->render(['json' => ['version' => $version, 'unchanged' => true]]);
                 return;
             }
         }
 
         # This string is already JSON-encoded, so don't call toJson.
-        $this->render(array('json' => Tag::get_json_summary()));
+        $this->render(['json' => Tag::get_json_summary()]);
     }
 
     public function index()
     {
         $this->set_title('Tags');
-        
-        if ($this->params()->limit === "0")
+
+        if ($this->params()->limit === "0") {
             $limit = null;
-        elseif (!$this->params()->limit)
+        } elseif (!$this->params()->limit) {
             $limit = 50;
-        else
-            $limit = (int)$this->params()->limit;
+        } else {
+            $limit = (int) $this->params()->limit;
+        }
 
         switch ($this->params()->order) {
             case "name":
@@ -80,14 +83,15 @@ class TagController extends ApplicationController
 
         if ($this->params()->name) {
             // $conds[] = "name LIKE ?";
-            if (is_int(strpos($this->params()->name, '*')))
+            if (is_int(strpos($this->params()->name, '*'))) {
                 $query->where('name LIKE ?', str_replace('*', '%', $this->params()->name));
-            else
+            } else {
                 $query->where('name LIKE ?', '%' . str_replace('*', '%', $this->params()->name) . '%');
+            }
         }
 
         if (ctype_digit($this->params()->type)) {
-            $this->params()->type = (int)$this->params()->type;
+            $this->params()->type = (int) $this->params()->type;
             $query->where('tag_type = ?', $this->params()->type);
         }
 
@@ -100,8 +104,8 @@ class TagController extends ApplicationController
         }
 
         $query->order($order);
-        
-        $this->respondTo(array(
+
+        $this->respondTo([
             'html' => function () use ($order, $query) {
                 $this->can_delete_tags = CONFIG()->enable_tag_deletion && current_user()->is_mod_or_higher();
                 $this->tags = $query->paginate($this->page_number(), 50);
@@ -109,25 +113,25 @@ class TagController extends ApplicationController
             'xml' => function () use ($order, $limit, $query) {
                 // $conds = implode(" AND ", $conds);
                 // if ($conds == "true" && CONFIG()->web_server == "nginx" && file_exists(Rails::publicPath()."/tags.xml")) {
-                    // # Special case: instead of rebuilding a list of every tag every time, cache it locally and tell the web
-                    // # server to stream it directly. This only works on Nginx.
-                    // $this->response()->headers()->add("X-Accel-Redirect", Rails::publicPath() . "/tags.xml");
-                    // $this->render(array('nothing' => true));
+                // # Special case: instead of rebuilding a list of every tag every time, cache it locally and tell the web
+                // # server to stream it directly. This only works on Nginx.
+                // $this->response()->headers()->add("X-Accel-Redirect", Rails::publicPath() . "/tags.xml");
+                // $this->render(array('nothing' => true));
                 // } else {
-                    $this->render(array('xml' => $query->limit($limit)->take(), 'root' => "tags"));
+                $this->render(['xml' => $query->limit($limit)->take(), 'root' => "tags"]);
                 // }
             },
             'json' => function () use ($order, $limit, $query) {
                 $tags = $query->limit($limit)->take();
-                $this->render(array('json' => $tags));
-            }
-        ));
+                $this->render(['json' => $tags]);
+            },
+        ]);
     }
 
     public function massEdit()
     {
         $this->set_title('Mass Edit Tags');
-        
+
         if ($this->request()->isPost()) {
             if (!$this->params()->start) {
                 $this->respond_to_error("Start tag missing", ['#mass_edit'], ['status' => 424]);
@@ -162,69 +166,77 @@ class TagController extends ApplicationController
     public function update()
     {
         $tag = Tag::where(['name' => $this->params()->tag['name']])->first();
-        if ($tag)
+        if ($tag) {
             $tag->updateAttributes($this->params()->tag);
+        }
         $this->respond_to_success("Tag updated", '#index');
     }
 
     public function related()
     {
-         if ($this->params()->type) {
+        if ($this->params()->type) {
             $this->tags = Tag::scan_tags($this->params()->tags);
             $this->tags = TagAlias::to_aliased($this->tags);
-            
+
             $all = [];
             $tag_type = CONFIG()->tag_types[$this->params()->type];
-            
+
             foreach ($this->tags as $x) {
-                $all[$x] = array_map(function($y) use ($x) {
-                        return [$y["name"], $y["post_count"]];
+                $all[$x] = array_map(function ($y) use ($x) {
+                    return [$y["name"], $y["post_count"]];
                 }, Tag::calculate_related_by_type($x, $tag_type));
             }
             $this->tags = $all;
         } else {
             $tags = Tag::scan_tags($this->params()->tags);
             $this->patterns = $this->tags = [];
-            
+
             foreach ($tags as $tag) {
-                if (is_int(strpos($tag, "*")))
+                if (is_int(strpos($tag, "*"))) {
                     $this->patterns[] = $tag;
-                else
+                } else {
                     $this->tags[] = $tag;
+                }
             }
             unset($tags, $tag);
-            
+
             $this->tags = TagAlias::to_aliased($this->tags);
-            
+
             $all = [];
             foreach ($this->tags as $x) {
-                $all[$x] = array_map(function($y) { return [$y[0], $y[1]]; }, Tag::find_related($x));
+                $all[$x] = array_map(function ($y) {
+                    return [$y[0], $y[1]];
+                }, Tag::find_related($x));
             }
             $this->tags = $all;
-            
+
             foreach ($this->patterns as $x) {
-                $this->tags[$x] = array_map(function($y) { return [$y->name, $y->post_count]; }, Tag::where("name LIKE ?", '%' . $x . '%')->first());
+                $this->tags[$x] = array_map(function ($y) {
+                    return [$y->name, $y->post_count];
+                }, Tag::where("name LIKE ?", '%' . $x . '%')->first());
             }
         }
 
         $this->respondTo([
             // fmt.xml do
-                // # We basically have to do this by hand.
-                // builder = Builder::XmlMarkup.new('indent' => 2)
-                // builder.instruct!
-                // xml = builder.tag!("tags") do
-                    // $this->tags.each do |parent, related|
-                        // builder.tag!("tag", 'name' => parent) do
-                            // related.each do |tag, count|
-                                // builder.tag!("tag", 'name' => tag, 'count' => count)
-                            // end
-                        // end
-                    // end
-                // end
-
-                // $this->render(array('xml' => xml)
+            // # We basically have to do this by hand.
+            // builder = Builder::XmlMarkup.new('indent' => 2)
+            // builder.instruct!
+            // xml = builder.tag!("tags") do
+            // $this->tags.each do |parent, related|
+            // builder.tag!("tag", 'name' => parent) do
+            // related.each do |tag, count|
+            // builder.tag!("tag", 'name' => tag, 'count' => count)
             // end
-            'json' => function() { $this->render(['json' => json_encode($this->tags)]); }
+            // end
+            // end
+            // end
+
+            // $this->render(array('xml' => xml)
+            // end
+            'json' => function () {
+                $this->render(['json' => json_encode($this->tags)]);
+            },
         ]);
     }
 
@@ -246,7 +258,7 @@ class TagController extends ApplicationController
         }
 
         $this->end = strtotime('next week', $this->start);
-        
+
         $this->tags = Tag::count_by_period(date('Y-m-d', $this->start), date('Y-m-d', $this->end));
     }
 
@@ -263,24 +275,25 @@ class TagController extends ApplicationController
 
     // public function show()
     // {
-        // begin
-            // name = Tag.find($this->params()->id, 'select' => :name).name
-        // rescue
-            // raise ActionController::RoutingError.new('Not Found')        }
-        // redirectTo 'controller' => :wiki, 'action' => :show, 'title' => name
+    // begin
+    // name = Tag.find($this->params()->id, 'select' => :name).name
+    // rescue
+    // raise ActionController::RoutingError.new('Not Found')        }
+    // redirectTo 'controller' => :wiki, 'action' => :show, 'title' => name
     // }
-    
+
     public function delete()
     {
         if (!CONFIG()->enable_tag_deletion) {
             $this->respond_to_error('Access denied', '#index');
             return;
         }
-        
+
         $tag = Tag::find($this->params()->id);
-        
-        if ($tag)
+
+        if ($tag) {
             $tag->destroy();
+        }
 
         $opts = $this->params()->get();
         unset($opts['id']);

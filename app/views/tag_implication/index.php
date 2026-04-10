@@ -1,12 +1,12 @@
 <div style="margin-bottom: 1em;">
-  <?= $this->formTag(['action' => "index"], ['method' => 'get'], function(){ ?>
+  <?= $this->formTag(['action' => "index"], ['method' => 'get'], function () { ?>
     <?= $this->textFieldTag("query", $this->h($this->params()->query)) ?>
     <?= $this->submitTag($this->t('.search')) ?>
     <?= $this->submitTag($this->t('tag_alias.index.search')) ?>
   <?php }) ?>
 </div>
 
-<?= $this->formTag(['action' => "update"], function() { ?>
+<?= $this->formTag(['action' => "update"], function () { ?>
   <table class="highlightable" width="100%">
     <thead>
       <tr>
@@ -48,7 +48,7 @@
 <?php }) ?>
 
 <div id="add-box" style="display: none;">
-  <?= $this->formTag(['action' => "create"], function() { ?>
+  <?= $this->formTag(['action' => "create"], function () { ?>
     <h4><?= $this->t('.add_new.title') ?></h4>
     <p><?= $this->t('.add_new.info_moderation') ?></p>
     <p><?= $this->t('.add_new.info') ?></p>

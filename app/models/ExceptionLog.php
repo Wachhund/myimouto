@@ -1,12 +1,13 @@
 <?php
+
 class ExceptionLog extends Rails\ActiveRecord\Base
 {
     protected function associations()
     {
         return [
             'belongs_to' => [
-                'user' => ['foreign_key' => 'user_id']
-            ]
+                'user' => ['foreign_key' => 'user_id'],
+            ],
         ];
     }
 
@@ -29,7 +30,7 @@ class ExceptionLog extends Rails\ActiveRecord\Base
             if ($e instanceof \PDOException && isset($context['query'])) {
                 $record->extra_data = json_encode([
                     'query' => $context['query'],
-                    'binds' => $context['binds'] ?? []
+                    'binds' => $context['binds'] ?? [],
                 ]);
             }
 
@@ -45,7 +46,7 @@ class ExceptionLog extends Rails\ActiveRecord\Base
         $cutoff = date('Y-m-d H:i:s', strtotime("-{$days} days"));
         return self::connection()->executeSql(
             "DELETE FROM exception_logs WHERE created_at < ? LIMIT 1000",
-            $cutoff
+            $cutoff,
         );
     }
 
@@ -69,7 +70,9 @@ class ExceptionLog extends Rails\ActiveRecord\Base
 
     public function parsed_extra_data()
     {
-        if (!$this->extra_data) return [];
+        if (!$this->extra_data) {
+            return [];
+        }
         $decoded = json_decode($this->extra_data, true);
         return is_array($decoded) ? $decoded : [];
     }

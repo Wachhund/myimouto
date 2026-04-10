@@ -3,7 +3,7 @@
 <h4>Upload Whitelist</h4>
 
 <div style="margin-bottom: 1em;">
-  <?= $this->formTag(['upload_whitelist#is_allowed'], ['method' => 'get'], function(){ ?>
+  <?= $this->formTag(['upload_whitelist#is_allowed'], ['method' => 'get'], function () { ?>
     <label for="url">Check URL:</label>
     <?= $this->textFieldTag("url", $this->h($this->params()->url), ['size' => 60]) ?>
     <?= $this->submitTag("Check") ?>
@@ -11,7 +11,7 @@
 </div>
 
 <div style="margin-bottom: 1em;">
-  <?= $this->formTag([], ['method' => 'get'], function(){ ?>
+  <?= $this->formTag([], ['method' => 'get'], function () { ?>
     <?= $this->textFieldTag("query", $this->h($this->params()->query), ['size' => 40, 'placeholder' => 'Search patterns...']) ?>
     <?= $this->submitTag("Search") ?>
   <?php }) ?>
@@ -39,7 +39,7 @@
         <td><?= $this->h($rule->note) ?></td>
         <td><?= $rule->hidden ? 'Yes' : 'No' ?></td>
         <td>
-          <?= $this->formTag(['upload_whitelist#destroy', 'id' => $rule->id], ['method' => 'post', 'style' => 'display:inline'], function() { ?>
+          <?= $this->formTag(['upload_whitelist#destroy', 'id' => $rule->id], ['method' => 'post', 'style' => 'display:inline'], function () { ?>
             <?= $this->submitTag('Delete', ['onclick' => "return confirm('Delete this rule?')"]) ?>
           <?php }) ?>
         </td>
@@ -54,7 +54,7 @@
 
 <div style="margin-top: 2em; border-top: 1px solid #ccc; padding-top: 1em;">
   <h5>Add Rule</h5>
-  <?= $this->formTag(['upload_whitelist#create'], ['method' => 'post'], function() { ?>
+  <?= $this->formTag(['upload_whitelist#create'], ['method' => 'post'], function () { ?>
     <table>
       <tr>
         <th><label for="upload_whitelist_pattern">Pattern</label></th>

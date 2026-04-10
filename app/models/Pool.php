@@ -1,18 +1,16 @@
 <?php
-class Pool_AccessDeniedError extends Exception
-{}
 
-class Pool_PostAlreadyExistsError extends Exception
-{}
+class Pool_AccessDeniedError extends Exception {}
 
-class Pool_InvalidPostError extends Exception
-{}
+class Pool_PostAlreadyExistsError extends Exception {}
+
+class Pool_InvalidPostError extends Exception {}
 
 class Pool extends Rails\ActiveRecord\Base
 {
     use Moebooru\Versioning\VersioningTrait;
-    
-    static public function init_versioning($v)
+
+    public static function init_versioning($v)
     {
         $v->versioned_attributes([
             'name',
@@ -21,28 +19,35 @@ class Pool extends Rails\ActiveRecord\Base
             'is_active'   => ['default' => true],
         ]);
     }
-    
+
     /* PostMethods { */
-    static public function get_pool_posts_from_posts(array $posts)
+    public static function get_pool_posts_from_posts(array $posts)
     {
-        if (!$post_ids = array_map(function($post){return $post->id;}, $posts))
-            return array();
+        if (!$post_ids = array_map(function ($post) {
+            return $post->id;
+        }, $posts)) {
+            return [];
+        }
         # CHANGED: WHERE pp.active ...
         $sql = sprintf("SELECT pp.* FROM pools_posts pp WHERE pp.post_id IN (%s)", implode(',', $post_ids));
         return PoolPost::findBySql($sql)->members();
     }
 
-    static public function get_pools_from_pool_posts(array $pool_posts)
+    public static function get_pools_from_pool_posts(array $pool_posts)
     {
-        if (!$pool_ids = array_unique(array_map(function($pp){return $pp->pool_id;}, $pool_posts)))
-            return array();
+        if (!$pool_ids = array_unique(array_map(function ($pp) {
+            return $pp->pool_id;
+        }, $pool_posts))) {
+            return [];
+        }
 
         $sql = sprintf("SELECT p.* FROM pools p WHERE p.id IN (%s)", implode(',', $pool_ids));
-        
-        if ($pools = Pool::findBySql($sql))
+
+        if ($pools = Pool::findBySql($sql)) {
             return $pools->members();
-        else
+        } else {
             return [];
+        }
     }
 
     /**
@@ -50,9 +55,9 @@ class Pool extends Rails\ActiveRecord\Base
      * Returns distinct Pool records whose active pool_posts link to posts
      * carrying ALL of the supplied tags.
      */
-    static public function search_by_tags($tag_string)
+    public static function search_by_tags($tag_string)
     {
-        $tag_string = trim((string)$tag_string);
+        $tag_string = trim((string) $tag_string);
         if ($tag_string === '') {
             return [];
         }
@@ -70,12 +75,12 @@ class Pool extends Rails\ActiveRecord\Base
         $sql = "SELECT DISTINCT p.* FROM pools p "
              . "INNER JOIN pools_posts pp ON pp.pool_id = p.id AND pp.active = 1 "
              . "INNER JOIN ("
-             .   "SELECT pt.post_id FROM posts_tags pt "
-             .   "INNER JOIN tags t ON t.id = pt.tag_id "
-             .   "INNER JOIN posts po ON po.id = pt.post_id AND po.status != 'deleted' "
-             .   "WHERE t.name IN ({$placeholders}) "
-             .   "GROUP BY pt.post_id "
-             .   "HAVING COUNT(DISTINCT t.id) = ?"
+             . "SELECT pt.post_id FROM posts_tags pt "
+             . "INNER JOIN tags t ON t.id = pt.tag_id "
+             . "INNER JOIN posts po ON po.id = pt.post_id AND po.status != 'deleted' "
+             . "WHERE t.name IN ({$placeholders}) "
+             . "GROUP BY pt.post_id "
+             . "HAVING COUNT(DISTINCT t.id) = ?"
              . ") matching_posts ON matching_posts.post_id = pp.post_id "
              . "ORDER BY p.name ASC";
 
@@ -89,10 +94,11 @@ class Pool extends Rails\ActiveRecord\Base
         return $this->is_public || $user->has_permission($this);
     }
 
-    public function add_post($post_id, $options = array())
+    public function add_post($post_id, $options = [])
     {
-        if (isset($options['user']) && !$this->can_be_updated_by($options['user']))
+        if (isset($options['user']) && !$this->can_be_updated_by($options['user'])) {
             throw new Pool_AccessDeniedError();
+        }
 
         # Validate that the post exists and is not deleted.
         try {
@@ -106,9 +112,9 @@ class Pool extends Rails\ActiveRecord\Base
         }
 
         $seq = isset($options['sequence']) ? $options['sequence'] : $this->next_sequence();
-        
+
         $pool_post = $this->all_pool_posts ? $this->all_pool_posts->search('post_id', $post_id) : null;
-        
+
         if ($pool_post) {
             # If :ignore_already_exists, we won't raise PostAlreadyExistsError; this allows
             # he sequence to be changed if the post already exists.
@@ -123,30 +129,32 @@ class Pool extends Rails\ActiveRecord\Base
              * MI: Passing "active" because otherwise such attribute would be Null and
              * History wouldn't work nicely.
              */
-            PoolPost::create(array('pool_id' => $this->id, 'post_id' => $post_id, 'sequence' => $seq, 'active' => 1));
+            PoolPost::create(['pool_id' => $this->id, 'post_id' => $post_id, 'sequence' => $seq, 'active' => 1]);
         }
-        
+
         if (empty($options['skip_update_pool_links'])) {
             $this->reload();
             $this->update_pool_links();
         }
     }
 
-    public function remove_post($post_id, array $options = array())
+    public function remove_post($post_id, array $options = [])
     {
         // self::transaction(function() use ($post_id, $options) {
-            if (!empty($options['user']) && !$this->can_be_updated_by($options['user']))
-                throw new Exception('Access Denied');
-            
-            if ($this->all_pool_posts) {
-                if (!$pool_post = $this->all_pool_posts->search('post_id', $post_id))
-                    return;
-                $pool_post->active = 0;
-                $pool_post->save();
+        if (!empty($options['user']) && !$this->can_be_updated_by($options['user'])) {
+            throw new Exception('Access Denied');
+        }
+
+        if ($this->all_pool_posts) {
+            if (!$pool_post = $this->all_pool_posts->search('post_id', $post_id)) {
+                return;
             }
-            
-            $this->reload(); # saving pool_post modified us
-            $this->update_pool_links();
+            $pool_post->active = 0;
+            $pool_post->save();
+        }
+
+        $this->reload(); # saving pool_post modified us
+        $this->update_pool_links();
         // });
     }
 
@@ -157,18 +165,19 @@ class Pool extends Rails\ActiveRecord\Base
 
     public function transfer_post_to_parent($post_id, $parent_id)
     {
-        $pool_post = $this->pool_posts->find_first(array('conditions' => array("post_id = ?", $post_id)));
-        $parent_pool_post = $this->pool_posts->find_first(array('conditions' => array("post_id = ?", $parent_id)));
+        $pool_post = $this->pool_posts->find_first(['conditions' => ["post_id = ?", $post_id]]);
+        $parent_pool_post = $this->pool_posts->find_first(['conditions' => ["post_id = ?", $parent_id]]);
         // return if not parent_pool_post.nil?
-        if ($parent_pool_post)
+        if ($parent_pool_post) {
             return;
+        }
 
         $sequence = $pool_post->sequence;
         $this->remove_post($post_id);
-        $this->add_post($parent_id, array('sequence' => $sequence));
+        $this->add_post($parent_id, ['sequence' => $sequence]);
     }
 
-    public function get_sample() 
+    public function get_sample()
     {
         # By preference, pick the first post (by sequence) in the pool that isn't hidden from
         # the index.
@@ -176,7 +185,7 @@ class Pool extends Rails\ActiveRecord\Base
                             ->order("posts.is_shown_in_index DESC, pools_posts.sequence, pools_posts.post_id")
                             ->joins("JOIN posts ON posts.id = pools_posts.post_id")
                             ->take();
-        
+
         foreach ($pool_post as $pp) {
             if ($pp->post->can_be_seen_by(current_user())) {
                 return $pp->post;
@@ -184,31 +193,33 @@ class Pool extends Rails\ActiveRecord\Base
         }
     }
 
-    public function can_change_is_public($user) 
+    public function can_change_is_public($user)
     {
         return $user->has_permission($this);
     }
 
     public function can_change($user, $attribute)
     {
-        if (!$user->is_member_or_higher())
+        if (!$user->is_member_or_higher()) {
             return false;
+        }
         return $this->is_public || $user->has_permission($this);
     }
 
-    public function update_pool_links() 
+    public function update_pool_links()
     {
-        if (!$this->pool_posts)
+        if (!$this->pool_posts) {
             return;
-        
+        }
+
         # iTODO: an assoc can be called like "pool_posts(true)"
         # to force reload.
         # Add support for this maybe?
         # $this->_load_association('pool_posts');
         $pp = $this->pool_posts; //(true) # force reload
-        
+
         $count = $pp->size();
-        
+
         foreach ($pp as $i => $v) {
             $v->next_post_id = ($i == $count - 1)
                 ? null
@@ -220,24 +231,24 @@ class Pool extends Rails\ActiveRecord\Base
         }
     }
 
-    public function next_sequence() 
+    public function next_sequence()
     {
         $seq = 0;
-        
+
         foreach ($this->pool_posts as $pp) {
-            $seq = max(array($seq, $pp->sequence));
+            $seq = max([$seq, $pp->sequence]);
         }
-        
+
         return $seq + 1;
     }
-    
+
     public function expire_cache()
     {
         Moebooru\CacheHelper::expire();
     }
-   
+
     /* } ApiMethods { */
-    
+
     public function api_attributes()
     {
         return [
@@ -261,17 +272,17 @@ class Pool extends Rails\ActiveRecord\Base
     {
         /*empty($options['indent']) && $options['indent'] = 2;*/
         $xml = isset($options['builder']) ? $options['builder'] : new Rails\ActionView\Xml(/*['indent' => $options['indent']]*/);
-        $xml->pool($this->api_attributes(), function() use ($xml) {
+        $xml->pool($this->api_attributes(), function () use ($xml) {
             $xml->description($this->description);
         });
         return $xml->output();
     }
-    
+
     /* } NameMethods { */
-    
-    static public function find_by_name($name)
+
+    public static function find_by_name($name)
     {
-        if (ctype_digit((string)$name)) {
+        if (ctype_digit((string) $name)) {
             return self::where(['id' => $name])->first();
         } else {
             return self::where("lower(name) = lower(?)", $name)->first();
@@ -287,14 +298,15 @@ class Pool extends Rails\ActiveRecord\Base
     {
         return str_replace('_', ' ', $this->name);
     }
-    
+
     /* } ZipMethods { */
-    
+
     public function get_zip_filename(array $options = [])
     {
         $filename = str_replace('?', "", $this->pretty_name());
-        if (!empty($options['jpeg']))
+        if (!empty($options['jpeg'])) {
             $filename .= " (JPG)";
+        }
         return $filename . ".zip";
     }
 
@@ -303,8 +315,9 @@ class Pool extends Rails\ActiveRecord\Base
     {
         foreach ($this->pool_posts as $pool_post) {
             $post = $pool_post->post;
-            if ($post->has_jpeg())
+            if ($post->has_jpeg()) {
                 return true;
+            }
         }
         return false;
     }
@@ -315,8 +328,9 @@ class Pool extends Rails\ActiveRecord\Base
         $sum = 0;
         foreach ($this->pool_posts as $pool_post) {
             $post = $pool_post->post;
-            if ($post->status == 'deleted')
+            if ($post->status == 'deleted') {
                 continue;
+            }
             $sum += !empty($options['jpeg']) && $post->has_jpeg() ? $post->jpeg_size : $post->file_size;
         }
 
@@ -325,11 +339,12 @@ class Pool extends Rails\ActiveRecord\Base
 
     public function get_zip_data($options = [])
     {
-        if (!$this->pool_posts->any())
+        if (!$this->pool_posts->any()) {
             return false;
+        }
 
         $jpeg = !empty($options['jpeg']);
-        
+
         # Pad sequence numbers in filenames to the longest sequence number.    Ignore any text
         # after the sequence for padding; for example, if we have 1, 5, 10a and 12,pad
         # to 2 digits.
@@ -338,15 +353,17 @@ class Pool extends Rails\ActiveRecord\Base
         $max_sequence_digits = 3;
         foreach ($this->pool_posts as $pool_post) {
             $filtered_sequence = preg_replace('/^([0-9]+(-[0-9]+)?)?.*/', '\1', $pool_post->sequence); # 45a -> 45
-            foreach (explode('-', $filtered_sequence) as $p)
+            foreach (explode('-', $filtered_sequence) as $p) {
                 $max_sequence_digits = max(strlen($p), $max_sequence_digits);
+            }
         }
 
         $filename_count = $files = [];
         foreach ($this->pool_posts as $pool_post) {
             $post = $pool_post->post;
-            if ($post->status == 'deleted')
+            if ($post->status == 'deleted') {
                 continue;
+            }
 
             if ($jpeg && $post->has_jpeg()) {
                 $path = $post->jpeg_path();
@@ -355,7 +372,7 @@ class Pool extends Rails\ActiveRecord\Base
                 $path = $post->file_path();
                 $file_ext = $post->file_ext;
             }
-            
+
             # Pretty filenames
             if (!empty($options['pretty_filenames'])) {
                 $filename = $post->pretty_file_name() . '.' . $file_ext;
@@ -365,34 +382,37 @@ class Pool extends Rails\ActiveRecord\Base
                 if (preg_match('/^([0-9]+(-[0-9]+)*)(.*)$/', $pool_post->sequence, $m)) {
                     if ($m[1] != "") {
                         $suffix = $m[3];
-                        $numbers = implode('-', array_map(function($p) use ($max_sequence_digits) {
+                        $numbers = implode('-', array_map(function ($p) use ($max_sequence_digits) {
                             return str_pad($p, $max_sequence_digits, '0', STR_PAD_LEFT);
                         }, explode('-', $m[1])));
                         $filename = sprintf("%s%s", $numbers, $suffix);
-                    } else
+                    } else {
                         $filename = sprintf("%s", $m[3]);
-                } else
+                    }
+                } else {
                     $filename = $pool_post->sequence;
-                
+                }
+
                 # Avoid duplicate filenames.
                 !isset($filename_count[$filename]) && $filename_count[$filename] = 0;
                 $filename_count[$filename]++;
-                if ($filename_count[$filename] > 1)
+                if ($filename_count[$filename] > 1) {
                     $filename .= sprintf(" (%i)", $filename_count[$filename]);
+                }
                 $filename .= sprintf(".%s", $file_ext);
             }
-            
+
             $files[] = [$path, $filename];
         }
-        
+
         return $files;
     }
-    
+
     protected function destroy_pool_posts()
     {
         PoolPost::destroyAll('pool_id = ?', $this->id);
     }
-    
+
     /* } */
     protected function associations()
     {
@@ -401,21 +421,25 @@ class Pool extends Rails\ActiveRecord\Base
                 'user',
             ],
             'has_many' => [
-                'pool_posts' => [function() { $this->where('pools_posts.active = true')->order('CAST(sequence AS UNSIGNED), post_id'); }, 'class_name' => "PoolPost"],
-                'all_pool_posts' => [function() { $this->order('CAST(sequence AS UNSIGNED), post_id'); }, 'class_name' => "PoolPost"]
-            ]
+                'pool_posts' => [function () {
+                    $this->where('pools_posts.active = true')->order('CAST(sequence AS UNSIGNED), post_id');
+                }, 'class_name' => "PoolPost"],
+                'all_pool_posts' => [function () {
+                    $this->order('CAST(sequence AS UNSIGNED), post_id');
+                }, 'class_name' => "PoolPost"],
+            ],
         ];
     }
-    
+
     protected function validations()
     {
         return [
             'name' => [
                 'presence' => true,
-                'uniqueness' => true
+                'uniqueness' => true,
             ],
             'validate_utf8_name',
-            'validate_utf8_description'
+            'validate_utf8_description',
         ];
     }
 
@@ -457,14 +481,14 @@ class Pool extends Rails\ActiveRecord\Base
 
         return preg_match('//u', $value) === 1;
     }
-    
+
     protected function callbacks()
     {
         return [
             'before_destroy' => ['destroy_pool_posts'],
             'after_save' => ['expire_cache'],
             'before_validation' => ['normalize_name'],
-            'after_undo' => ['update_pool_links']
+            'after_undo' => ['update_pool_links'],
         ];
     }
 }

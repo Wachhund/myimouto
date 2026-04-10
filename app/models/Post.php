@@ -1,25 +1,37 @@
 <?php
-foreach (glob(dirname(__FILE__).'/Post/*.php') as $trait) require $trait;
+
+foreach (glob(dirname(__FILE__) . '/Post/*.php') as $trait) {
+    require $trait;
+}
 
 class Post extends Rails\ActiveRecord\Base
 {
-    use PostSqlMethods, PostCommentMethods, PostImageStoreMethods,
-        PostVoteMethods, PostTagMethods, PostCountMethods,
-        Post\CacheMethods, PostParentMethods, PostFileMethods,
-        PostChangeSequenceMethods, PostRatingMethods, PostStatusMethods,
-        PostApiMethods, /*PostMirrorMethods, */PostFrameMethods;
-    
+    use PostSqlMethods;
+    use PostCommentMethods;
+    use PostImageStoreMethods;
+    use PostVoteMethods;
+    use PostTagMethods;
+    use PostCountMethods;
+    use Post\CacheMethods;
+    use PostParentMethods;
+    use PostFileMethods;
+    use PostChangeSequenceMethods;
+    use PostRatingMethods;
+    use PostStatusMethods;
+    use PostApiMethods;
+    /*PostMirrorMethods, */use PostFrameMethods;
+
     use Moebooru\Versioning\VersioningTrait;
-    
+
     protected $previous_id;
-    
+
     protected $next_id;
-    
+
     public $updater_user_id;
-    
+
     public $updater_ip_addr;
-    
-    static public function init_versioning($v)
+
+    public static function init_versioning($v)
     {
         $v->versioned_attributes([
             'source' => ['default' => ''],
@@ -34,10 +46,10 @@ class Post extends Rails\ActiveRecord\Base
             // 'frames_pending' => ['default' => '', 'allow_reverting_to_default' => true]
         ]);
     }
-    
+
     public function __call($method, $params)
     {
-        switch(true) {
+        switch (true) {
             # Checking status: $paramsost->is_pending();
             case (strpos($method, 'is_') === 0):
                 $status = str_replace('is_', '', $method);
@@ -64,40 +76,42 @@ class Post extends Rails\ActiveRecord\Base
         }
         return $this->previous_id;
     }
-    
+
     public function author()
     {
         return $this->user ? $this->user->name : null;
     }
-    
-    public function can_be_seen_by($user = null, array $options = array())
+
+    public function can_be_seen_by($user = null, array $options = [])
     {
         if (empty($options['show_deleted']) && $this->status == 'deleted') {
             return false;
         }
-        
+
         return CONFIG()->can_see_post($user, $this);
     }
-    
+
     public function normalized_source()
     {
         if (preg_match('/pixiv\.net\/img/', $this->source)) {
-            if (preg_match('/(\d+)(_s|_m|(_big)?_p\d+)?\.\w+(\?\d+)?\z/', $this->source, $m))
+            if (preg_match('/(\d+)(_s|_m|(_big)?_p\d+)?\.\w+(\?\d+)?\z/', $this->source, $m)) {
                 $img_id = $m[1];
-            else
+            } else {
                 $img_id = null;
+            }
             return "http://www.pixiv.net/member_illust.php?mode=medium&illust_id=" . $img_id;
-        } elseif (strpos($this->source, 'http://') === 0 || strpos($this->source, 'https://') === 0)
+        } elseif (strpos($this->source, 'http://') === 0 || strpos($this->source, 'https://') === 0) {
             return $this->source;
-        else
+        } else {
             return 'http://' . $this->source;
+        }
     }
-    
+
     public function clear_avatars()
     {
         User::clear_avatars($this->id);
     }
-    
+
     public function approve($approver_id)
     {
         $old_status = $this->status;
@@ -110,7 +124,7 @@ class Post extends Rails\ActiveRecord\Base
             }
         }
 
-        $this->updateAttributes(array('status' => 'active', 'approver_id' => $approver_id));
+        $this->updateAttributes(['status' => 'active', 'approver_id' => $approver_id]);
 
         # Don't bump posts if the status wasn't "pending"; it might be "flagged".
         if ($old_status == 'pending' and CONFIG()->hide_pending_posts) {
@@ -118,7 +132,7 @@ class Post extends Rails\ActiveRecord\Base
             $this->save();
         }
     }
-    
+
     public function voted_by($score = null)
     {
         # Cache results
@@ -130,38 +144,43 @@ class Post extends Rails\ActiveRecord\Base
                         ->select("users.name, users.id")
                         ->order("v.updated_at DESC")
                         ->take()
-                        ->getAttributes(['id', 'name']) ?: array();
+                        ->getAttributes(['id', 'name']) ?: [];
             }
         }
-        
-        if (func_num_args())
+
+        if (func_num_args()) {
             return $this->voted_by[$score];
+        }
         return $this->voted_by;
     }
 
     public function can_user_delete(User $user = null)
     {
-        if (!$user)
+        if (!$user) {
             $user = current_user();
-        
-        if (!$user->has_permission($this))
+        }
+
+        if (!$user->has_permission($this)) {
             return false;
-        elseif (!$user->is_mod_or_higher() && !$this->is_held() && (strtotime(date('Y-m-d H:i:s')) - strtotime($this->created_at)) > 60*60*24)
+        } elseif (!$user->is_mod_or_higher() && !$this->is_held() && (strtotime(date('Y-m-d H:i:s')) - strtotime($this->created_at)) > 60 * 60 * 24) {
             return false;
-        
+        }
+
         return true;
     }
-    
+
     public function favorited_by()
     {
         return $this->voted_by(3);
     }
-    
+
     public function active_notes()
     {
-        return $this->notes ? $this->notes->select(function($x){return $x->is_active;}) : array();
+        return $this->notes ? $this->notes->select(function ($x) {
+            return $x->is_active;
+        }) : [];
     }
-    
+
     public function latest_flag()
     {
         # Return the most recent unresolved flag, or the most recent flag if all are resolved
@@ -174,7 +193,7 @@ class Post extends Rails\ActiveRecord\Base
 
     public function set_flag_detail($reason, $creator_id, $reason_category = null, $parent_post_id = null)
     {
-        $attrs = array('post_id' => $this->id, 'reason' => $reason, 'user_id' => $creator_id, 'is_resolved' => false);
+        $attrs = ['post_id' => $this->id, 'reason' => $reason, 'user_id' => $creator_id, 'is_resolved' => false];
         if ($reason_category) {
             $attrs['reason_category'] = $reason_category;
         }
@@ -189,7 +208,7 @@ class Post extends Rails\ActiveRecord\Base
         $this->updateAttribute('status', 'flagged');
         $this->set_flag_detail($reason, $creator_id, $reason_category, $parent_post_id);
     }
-    
+
     public function destroy_with_reason($reason, $current_user)
     {
         // PROJ-46 AC-11: Guard against double-deletion (e621ng #1736).
@@ -199,18 +218,20 @@ class Post extends Rails\ActiveRecord\Base
 
         // Post.transaction do
         $existing_flag = $this->latest_flag();
-        if ($existing_flag && !$existing_flag->is_resolved)
+        if ($existing_flag && !$existing_flag->is_resolved) {
             $existing_flag->resolve($current_user->id);
+        }
         $this->flag($reason, $current_user->id);
         $this->first_delete();
 
-        if (CONFIG()->delete_posts_permanently)
+        if (CONFIG()->delete_posts_permanently) {
             $this->delete_from_database();
+        }
         // end
         return true;
     }
 
-    static public function static_destroy_with_reason($id, $reason, $current_user)
+    public static function static_destroy_with_reason($id, $reason, $current_user)
     {
         $post = Post::find($id);
         return $post->destroy_with_reason($reason, $current_user);
@@ -218,14 +239,14 @@ class Post extends Rails\ActiveRecord\Base
 
     public function first_delete()
     {
-        $this->runCallbacks('delete', function() {
-            $this->updateAttributes(array('status' => 'deleted'));
+        $this->runCallbacks('delete', function () {
+            $this->updateAttributes(['status' => 'deleted']);
         });
     }
 
     public function delete_from_database()
     {
-        $this->runCallbacks('destroy', function() {
+        $this->runCallbacks('destroy', function () {
             $this->delete_file();
             self::connection()->executeSql('UPDATE pools SET post_count = post_count - 1 WHERE id IN (SELECT pool_id FROM pools_posts WHERE post_id = ?)', $this->id);
             self::connection()->executeSql('UPDATE tags SET post_count = post_count - 1 WHERE id IN (SELECT tag_id FROM posts_tags WHERE post_id = ?)', $this->id);
@@ -238,10 +259,10 @@ class Post extends Rails\ActiveRecord\Base
 
     public function replace_file_from_path($file_path, $original_name = null, &$replacement_context = null)
     {
-        $file_path = (string)$file_path;
+        $file_path = (string) $file_path;
         $replacement_context = [
             'old_paths' => [],
-            'new_paths' => []
+            'new_paths' => [],
         ];
 
         if ($file_path === '' || !is_file($file_path)) {
@@ -249,7 +270,7 @@ class Post extends Rails\ActiveRecord\Base
             return false;
         }
 
-        $old_md5 = (string)$this->md5;
+        $old_md5 = (string) $this->md5;
         $old_paths = $this->replacement_storage_paths();
 
         $this->tempfile_path = $file_path;
@@ -271,7 +292,7 @@ class Post extends Rails\ActiveRecord\Base
             return false;
         }
 
-        if ((string)$this->md5 === $old_md5) {
+        if ((string) $this->md5 === $old_md5) {
             $this->errors()->add('md5', 'matches current post file');
             return false;
         }
@@ -308,7 +329,7 @@ class Post extends Rails\ActiveRecord\Base
         $new_paths = $this->replacement_storage_paths();
         $replacement_context = [
             'old_paths' => $old_paths,
-            'new_paths' => $new_paths
+            'new_paths' => $new_paths,
         ];
 
         $actor = function_exists('current_user') ? current_user() : null;
@@ -329,7 +350,7 @@ class Post extends Rails\ActiveRecord\Base
             'actual_preview_width' => $this->actual_preview_width,
             'actual_preview_height' => $this->actual_preview_height,
             'updater_user_id' => $actor ? $actor->id : $this->updater_user_id,
-            'updater_ip_addr' => ($actor && !empty($actor->ip_addr)) ? $actor->ip_addr : $this->updater_ip_addr
+            'updater_ip_addr' => ($actor && !empty($actor->ip_addr)) ? $actor->ip_addr : $this->updater_ip_addr,
         ];
 
         if (!$this->updateAttributes($update)) {
@@ -341,112 +362,125 @@ class Post extends Rails\ActiveRecord\Base
         $this->delete_tempfile();
         return true;
     }
-    
+
     public function undelete()
     {
         if ($this->status == 'active') {
             return;
         }
-        $this->runCallbacks('undelete', function() {
+        $this->runCallbacks('undelete', function () {
             $this->updateAttributes(['status' => 'active']);
         });
     }
-    
+
     public function service()
     {
         return CONFIG()->local_image_service;
     }
-    
+
     public function service_icon()
     {
         return "/favicon.ico";
     }
-    
+
     protected function callbacks()
     {
         return [
             'before_create' => ['set_index_timestamp'],
             'after_create'  => ['after_creation'],
-            
+
             'before_delete' => ['clear_avatars'],
             'after_delete'  => ['give_favorites_to_parent', 'decrement_count'],
-            
-            'after_undelete'=> ['increment_count'],
-            
+
+            'after_undelete' => ['increment_count'],
+
             'before_save'   => ['commit_tags', 'filter_parent_id'],
             'after_save'    => ['update_parent', 'save_post_history', 'expire_cache'],
-            
+
             'after_destroy' => ['expire_cache'],
-            
+
             'before_validation_on_create' => [
                 'download_source', 'ensure_tempfile_exists', 'determine_content_type',
                 'validate_content_type', 'generate_hash', 'set_image_dimensions',
                 'set_image_status', 'check_pending_count', 'generate_sample',
-                'generate_jpeg', 'generate_preview', 'move_file'
+                'generate_jpeg', 'generate_preview', 'move_file',
             ],
-            'after_validation_on_create'  => ['before_creation']
+            'after_validation_on_create'  => ['before_creation'],
         ];
     }
-    
+
     protected function associations()
     {
         return [
             'belongs_to' => [
                 'user',
-                'approver' => ['class_name' => 'User']
+                'approver' => ['class_name' => 'User'],
             ],
             'has_many' => [
                 'flag_details' => ['class_name' => "FlaggedPostDetail"],
-                'notes'       => [function() { $this->order('id DESC')->where('is_active = 1'); }],
-                'comments'    => [function() { $this->order("id"); }],
+                'notes'       => [function () {
+                    $this->order('id DESC')->where('is_active = 1');
+                }],
+                'comments'    => [function () {
+                    $this->order("id");
+                }],
                 'children'    => [
-                    function() { $this->order('id')->where("status != 'deleted'"); },
+                    function () {
+                        $this->order('id')->where("status != 'deleted'");
+                    },
                     'class_name' => 'Post',
-                    'foreign_key' => 'parent_id'
+                    'foreign_key' => 'parent_id',
                 ],
-                'tag_history' => [function() { $this->order("id DESC"); }, 'class_name' => 'PostTagHistory'],
-            ]
+                'tag_history' => [function () {
+                    $this->order("id DESC");
+                }, 'class_name' => 'PostTagHistory'],
+            ],
         ];
     }
-    
+
     protected function before_creation()
     {
         $this->upload = !empty($_FILES['post']['tmp_name']['file']) ? true : false;
-        
-        if (CONFIG()->tags_from_filename)
+
+        if (CONFIG()->tags_from_filename) {
             $this->get_tags_from_filename();
-        if (CONFIG()->source_from_filename)
+        }
+        if (CONFIG()->source_from_filename) {
             $this->get_source_from_filename();
-        
-        if (!$this->rating)
+        }
+
+        if (!$this->rating) {
             $this->rating = CONFIG()->default_rating_upload;
-        
+        }
+
         $this->rating = strtolower(substr($this->rating, 0, 1));
-        
-        if ($this->gif() && CONFIG()->add_gif_tag_to_gif)
+
+        if ($this->gif() && CONFIG()->add_gif_tag_to_gif) {
             $this->new_tags[] = 'gif';
-        elseif ($this->flash() && CONFIG()->add_flash_tag_to_swf)
+        } elseif ($this->flash() && CONFIG()->add_flash_tag_to_swf) {
             $this->new_tags[] = 'flash';
-        
-        if ($this->new_tags)
+        }
+
+        if ($this->new_tags) {
             $this->old_tags = 'tagme';
-        
+        }
+
         $this->cached_tags = 'tagme';
-        
+
         !$this->parent_id && $this->parent_id = null;
         !$this->source && $this->source = null;
-        
+
         $this->random = mt_rand();
-        
+
         Tag::find_or_create_by_name('tagme');
     }
-    
+
     protected function after_creation()
     {
         if ($this->new_tags) {
             $this->clearChangedAttributes();
             $this->commit_tags();
-            
+
             $update = [];
             foreach (array_keys($this->changedAttributes()) as $attrName) {
                 $update[$attrName] = $this->getAttribute($attrName);
@@ -454,7 +488,7 @@ class Post extends Rails\ActiveRecord\Base
             $this->updateColumns($update);
         }
     }
-    
+
     protected function set_index_timestamp()
     {
         $this->index_timestamp = date('Y-m-d H:i:s');
@@ -466,7 +500,7 @@ class Post extends Rails\ActiveRecord\Base
             $this->file_path(),
             $this->preview_path(),
             $this->sample_path(),
-            $this->jpeg_path()
+            $this->jpeg_path(),
         ]));
     }
 
@@ -494,34 +528,35 @@ class Post extends Rails\ActiveRecord\Base
             }
         }
     }
-    
+
     # Added to avoid SQL constraint errors if parent_id passed isn't a valid post.
     protected function filter_parent_id()
     {
-        if (($parent_id = trim($this->parent_id)) && Post::where(['id' => $parent_id])->first())
+        if (($parent_id = trim($this->parent_id)) && Post::where(['id' => $parent_id])->first()) {
             $this->parent_id = $parent_id;
-        else
+        } else {
             $this->parent_id = null;
+        }
     }
-    
+
     protected function scopes()
     {
         return [
-            'available' => function() {
+            'available' => function () {
                 $this->where("posts.status <> ?", "deleted");
             },
-            'has_any_tags' => function($tags) {
+            'has_any_tags' => function ($tags) {
                 // where('posts.tags_index @@ ?', Array(tags).map { |t| t.to_escaped_for_tsquery }.join(' | '))
             },
-            'has_all_tags' => function($tags) {
+            'has_all_tags' => function ($tags) {
                 $this
                     ->joins('INNER JOIN posts_tags pti ON p.id = pti.post_id JOIN tags ti ON pti.tag_id = ti.id')
-                    ->where('ti.name IN ('.implode(', ', array_fill(0, count($tags), '?')).')');
+                    ->where('ti.name IN (' . implode(', ', array_fill(0, count($tags), '?')) . ')');
                 // where('posts.tags_index @@ ?', Array(tags).map { |t| t.to_escaped_for_tsquery }.join(' & '))
             },
-            'flagged' => function() {
+            'flagged' => function () {
                 $this->where("status = ?", "flagged");
-            }
+            },
         ];
     }
 }

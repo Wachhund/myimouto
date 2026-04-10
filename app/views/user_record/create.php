@@ -1,6 +1,6 @@
 <h4><?= $this->t('record_add') ?><?= $this->h($this->user->pretty_name()) ?></h4>
 
-<?= $this->formTag(function(){ ?>
+<?= $this->formTag(function () { ?>
   <?= $this->hiddenFieldTag("user_id", $this->user->id) ?>
   <table width="100%">
     <tbody>

@@ -12,9 +12,9 @@
     <?php if ($this->post->source) : ?>
       <?php
       if (strpos($this->post->source, 'http') === 0) :
-        $init = substr($this->post->source, 4, 1) == 's' ? 8 : 7;
-      ?>
-        <li><?= $this->t('.source') ?>: <?= $this->linkTo($this->h(substr($this->post->source, $init, 20) . "..."), $this->post->normalized_source(), array('rel' => 'nofollow', 'target' => '_blank')) ?></li>
+          $init = substr($this->post->source, 4, 1) == 's' ? 8 : 7;
+          ?>
+        <li><?= $this->t('.source') ?>: <?= $this->linkTo($this->h(substr($this->post->source, $init, 20) . "..."), $this->post->normalized_source(), ['rel' => 'nofollow', 'target' => '_blank']) ?></li>
       <?php else: ?>
         <li><?= $this->t('.source') ?>: <?= $this->h($this->post->source) ?></li>
       <?php endif ?>
@@ -30,7 +30,7 @@
   </ul>
 </div>
 
-<?= $this->contentFor('post_cookie_javascripts', function() { ?>
+<?= $this->contentFor('post_cookie_javascripts', function () { ?>
 <script type="text/javascript">
   var widget = new VoteWidget($("stats"));
   widget.set_post_id(<?= $this->post->id ?>);

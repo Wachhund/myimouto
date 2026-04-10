@@ -1,24 +1,23 @@
 <?php
+
 class AdminController extends ApplicationController
 {
     protected function init()
     {
         $this->setLayout('admin');
     }
-    
+
     protected function filters()
     {
         return [
             'before' => [
-                'admin_only'
-            ]
+                'admin_only',
+            ],
         ];
     }
-    
-    public function index()
-    {
-    }
-    
+
+    public function index() {}
+
     public function editUser()
     {
         if ($this->request()->isPost()) {
@@ -29,7 +28,7 @@ class AdminController extends ApplicationController
                 return;
             }
             $this->user->level = $this->params()->user['level'];
-            
+
             if ($this->user->save()) {
                 $this->notice('User updated');
                 $this->redirectTo('#edit_user');
@@ -38,7 +37,7 @@ class AdminController extends ApplicationController
             }
         }
     }
-    
+
     public function resetPassword()
     {
         if ($this->request()->isPost()) {
@@ -66,59 +65,59 @@ class AdminController extends ApplicationController
             $this->user = new User();
         }
     }
-    
+
     public function cacheStats()
     {
         $keys = [];
-        foreach([0, 20, 30, 35, 40, 50] as $level) {
+        foreach ([0, 20, 30, 35, 40, 50] as $level) {
             $keys[] = "stats/count/level=" . $level;
-            
-            foreach([0, 1, 2, 3, 4, 5] as $tag_count) {
+
+            foreach ([0, 1, 2, 3, 4, 5] as $tag_count) {
                 $keys[] = "stats/tags/level=" . $level . "&tags=" . $tag_count;
             }
-            
+
             $keys[] = "stats/page/level=${level}&page=0-10";
             $keys[] = "stats/page/level=${level}&page=10-20";
             $keys[] = "stats/page/level=${level}&page=20+";
         }
-        
+
         $h = [];
         foreach ($keys as $k) {
             $h[$k] = Rails::cache()->reach($k);
         }
-        
+
         $this->post_stats = $h;
     }
-    
+
     public function resetPostStats()
     {
         $keys = [];
-        foreach([0, 20, 30, 35, 40, 50] as $level) {
+        foreach ([0, 20, 30, 35, 40, 50] as $level) {
             $keys[] = "stats/count/level=" . $level;
-            
-            foreach([0, 1, 2, 3, 4, 5] as $tag_count) {
+
+            foreach ([0, 1, 2, 3, 4, 5] as $tag_count) {
                 $keys[] = "stats/tags/level=" . $level . "&tags=" . $tag_count;
             }
-            
+
             $keys[] = "stats/page/level=${level}&page=0-10";
             $keys[] = "stats/page/level=${level}&page=10-20";
             $keys[] = "stats/page/level=${level}&page=20+";
         }
-        
+
         foreach ($keys as $key) {
             Rails::cache()->write($key, 0);
         }
-        
+
         $this->redirectTo('#cache_stats');
     }
-    
+
     public function recalculateTagCount()
     {
         Tag::recalculate_post_count();
         $this->notice('Tags count recalculated');
         $this->redirectTo('#index');
     }
-    
+
     public function purgeTags()
     {
         Tag::purge_tags();

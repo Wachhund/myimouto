@@ -1,6 +1,6 @@
 <h3><?=$this->t('.title') ?></h3>
 
-<?= $this->formTag(['action' => "create"], ['level' => 'member'], function(){ ?>
+<?= $this->formTag(['action' => "create"], ['level' => 'member'], function () { ?>
   <table class="form">
     <tbody>
       <tr>

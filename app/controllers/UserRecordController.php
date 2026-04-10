@@ -1,4 +1,5 @@
 <?php
+
 class UserRecordController extends ApplicationController
 {
     public function index()
@@ -46,7 +47,7 @@ class UserRecordController extends ApplicationController
             $attrs = [
                 'user_id'     => $this->params()->user_id,
                 'reported_by' => $this->current_user->id,
-                'category'    => $category
+                'category'    => $category,
             ];
             if ($this->params()->user_record && isset($this->params()->user_record['body'])) {
                 $attrs['body'] = $this->params()->user_record['body'];
@@ -62,7 +63,7 @@ class UserRecordController extends ApplicationController
                         'from_id' => $this->current_user->id,
                         'to_id'   => $this->user->id,
                         'title'   => "Your user record has been updated",
-                        'body'    => $body
+                        'body'    => $body,
                     ]);
                 }
 
@@ -89,8 +90,8 @@ class UserRecordController extends ApplicationController
     {
         return [
             'before' => [
-                'mod_only' => ['only' => ['index', 'create', 'destroy']]
-            ]
+                'mod_only' => ['only' => ['index', 'create', 'destroy']],
+            ],
         ];
     }
 }

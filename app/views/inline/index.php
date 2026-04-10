@@ -35,10 +35,10 @@
   <?= $this->willPaginate($this->inlines) ?>
 </div>
 
-<?= $this->formTag(["#create"], ['id' => "create-new"], function(){ ?>
+<?= $this->formTag(["#create"], ['id' => "create-new"], function () { ?>
 <?php }) ?>
 
-<?php $this->contentFor('subnavbar', function() { ?>
+<?php $this->contentFor('subnavbar', function () { ?>
   <li><?= $this->linkTo($this->t('.create'), "#", ['level' => 'member', 'onclick' => "$('create-new').submit(); return false;"]) ?></li>
 <?php }) ?>
 

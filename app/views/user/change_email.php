@@ -1,8 +1,8 @@
-<?php # iTODO: formFor support ?>
+<?php # iTODO: formFor support?>
 <?php $this->provide('title', $this->t('.title')) ?>
 <h1><?= $this->t('.title') ?></h1>
 <div id="user-edit">
-  <?= $this->formTag([ 'action' => 'update' ], function() { ?>
+  <?= $this->formTag([ 'action' => 'update' ], function () { ?>
     <?= $this->hiddenField('render', 'view', ['value' => 'change_email']) ?>
     <?php # Just so the current email carries over on error -?>
     <?= $this->hiddenField('user', 'current_email') ?>

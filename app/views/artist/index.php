@@ -1,6 +1,6 @@
 <div id="artist-index">
   <div id="search-form" style="margin-bottom: 1em;">
-    <?= $this->formTag([], ['method' => 'get'], function(){ ?>
+    <?= $this->formTag([], ['method' => 'get'], function () { ?>
       <?= $this->textFieldTag('name', $this->params()->name, ['size' => 40]) ?> <?= $this->submitTag($this->t('.search')) ?>
       <br />
       <?= $this->selectTag('order', [[$this->t('.name') => 'name', $this->t('.date') => 'date'], ($this->params()->order ?: '')]) ?>
@@ -13,7 +13,7 @@
         <tr>
           <th width="5%"></th>
           <th width="30%"><?= $this->t('.name') ?></th>
-          <th width="35%"><?= 'Other names' // $this->t('.aliases') ?></th>
+          <th width="35%"><?= 'Other names' // $this->t('.aliases')?></th>
           <th width="20%"><?= $this->t('.updated_by') ?></th>
           <th width="10%"><?= $this->t('.last_modified') ?></th>
         </tr>
@@ -35,7 +35,9 @@
                 [<?= $this->linkTo($artist->group_name(), ['action' => 'show', 'id' => $artist->group_id], ['title' => $this->t('.is_group')]) ?>]
               <?php endif ?>
             </td>
-            <td><?= implode(', ', array_map(function($x){return $this->linkTo($this->h($x->name), array('#show', 'id' => $x->id));}, $artist->aliases()->members())) ?></td>
+            <td><?= implode(', ', array_map(function ($x) {
+                return $this->linkTo($this->h($x->name), ['#show', 'id' => $x->id]);
+            }, $artist->aliases()->members())) ?></td>
             <?php if ($artist->updater_id) : ?>
               <td><?= User::find_name($artist->updater_id) ?></td>
             <?php else: ?>

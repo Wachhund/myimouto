@@ -3,7 +3,7 @@
   <h4>Set New Password</h4>
   <p>Enter your new password below.</p>
 
-  <?= $this->formTag(['action' => 'reset_password', 'token' => $this->reset_token], function(){ ?>
+  <?= $this->formTag(['action' => 'reset_password', 'token' => $this->reset_token], function () { ?>
     <?= $this->hiddenFieldTag('token', $this->reset_token) ?>
     <table class="form">
       <tbody>
@@ -29,7 +29,7 @@
   <h4><?= $this->t('user_reset') ?></h4>
   <p><?= $this->t('user_reset_text') ?></p>
 
-  <?= $this->formTag(['action' => 'reset_password'], function(){ ?>
+  <?= $this->formTag(['action' => 'reset_password'], function () { ?>
     <table class="form">
       <tbody>
         <tr>

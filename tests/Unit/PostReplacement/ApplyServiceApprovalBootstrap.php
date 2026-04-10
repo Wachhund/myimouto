@@ -39,10 +39,10 @@ if (!class_exists('ApplyServiceTestErrorBag', false)) {
 if (!class_exists('PostReplacement', false)) {
     class PostReplacement
     {
-        const STATUS_PENDING = 'pending';
-        const STATUS_APPROVED = 'approved';
-        const STATUS_REJECTED = 'rejected';
-        const STATUS_DELETED = 'deleted';
+        public const STATUS_PENDING = 'pending';
+        public const STATUS_APPROVED = 'approved';
+        public const STATUS_REJECTED = 'rejected';
+        public const STATUS_DELETED = 'deleted';
 
         /** @var int */
         public $id = 1;

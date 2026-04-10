@@ -33,7 +33,7 @@ class Message
     {
         $out = [];
         foreach ($this->parts as $part) {
-            $out[] = (string)$part;
+            $out[] = (string) $part;
         }
 
         return implode("\n\n", $out);

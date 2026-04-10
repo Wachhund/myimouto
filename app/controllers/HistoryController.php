@@ -1,4 +1,5 @@
 <?php
+
 use Moebooru\Versioning as Versioned;
 
 class HistoryController extends ApplicationController
@@ -6,11 +7,11 @@ class HistoryController extends ApplicationController
     public function index()
     {
         $this->helper('Tag', 'Post');
-        
+
         $search = trim($this->params()->search) ?: "";
 
         $q = [
-            'keywords' => []
+            'keywords' => [],
         ];
 
         if ($search) {
@@ -22,18 +23,18 @@ class HistoryController extends ApplicationController
                     if ($search_type == "user") {
                         $q['user'] = $param;
                     } elseif ($search_type == "change") {
-                        $q['change'] = (int)$param;
+                        $q['change'] = (int) $param;
                     } elseif ($search_type == "type") {
                         $q['type'] = $param;
                     } elseif ($search_type == "id") {
-                        $q['id'] = (int)$param;
+                        $q['id'] = (int) $param;
                     } elseif ($search_type == "field") {
                         # 'type' must also be set for this to be used.
                         $q['field'] = $param;
                     } else {
                         # pool'123'
                         $q['type'] = $search_type;
-                        $q['id'] = (int)$param;
+                        $q['id'] = (int) $param;
                     }
                 } else {
                     $q['keywords'][] = $s;
@@ -42,7 +43,7 @@ class HistoryController extends ApplicationController
         }
 
         $inflector = Rails::services()->get('inflector');
-        
+
         if (!empty($q['type'])) {
             $q['type'] = $inflector->pluralize($q['type']);
         }
@@ -126,14 +127,14 @@ class HistoryController extends ApplicationController
 
                 # A changes that has no previous value is the initial value for that object.    Don't show
                 # these changes unless they're different from the default for that field.
-                list ($default_value, $has_default) = $cls::versioning()->get_versioned_default($field);
+                list($default_value, $has_default) = $cls::versioning()->get_versioned_default($field);
                 if ($has_default) {
                     $hc_conds[] = "(hc.previous_id IS NOT NULL OR value <> ?)";
                     $hc_cond_params[] = $default_value;
                 }
             }
         }
-        
+
         if ($hc_conds) {
             array_unshift($hc_cond_params, 'histories.id IN (SELECT history_id FROM history_changes hc JOIN histories h ON (hc.history_id = h.id) WHERE ' . implode(" AND ", $hc_conds) . ')');
             call_user_func_array([$query, 'where'], $hc_cond_params);
@@ -153,15 +154,16 @@ class HistoryController extends ApplicationController
             'specific_object' => (!empty($q['type']) and !empty($q['id'])),
             'specific_history' => !empty($q['change']),
         ];
-        
+
         $this->options['show_name'] = false;
         if ($this->type != "all") {
             $cn = $inflector->classify($this->type);
             try {
                 if (Versioned::is_versioned_class($cls) && class_exists($cn)) {
                     $obj = new $cn();
-                    if (method_exists($obj, "pretty_name"))
+                    if (method_exists($obj, "pretty_name")) {
                         $this->options['show_name'] = true;
+                    }
                 }
             } catch (Rails\Loader\Exception\ExceptionInterface $e) {
             }
@@ -185,15 +187,17 @@ class HistoryController extends ApplicationController
         $ids = explode(',', $this->params()->id);
 
         $this->changes = HistoryChange::emptyCollection();
-        foreach ($ids as $id)
+        foreach ($ids as $id) {
             $this->changes[] = HistoryChange::where("id = ?", $id)->first();
+        }
 
         $histories = [];
         $total_histories = 0;
         foreach ($this->changes as $change) {
-            if (isset($histories[$change->history_id]))
+            if (isset($histories[$change->history_id])) {
                 continue;
-            
+            }
+
             $histories[$change->history_id] = true;
             $total_histories += 1;
         }

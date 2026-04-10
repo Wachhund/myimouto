@@ -1,7 +1,7 @@
 <h4><?= $this->t('.title') ?></h4>
 
-<?= $this->formTag(['action' => 'search'], ['method' => 'get'], function(){ ?>
-  <?= $this->textFieldTag("query", $this->h($this->params()->query),  ['size' => '40']) ?> <?= $this->submitTag($this->t('.search')) ?>
+<?= $this->formTag(['action' => 'search'], ['method' => 'get'], function () { ?>
+  <?= $this->textFieldTag("query", $this->h($this->params()->query), ['size' => '40']) ?> <?= $this->submitTag($this->t('.search')) ?>
 <?php }) ?>
 
 <?php if ($this->notes) : ?>
@@ -12,7 +12,7 @@
           <?= $this->linkTo($this->imageTag($note->post->preview_url(), ['width' => $note->post->preview_dimensions()[0], 'height' => $note->post->preview_dimensions()[1], 'loading' => 'lazy']), ['post#show', 'id' => $note->post_id]) ?>
         </div>
         <div style="float: left;">
-          <?= $this->h($note->formatted_body()) //sanitize ?>
+          <?= $this->h($note->formatted_body()) //sanitize?>
         </div>
       </div>
     <?php endforeach ?>

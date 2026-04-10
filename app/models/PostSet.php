@@ -1,27 +1,28 @@
 <?php
+
 class PostSet extends Rails\ActiveRecord\Base
 {
-    const MAINTAINER_STATUS_PENDING = 'pending';
-    const MAINTAINER_STATUS_APPROVED = 'approved';
-    const MAINTAINER_STATUS_BLOCKED = 'blocked';
+    public const MAINTAINER_STATUS_PENDING = 'pending';
+    public const MAINTAINER_STATUS_APPROVED = 'approved';
+    public const MAINTAINER_STATUS_BLOCKED = 'blocked';
 
     protected function associations()
     {
         return [
             'belongs_to' => [
-                'creator' => ['class_name' => 'User', 'foreign_key' => 'creator_id']
+                'creator' => ['class_name' => 'User', 'foreign_key' => 'creator_id'],
             ],
             'has_many' => [
                 'post_set_posts' => ['class_name' => 'PostSetPost', 'dependent' => 'delete_all'],
-                'post_set_maintainers' => ['class_name' => 'PostSetMaintainer', 'dependent' => 'delete_all']
-            ]
+                'post_set_maintainers' => ['class_name' => 'PostSetMaintainer', 'dependent' => 'delete_all'],
+            ],
         ];
     }
 
     protected function callbacks()
     {
         return [
-            'before_validation' => ['normalize_fields']
+            'before_validation' => ['normalize_fields'],
         ];
     }
 
@@ -30,21 +31,21 @@ class PostSet extends Rails\ActiveRecord\Base
         return [
             'name' => [
                 'presence' => true,
-                'length' => ['in' => [2, 128]]
+                'length' => ['in' => [2, 128]],
             ],
             'shortname' => [
                 'presence' => true,
                 'uniqueness' => true,
                 'length' => ['in' => [2, 128]],
-                'format' => ['with' => '/\A[a-z0-9_]+\Z/', 'message' => 'must contain only lowercase letters, numbers, and underscores']
-            ]
+                'format' => ['with' => '/\A[a-z0-9_]+\Z/', 'message' => 'must contain only lowercase letters, numbers, and underscores'],
+            ],
         ];
     }
 
     public function normalize_fields()
     {
-        $this->name = trim((string)$this->name);
-        $shortname = trim((string)$this->shortname);
+        $this->name = trim((string) $this->name);
+        $shortname = trim((string) $this->shortname);
 
         if ($shortname === '' && $this->name !== '') {
             $shortname = $this->name;
@@ -63,7 +64,7 @@ class PostSet extends Rails\ActiveRecord\Base
             return false;
         }
 
-        return (int)$this->creator_id === (int)$user->id;
+        return (int) $this->creator_id === (int) $user->id;
     }
 
     public function is_maintainer(User $user = null)
@@ -76,7 +77,7 @@ class PostSet extends Rails\ActiveRecord\Base
             'post_set_id = ? AND user_id = ? AND status = ?',
             $this->id,
             $user->id,
-            self::MAINTAINER_STATUS_APPROVED
+            self::MAINTAINER_STATUS_APPROVED,
         )->exists();
     }
 
@@ -90,7 +91,7 @@ class PostSet extends Rails\ActiveRecord\Base
             'post_set_id = ? AND user_id = ? AND status = ?',
             $this->id,
             $user->id,
-            self::MAINTAINER_STATUS_PENDING
+            self::MAINTAINER_STATUS_PENDING,
         )->exists();
     }
 
@@ -104,7 +105,7 @@ class PostSet extends Rails\ActiveRecord\Base
             'post_set_id = ? AND user_id = ? AND status = ?',
             $this->id,
             $user->id,
-            self::MAINTAINER_STATUS_BLOCKED
+            self::MAINTAINER_STATUS_BLOCKED,
         )->exists();
     }
 
@@ -161,7 +162,7 @@ class PostSet extends Rails\ActiveRecord\Base
     {
         $ids = self::connection()->selectValues(
             'SELECT post_id FROM post_set_posts WHERE post_set_id = ? ORDER BY id ASC',
-            $this->id
+            $this->id,
         );
 
         return array_map('intval', $ids ?: []);
@@ -169,16 +170,16 @@ class PostSet extends Rails\ActiveRecord\Base
 
     public function update_post_count()
     {
-        $count = (int)self::connection()->selectValue(
+        $count = (int) self::connection()->selectValue(
             'SELECT COUNT(*) FROM post_set_posts WHERE post_set_id = ?',
-            $this->id
+            $this->id,
         );
         $this->post_count = $count;
         self::connection()->executeSql(
             'UPDATE post_sets SET post_count = ?, updated_at = ? WHERE id = ?',
             $count,
             date('Y-m-d H:i:s'),
-            $this->id
+            $this->id,
         );
     }
 
@@ -199,7 +200,7 @@ class PostSet extends Rails\ActiveRecord\Base
         $existing_membership = self::connection()->selectValues(
             'SELECT post_id FROM post_set_posts WHERE post_set_id = ? AND post_id IN (?)',
             $this->id,
-            $existing_post_ids
+            $existing_post_ids,
         );
         $existing_membership = array_map('intval', $existing_membership ?: []);
 
@@ -207,7 +208,7 @@ class PostSet extends Rails\ActiveRecord\Base
         foreach ($to_add as $post_id) {
             PostSetPost::create([
                 'post_set_id' => $this->id,
-                'post_id' => $post_id
+                'post_id' => $post_id,
             ]);
         }
 
@@ -228,7 +229,7 @@ class PostSet extends Rails\ActiveRecord\Base
         $existing_membership = self::connection()->selectValues(
             'SELECT post_id FROM post_set_posts WHERE post_set_id = ? AND post_id IN (?)',
             $this->id,
-            $normalized_ids
+            $normalized_ids,
         );
         $existing_membership = array_map('intval', $existing_membership ?: []);
         if (empty($existing_membership)) {
@@ -238,7 +239,7 @@ class PostSet extends Rails\ActiveRecord\Base
         self::connection()->executeSql(
             'DELETE FROM post_set_posts WHERE post_set_id = ? AND post_id IN (?)',
             $this->id,
-            $existing_membership
+            $existing_membership,
         );
 
         $this->update_post_count();
@@ -261,14 +262,14 @@ class PostSet extends Rails\ActiveRecord\Base
             self::connection()->executeSql(
                 'DELETE FROM post_set_posts WHERE post_set_id = ? AND post_id IN (?)',
                 $this->id,
-                $to_remove
+                $to_remove,
             );
         }
 
         foreach ($to_add as $post_id) {
             PostSetPost::create([
                 'post_set_id' => $this->id,
-                'post_id' => $post_id
+                'post_id' => $post_id,
             ]);
         }
 
@@ -279,7 +280,7 @@ class PostSet extends Rails\ActiveRecord\Base
         return [
             'added' => $to_add,
             'removed' => $to_remove,
-            'invalid' => $invalid_post_ids
+            'invalid' => $invalid_post_ids,
         ];
     }
 
@@ -293,21 +294,21 @@ class PostSet extends Rails\ActiveRecord\Base
         self::apply_visibility_scope($query, $user);
 
         if (!empty($params['creator_id'])) {
-            $query->where('creator_id = ?', (int)$params['creator_id']);
+            $query->where('creator_id = ?', (int) $params['creator_id']);
         }
 
         if (!empty($params['maintainer_id'])) {
             $query->where(
                 'id IN (SELECT post_set_id FROM post_set_maintainers WHERE user_id = ? AND status = ?)',
-                (int)$params['maintainer_id'],
-                self::MAINTAINER_STATUS_APPROVED
+                (int) $params['maintainer_id'],
+                self::MAINTAINER_STATUS_APPROVED,
             );
         }
 
         if (!empty($params['post_id'])) {
             $query->where(
                 'id IN (SELECT post_set_id FROM post_set_posts WHERE post_id = ?)',
-                (int)$params['post_id']
+                (int) $params['post_id'],
             );
         }
 
@@ -316,11 +317,11 @@ class PostSet extends Rails\ActiveRecord\Base
         }
 
         if (!empty($params['name'])) {
-            $name = str_replace(' ', '_', trim((string)$params['name']));
+            $name = str_replace(' ', '_', trim((string) $params['name']));
             $query->where('(name LIKE ? OR shortname LIKE ?)', '%' . $name . '%', '%' . strtolower($name) . '%');
         }
 
-        $order = isset($params['order']) ? (string)$params['order'] : '';
+        $order = isset($params['order']) ? (string) $params['order'] : '';
         switch ($order) {
             case 'name':
                 $query->order('name ASC');
@@ -345,12 +346,12 @@ class PostSet extends Rails\ActiveRecord\Base
             return [];
         }
 
-        return self::normalize_post_ids(preg_split('/[\s,]+/', (string)$value));
+        return self::normalize_post_ids(preg_split('/[\s,]+/', (string) $value));
     }
 
     public static function post_limit()
     {
-        $limit = (int)CONFIG()->post_set_post_limit;
+        $limit = (int) CONFIG()->post_set_post_limit;
         return $limit > 0 ? $limit : 2000;
     }
 
@@ -361,11 +362,11 @@ class PostSet extends Rails\ActiveRecord\Base
             'creator_id' => $this->creator_id,
             'name' => $this->name,
             'shortname' => $this->shortname,
-            'description' => (string)$this->description,
-            'is_public' => (bool)$this->is_public,
-            'post_count' => (int)$this->post_count,
+            'description' => (string) $this->description,
+            'is_public' => (bool) $this->is_public,
+            'post_count' => (int) $this->post_count,
             'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at
+            'updated_at' => $this->updated_at,
         ];
     }
 
@@ -385,7 +386,7 @@ class PostSet extends Rails\ActiveRecord\Base
     {
         $normalized = [];
         foreach ($post_ids as $post_id) {
-            $post_id = (int)$post_id;
+            $post_id = (int) $post_id;
             if ($post_id > 0) {
                 $normalized[] = $post_id;
             }
@@ -410,7 +411,7 @@ class PostSet extends Rails\ActiveRecord\Base
             true,
             $user->id,
             $user->id,
-            self::MAINTAINER_STATUS_APPROVED
+            self::MAINTAINER_STATUS_APPROVED,
         );
     }
 
@@ -420,7 +421,7 @@ class PostSet extends Rails\ActiveRecord\Base
             return $value;
         }
 
-        $normalized = strtolower(trim((string)$value));
+        $normalized = strtolower(trim((string) $value));
         return in_array($normalized, ['1', 'true', 'yes', 'on'], true);
     }
 }

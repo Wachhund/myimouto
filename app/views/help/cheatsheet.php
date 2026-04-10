@@ -100,7 +100,7 @@
       <dt>order:vote</dt>
       <dd>Order by when the post was voted (only valid when doing a vote search)</dd>
       
-      <?php if(CONFIG()->enable_parent_posts): ?>
+      <?php if (CONFIG()->enable_parent_posts): ?>
         <dt>parent:1234</dt>
         <dd>Search for posts that have 1234 as a parent (and include post 1234).</dd>
         
@@ -156,7 +156,7 @@
       <dt>rating:questionable</dt>
       <dd>Rates a post as questionable. This tag is discarded after the rating is changed.</dd>
       
-      <?php if(CONFIG()->enable_parent_posts): ?>
+      <?php if (CONFIG()->enable_parent_posts): ?>
         <dt>parent:1234</dt>
         <dd>Sets the post's parent id to 1234. This tag is discarded after the parent id is changed. If the parent id is the same as the post id, then the parent id will be cleared.</dd>
       <?php endif ?>
@@ -225,6 +225,6 @@
   </div>
 </div>
 
-<?php $this->contentFor("subnavbar", function() { ?>
+<?php $this->contentFor("subnavbar", function () { ?>
   <li><?= $this->linkTo("Help", "#index") ?></li>
 <?php }) ?>

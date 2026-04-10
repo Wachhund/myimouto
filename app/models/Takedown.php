@@ -1,16 +1,17 @@
 <?php
+
 class Takedown extends Rails\ActiveRecord\Base
 {
-    const STATUS_PENDING = 'pending';
-    const STATUS_APPROVED = 'approved';
-    const STATUS_DENIED = 'denied';
-    const STATUS_PARTIAL = 'partial';
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_APPROVED = 'approved';
+    public const STATUS_DENIED = 'denied';
+    public const STATUS_PARTIAL = 'partial';
 
-    const VALID_STATUSES = [
+    public const VALID_STATUSES = [
         self::STATUS_PENDING,
         self::STATUS_APPROVED,
         self::STATUS_DENIED,
-        self::STATUS_PARTIAL
+        self::STATUS_PARTIAL,
     ];
 
     protected function associations()
@@ -18,11 +19,11 @@ class Takedown extends Rails\ActiveRecord\Base
         return [
             'belongs_to' => [
                 'creator' => ['class_name' => 'User', 'foreign_key' => 'creator_id'],
-                'approver' => ['class_name' => 'User', 'foreign_key' => 'approver_id']
+                'approver' => ['class_name' => 'User', 'foreign_key' => 'approver_id'],
             ],
             'has_many' => [
-                'takedown_posts' => ['class_name' => 'TakedownPost', 'dependent' => 'delete_all']
-            ]
+                'takedown_posts' => ['class_name' => 'TakedownPost', 'dependent' => 'delete_all'],
+            ],
         ];
     }
 
@@ -30,45 +31,45 @@ class Takedown extends Rails\ActiveRecord\Base
     {
         return [
             'before_validation' => ['normalize_fields'],
-            'before_create' => ['generate_vericode']
+            'before_create' => ['generate_vericode'],
         ];
     }
 
     protected function validations()
     {
         return [
-            'reason' => ['presence' => true]
+            'reason' => ['presence' => true],
         ];
     }
 
     public function normalize_fields()
     {
-        $this->reason = trim((string)$this->reason);
+        $this->reason = trim((string) $this->reason);
         if ($this->reason === '') {
             $this->reason = null;
         }
 
-        $this->email = trim((string)$this->email);
+        $this->email = trim((string) $this->email);
         if ($this->email === '') {
             $this->email = null;
         }
 
-        $this->source = trim((string)$this->source);
+        $this->source = trim((string) $this->source);
         if ($this->source === '') {
             $this->source = null;
         }
 
-        $this->instructions = trim((string)$this->instructions);
+        $this->instructions = trim((string) $this->instructions);
         if ($this->instructions === '') {
             $this->instructions = null;
         }
 
-        $this->notes = trim((string)$this->notes);
+        $this->notes = trim((string) $this->notes);
         if ($this->notes === '') {
             $this->notes = null;
         }
 
-        $this->status = trim(strtolower((string)$this->status));
+        $this->status = trim(strtolower((string) $this->status));
         if ($this->status === '') {
             $this->status = self::STATUS_PENDING;
         }
@@ -90,13 +91,13 @@ class Takedown extends Rails\ActiveRecord\Base
             return false;
         }
 
-        $this->approver_id = (int)$staff->id;
+        $this->approver_id = (int) $staff->id;
         $this->status = $status;
         $this->updated_at = date('Y-m-d H:i:s');
         $result = $this->save();
 
         if ($result) {
-            ModAction::log('takedown_process', ['takedown_id' => (int)$this->id, 'status' => $status]);
+            ModAction::log('takedown_process', ['takedown_id' => (int) $this->id, 'status' => $status]);
         }
 
         return $result;
@@ -126,7 +127,7 @@ class Takedown extends Rails\ActiveRecord\Base
         $already_linked = self::connection()->selectValues(
             'SELECT post_id FROM takedown_posts WHERE takedown_id = ? AND post_id IN (?)',
             $this->id,
-            $existing_post_ids
+            $existing_post_ids,
         );
         $already_linked = array_map('intval', $already_linked ?: []);
 
@@ -135,7 +136,7 @@ class Takedown extends Rails\ActiveRecord\Base
             TakedownPost::create([
                 'takedown_id' => $this->id,
                 'post_id' => $post_id,
-                'created_at' => date('Y-m-d H:i:s')
+                'created_at' => date('Y-m-d H:i:s'),
             ]);
         }
 
@@ -158,7 +159,7 @@ class Takedown extends Rails\ActiveRecord\Base
         $existing = self::connection()->selectValues(
             'SELECT post_id FROM takedown_posts WHERE takedown_id = ? AND post_id IN (?)',
             $this->id,
-            $normalized
+            $normalized,
         );
         $existing = array_map('intval', $existing ?: []);
 
@@ -169,7 +170,7 @@ class Takedown extends Rails\ActiveRecord\Base
         self::connection()->executeSql(
             'DELETE FROM takedown_posts WHERE takedown_id = ? AND post_id IN (?)',
             $this->id,
-            $existing
+            $existing,
         );
 
         return ['removed' => $existing];
@@ -182,7 +183,7 @@ class Takedown extends Rails\ActiveRecord\Base
     {
         $ids = self::connection()->selectValues(
             'SELECT post_id FROM takedown_posts WHERE takedown_id = ? ORDER BY id ASC',
-            $this->id
+            $this->id,
         );
         return array_map('intval', $ids ?: []);
     }
@@ -193,16 +194,16 @@ class Takedown extends Rails\ActiveRecord\Base
     public function post_count($status = null)
     {
         if ($status !== null) {
-            return (int)self::connection()->selectValue(
+            return (int) self::connection()->selectValue(
                 'SELECT COUNT(*) FROM takedown_posts WHERE takedown_id = ? AND status = ?',
                 $this->id,
-                $status
+                $status,
             );
         }
 
-        return (int)self::connection()->selectValue(
+        return (int) self::connection()->selectValue(
             'SELECT COUNT(*) FROM takedown_posts WHERE takedown_id = ?',
-            $this->id
+            $this->id,
         );
     }
 
@@ -215,10 +216,10 @@ class Takedown extends Rails\ActiveRecord\Base
             self::STATUS_PENDING => 'Pending',
             self::STATUS_APPROVED => 'Approved',
             self::STATUS_DENIED => 'Denied',
-            self::STATUS_PARTIAL => 'Partial'
+            self::STATUS_PARTIAL => 'Partial',
         ];
 
-        return $labels[(string)$this->status] ?? (string)$this->status;
+        return $labels[(string) $this->status] ?? (string) $this->status;
     }
 
     /**
@@ -227,17 +228,17 @@ class Takedown extends Rails\ActiveRecord\Base
     public function api_attributes()
     {
         return [
-            'id' => (int)$this->id,
-            'creator_id' => $this->creator_id ? (int)$this->creator_id : null,
+            'id' => (int) $this->id,
+            'creator_id' => $this->creator_id ? (int) $this->creator_id : null,
             'email' => $this->email,
             'source' => $this->source,
-            'reason' => (string)$this->reason,
-            'status' => (string)$this->status,
-            'vericode' => (string)$this->vericode,
+            'reason' => (string) $this->reason,
+            'status' => (string) $this->status,
+            'vericode' => (string) $this->vericode,
             'instructions' => $this->instructions,
-            'approver_id' => $this->approver_id ? (int)$this->approver_id : null,
+            'approver_id' => $this->approver_id ? (int) $this->approver_id : null,
             'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at
+            'updated_at' => $this->updated_at,
         ];
     }
 
@@ -247,11 +248,11 @@ class Takedown extends Rails\ActiveRecord\Base
     public function public_attributes()
     {
         return [
-            'id' => (int)$this->id,
-            'status' => (string)$this->status,
+            'id' => (int) $this->id,
+            'status' => (string) $this->status,
             'instructions' => $this->instructions,
             'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at
+            'updated_at' => $this->updated_at,
         ];
     }
 
@@ -271,7 +272,7 @@ class Takedown extends Rails\ActiveRecord\Base
     {
         $normalized = [];
         foreach ($post_ids as $post_id) {
-            $post_id = (int)$post_id;
+            $post_id = (int) $post_id;
             if ($post_id > 0) {
                 $normalized[] = $post_id;
             }

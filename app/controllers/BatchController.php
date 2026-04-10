@@ -1,12 +1,13 @@
 <?php
+
 class BatchController extends ApplicationController
 {
     protected function filters()
     {
         return [
             'before' => [
-                'contributor_only' => ['only' => ['index', 'create', 'enqueue', 'update']]
-            ]
+                'contributor_only' => ['only' => ['index', 'create', 'enqueue', 'update']],
+            ],
         ];
     }
 
@@ -19,12 +20,13 @@ class BatchController extends ApplicationController
         } else {
             $user_id = $this->current_user->id;
         }
-        
+
         $query = BatchUpload::order("created_at ASC, id ASC");
-        
-        if ($user_id)
+
+        if ($user_id) {
             $query->where("user_id = ?", $user_id);
-        
+        }
+
         # conds[] = "batch_uploads.status = 'deleted'";
         $this->items = $query->paginate($this->page_number(), 25);
     }
@@ -32,7 +34,7 @@ class BatchController extends ApplicationController
     public function update()
     {
         $query = BatchUpload::none();
-        
+
         $conds = [];
         $cond_params = [];
 
@@ -48,33 +50,33 @@ class BatchController extends ApplicationController
         $count = 0;
 
         if ($this->params()->do == "pause") {
-            foreach($query->where("status = 'pending'")->take() as $item) {
+            foreach ($query->where("status = 'pending'")->take() as $item) {
                 $item->updateAttribute('status', "paused");
                 $count++;
             };
             $this->notice("Paused $count uploads.");
         } elseif ($this->params()->do == "unpause") {
-            foreach($query->where("status = 'paused'")->take() as $item) {
+            foreach ($query->where("status = 'paused'")->take() as $item) {
                 $item->updateAttribute('status', "pending");
                 $count++;
             };
             $this->notice("Resumed $count uploads.");
         } elseif ($this->params()->do == "retry") {
-            foreach($query->where("status = 'error'")->take() as $item) {
+            foreach ($query->where("status = 'error'")->take() as $item) {
                 $item->updateAttribute('status', "pending");
                 $count++;
             };
 
             $this->notice("Retrying $count uploads.");
         } elseif ($this->params()->do == "clear_finished") {
-            foreach($query->where("(status = 'finished' or status = 'error')")->take() as $item) {
+            foreach ($query->where("(status = 'finished' or status = 'error')")->take() as $item) {
                 $item->destroy();
                 $count++;
             };
-            
+
             $this->notice("Cleared $count finished uploads.");
         } elseif ($this->params()->do == "abort_all") {
-            foreach($query->where("(status = 'pending' or status = 'paused')")->take() as $item) {
+            foreach ($query->where("(status = 'pending' or status = 'paused')")->take() as $item) {
                 $item->destroy();
                 $count++;
             };
@@ -107,7 +109,7 @@ class BatchController extends ApplicationController
 
             // $text = "";
             $text = Danbooru::http_get_streaming($this->source);
-            
+
             $this->urls = ExtractUrls::extract_image_urls($this->source, $text);
         }
     }

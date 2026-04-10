@@ -4,9 +4,9 @@
 
 <div style="margin-bottom: 1em;">
   <?= $this->formTag(['#import', 'id' => $this->pool->id, 'format' => 'js'], [
-    'method' => 'get',
-    'onsubmit' => "new Ajax.Request(this.action, {asynchronous:true, evalScripts:true, method:'get', parameters:Form.serialize(this)}); return false;"
-  ], function() { ?>
+      'method' => 'get',
+      'onsubmit' => "new Ajax.Request(this.action, {asynchronous:true, evalScripts:true, method:'get', parameters:Form.serialize(this)}); return false;",
+  ], function () { ?>
     <?= $this->textFieldTag('query', $this->params()->query, ['size' => 50]) ?>
     <?= $this->submitTag($this->t('.search')) ?>
   <?php }) ?>
@@ -14,7 +14,7 @@
 
 <div>
   <ul id="post-list-posts">
-    <?= $this->formTag(['#import', 'id' => $this->pool->id], function() { ?>
+    <?= $this->formTag(['#import', 'id' => $this->pool->id], function () { ?>
       <?= $this->hiddenFieldTag('id', $this->pool->id) ?>
       <div id="posts"></div>
 

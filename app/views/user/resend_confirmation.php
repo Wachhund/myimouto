@@ -1,6 +1,6 @@
 <div class="page">
   <p><?= $this->t('user_resend') ?></p>
-  <?= $this->formTag('#resend_confirmation', function(){ ?>
+  <?= $this->formTag('#resend_confirmation', function () { ?>
     <table class="form">
       <tbody>
         <tr>

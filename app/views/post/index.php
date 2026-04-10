@@ -2,20 +2,20 @@
 <div id="post-list">
   <?php
     if ($this->tag_suggestions) :
-      $total = count($this->tag_suggestions);
-      $count = 0;
-  ?>
+        $total = count($this->tag_suggestions);
+        $count = 0;
+        ?>
     <div class="status-notice">
-      <?= $this->t('.maybe_you_meant') ?>: <?= implode(', ', array_map(function($x)use($total, &$count){
+      <?= $this->t('.maybe_you_meant') ?>: <?= implode(', ', array_map(function ($x) use ($total, &$count) {
           $count++;
           $or = $count == $total && $total > 1 ? 'or ' : '';
-          return $or.$this->tag_link($x);
-        }, $this->tag_suggestions)) ?> 
+          return $or . $this->tag_link($x);
+      }, $this->tag_suggestions)) ?> 
     </div>
   <?php
       unset($total, $count);
     endif
-  ?>
+?>
 
   <aside class="sidebar">
     <?= $this->partial('search') ?>
@@ -55,7 +55,7 @@
     <?php endif ?>
 
     <?php if ($this->searching_pool) : ?>
-      <?= $this->t(['.pool_view_html', 'pool' => $this->linkTo($this->h($this->searching_pool->pretty_name()), array('pool#show', 'id' => $this->searching_pool->id))]) ?>
+      <?= $this->t(['.pool_view_html', 'pool' => $this->linkTo($this->h($this->searching_pool->pretty_name()), ['pool#show', 'id' => $this->searching_pool->id])]) ?>
     <?php endif ?>
 
     <?php if ($this->showing_holds_only) : ?>
@@ -69,7 +69,7 @@
     <?php endif ?>
 
     <?= $this->partial('blacklists') ?>
-    <?= $this->partial('tags', array('include_tag_hover_highlight' => 'true')) ?>
+    <?= $this->partial('tags', ['include_tag_hover_highlight' => 'true']) ?>
 
     <br />
 
@@ -80,7 +80,9 @@
   <div class="content">
     <?php if (!empty($this->ambiguous_tags)) : ?>
       <div class="status-notice">
-        <?= $this->t('.ambiguous') ?>: <?= implode(', ', array_map(function($x){ return $this->linkTo($this->h($x), ['wiki#show', 'title' => $x]); }, $this->ambiguous_tags)) ?>
+        <?= $this->t('.ambiguous') ?>: <?= implode(', ', array_map(function ($x) {
+            return $this->linkTo($this->h($x), ['wiki#show', 'title' => $x]);
+        }, $this->ambiguous_tags)) ?>
       </div>
     <?php endif ?>
     <?php if (CONFIG()->can_show_ad('post#index-top', current_user())) : ?>
@@ -88,16 +90,16 @@
     <?php endif ?>
 
     <div id="quick-edit" style="display: none;" class="top-corner-float">
-      <?= $this->formTag('#update', function(){ ?>
-        <?= $this->textAreaTag("post[tags]", "", array('size' => '60x2', 'id' => 'post_tags')) ?>
+      <?= $this->formTag('#update', function () { ?>
+        <?= $this->textAreaTag("post[tags]", "", ['size' => '60x2', 'id' => 'post_tags']) ?>
         <?= $this->submitTag($this->t('buttons.update')) ?>
-        <?= $this->tag('input', array('type' => 'button', 'value' => $this->t('buttons.cancel'), 'class' => 'cancel')) ?>
+        <?= $this->tag('input', ['type' => 'button', 'value' => $this->t('buttons.cancel'), 'class' => 'cancel']) ?>
       <h4 style="float: right;"><?= $this->t('.edit_tags') ?></h4>
       <?php }) ?>
     </div>
 
     <?= $this->partial("hover") ?>
-    <?= $this->partial('posts', array('posts' => $this->posts)) ?>
+    <?= $this->partial('posts', ['posts' => $this->posts]) ?>
 
     <div id="paginator">
       <?= $this->willPaginate($this->posts) ?>
@@ -109,7 +111,7 @@
   </div>
 </div>
 
-<?= $this->contentFor('post_cookie_javascripts', function() { ?>
+<?= $this->contentFor('post_cookie_javascripts', function () { ?>
 <script type="text/javascript">
   post_quick_edit = new PostQuickEdit($("quick-edit"));
 
@@ -137,8 +139,8 @@
 </script>
 <?php }) ?>
 
-<?= $this->contentFor('html_header', function() { ?>
-  <?= $this->auto_discovery_link_tag_with_id('rss', array('post#piclens', 'tags' => $this->params()->tags, 'page' => $this->params()->page), array('id' => 'pl')) ?> 
+<?= $this->contentFor('html_header', function () { ?>
+  <?= $this->auto_discovery_link_tag_with_id('rss', ['post#piclens', 'tags' => $this->params()->tags, 'page' => $this->params()->page], ['id' => 'pl']) ?> 
   <?= $this->navigation_links($this->posts) ?> 
 <?php }) ?>
 

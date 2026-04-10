@@ -1,4 +1,5 @@
 <?php
+
 class PostSetPost extends Rails\ActiveRecord\Base
 {
     protected function associations()
@@ -6,9 +7,8 @@ class PostSetPost extends Rails\ActiveRecord\Base
         return [
             'belongs_to' => [
                 'post_set' => ['class_name' => 'PostSet'],
-                'post'
-            ]
+                'post',
+            ],
         ];
     }
 }
-

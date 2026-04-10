@@ -1,4 +1,5 @@
 <?php
+
 class ErrorsController extends ApplicationController
 {
     protected function init()

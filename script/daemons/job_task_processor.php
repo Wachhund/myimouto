@@ -1,4 +1,5 @@
 <?php
+
 define('RAILS_ENV', 'development');
 require dirname(__DIR__) . '/../config/boot.php';
 

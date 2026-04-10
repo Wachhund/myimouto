@@ -5,12 +5,12 @@
    * having placeholders for user id and name that will be replaced with current user's
    * data right before echoing the menu.
    */
-  $key  = 'menu.' . Rails::application()->I18n()->locale() . '.'.current_user()->level;
-  $menu = Rails::cache()->read($key);
+  $key  = 'menu.' . Rails::application()->I18n()->locale() . '.' . current_user()->level;
+$menu = Rails::cache()->read($key);
 
-  if (!$menu) :
+if (!$menu) :
     ob_start();
-  ?>
+    ?>
     <ul>
       <li class="user"><?= $this->linkTo($this->t('.account._'), ['user#home'], ['onclick' => 'if(!User.run_login_onclick(event)) return false;', 'class' => 'login-button']) ?>
         <?= $this->linkTo('■', '#', ['class' => 'submenu-button', 'aria-label' => $this->t('submenu', 'Submenu'), 'aria-expanded' => 'false']) ?>
@@ -19,9 +19,9 @@
             <li><?= $this->linkTo($this->t('.account.login'), ['controller' => 'user', 'action' => 'login'], ['id' => 'login-link', 'class' => 'login-button']) ?></li>
             <li><?= $this->linkTo($this->t('.account.reset'), ['controller' => 'user', 'action' => 'reset_password']) ?></li>
           <?php else: ?>
-            <li><?= $this->linkTo($this->t('.account.profile'), ['controller' => 'user', 'action' => 'show', 'id' => "-user.id-"]) // MI: -user.id- ?></li>
+            <li><?= $this->linkTo($this->t('.account.profile'), ['controller' => 'user', 'action' => 'show', 'id' => "-user.id-"]) // MI: -user.id-?></li>
             <li><?= $this->linkTo($this->t('.account.mail'), ['controller' => 'dmail', 'action' => 'inbox']) ?></li>
-            <li><?= $this->linkTo($this->t('.account.favorites'), ['controller' => 'post', 'action' => 'index', 'tags' => "order:vote vote:3:-user.name-"]) // MI: -user.name- ?></li>
+            <li><?= $this->linkTo($this->t('.account.favorites'), ['controller' => 'post', 'action' => 'index', 'tags' => "order:vote vote:3:-user.name-"]) // MI: -user.name-?></li>
             <li><?= $this->linkTo($this->t('.account.settings'), ['controller' => 'user', 'action' => 'edit']) ?></li>
             <li><?= $this->linkTo($this->t('.account.change_password'), ['controller' => 'user', 'action' => 'change_password']) ?></li>
             <li><?= $this->linkTo($this->t('.account.logout'), ['controller' => 'user', 'action' => 'logout']/* (MI: Since menu is cached, this doesn't make sense) , ['from' => $this->request()->path()]*/) ?></li>
@@ -33,7 +33,7 @@
         <ul class="search-box">
           <li>
             <div>
-              <?= $this->formTag('post#', ['method' => 'get'], function(){ ?>
+              <?= $this->formTag('post#', ['method' => 'get'], function () { ?>
                 <?= $this->textFieldTag('tags', '', ['id' => '', 'aria-label' => $this->t('.posts.search')]) ?><br />
                 <?= $this->submitTag($this->t('.posts.search')) ?>
               <?php }) ?>
@@ -64,7 +64,7 @@
         <ul class="search-box">
           <li>
             <div>
-              <?= $this->formTag('comment#search', ['method' => 'get'], function(){ ?>
+              <?= $this->formTag('comment#search', ['method' => 'get'], function () { ?>
                 <?= $this->textFieldTag('query', '', ['aria-label' => $this->t('.comments.search')]) ?><br />
                 <?= $this->submitTag($this->t('.comments.search')) ?>
               <?php }) ?>
@@ -84,7 +84,7 @@
         <ul class="search-box">
           <li>
             <div>
-              <?= $this->formTag('note#search', ['method' => 'get'], function(){ ?>
+              <?= $this->formTag('note#search', ['method' => 'get'], function () { ?>
                 <?= $this->textFieldTag('query', '', ['aria-label' => $this->t('.notes.search')]) ?><br />
                 <?= $this->submitTag($this->t('.notes.search')) ?>
               <?php }) ?>
@@ -102,7 +102,7 @@
         <ul class="search-box">
           <li>
             <div>
-              <?= $this->formTag('artist#index', ['method' => 'get'], function(){ ?>
+              <?= $this->formTag('artist#index', ['method' => 'get'], function () { ?>
                 <?= $this->textFieldTag('name', '', ['aria-label' => $this->t('.artists.search')]) ?><br />
                 <?= $this->submitTag($this->t('.artists.search')) ?>
               <?php }) ?>
@@ -120,7 +120,7 @@
         <ul class="search-box">
           <li>
             <div>
-              <?= $this->formTag('tag#index', ['method' => 'get'], function(){ ?>
+              <?= $this->formTag('tag#index', ['method' => 'get'], function () { ?>
                 <?= $this->textFieldTag('name', '', ['aria-label' => $this->t('.tags.search')]) ?><br />
                 <?= $this->submitTag($this->t('.tags.search')) ?>
               <?php }) ?>
@@ -143,7 +143,7 @@
         <ul class="search-box">
           <li>
             <div>
-              <?= $this->formTag('pool#index', ['method' => 'get'], function(){ ?>
+              <?= $this->formTag('pool#index', ['method' => 'get'], function () { ?>
                 <?= $this->textFieldTag('query', '', ['aria-label' => $this->t('.pools.search')]) ?><br />
                 <?= $this->submitTag($this->t('.pools.search')) ?>
               <?php }) ?>
@@ -161,7 +161,7 @@
         <ul class="search-box">
           <li>
             <div>
-              <?= $this->formTag('wiki#index', ['method' => 'get'], function(){ ?>
+              <?= $this->formTag('wiki#index', ['method' => 'get'], function () { ?>
                 <?= $this->textFieldTag('query', '', ['aria-label' => $this->t('.wiki.search')]) ?><br />
                 <?= $this->submitTag($this->t('.wiki.search')) ?>
               <?php }) ?>
@@ -179,7 +179,7 @@
         <ul class="search-box">
           <li>
             <div>
-              <?= $this->formTag('forum#search', ['method' => 'get'], function(){ ?>
+              <?= $this->formTag('forum#search', ['method' => 'get'], function () { ?>
                 <?= $this->textFieldTag('query', '', ['aria-label' => $this->t('.forum.search')]) ?><br />
                 <?= $this->submitTag($this->t('.forum.search')) ?>
               <?php }) ?>
@@ -197,8 +197,8 @@
       <li class="help"><?= $this->linkTo($this->t('.help._'), "help#") ?>
         <?= $this->linkTo('■', '#', ['class' => 'submenu-button', 'aria-label' => $this->t('submenu', 'Submenu'), 'aria-expanded' => 'false']) ?>
         <ul class="submenu">
-          <?php # FIXME: should pluralize everything one day ?>
-          <?php foreach(['post', 'comment', 'note', 'artist', 'tag', 'pool'] as $item) : ?>
+          <?php # FIXME: should pluralize everything one day?>
+          <?php foreach (['post', 'comment', 'note', 'artist', 'tag', 'pool'] as $item) : ?>
             <li><?= $this->linkTo($this->t(".help." . $item . "s"), "help#" . $item . "s", ['class' => ['help-item', $item]]) ?>
           <?php endforeach ?>
           <?php foreach (['wiki', 'forum'] as $item) : ?>
@@ -217,15 +217,15 @@
     <span id='cn' style="display: none;">
     </span>
   <?php
-    $menu = ob_get_clean();
-    Rails::cache()->write($key, $menu);
-  endif;
+      $menu = ob_get_clean();
+Rails::cache()->write($key, $menu);
+endif;
 
-  if (!current_user()->is_anonymous()) {
-    $menu = substr_replace($menu,   current_user()->id, strpos($menu, '-user.id-'),    9);
+if (!current_user()->is_anonymous()) {
+    $menu = substr_replace($menu, current_user()->id, strpos($menu, '-user.id-'), 9);
     echo    substr_replace($menu, current_user()->name, strpos($menu, '-user.name-'), 11);
-  } else {
+} else {
     echo $menu;
-  }
-  ?>
+}
+?>
 </nav>

@@ -24,16 +24,16 @@
         } else {
             $forum_vote_score = ForumPostVote::post_score($this->post->id);
         }
-        if (!current_user()->is_anonymous()) {
-            if (isset($this->user_votes)) {
-                $forum_user_vote = $this->user_votes[$this->post->id] ?? null;
-            } else {
-                $forum_user_vote = ForumPostVote::user_vote(current_user()->id, $this->post->id);
-            }
+    if (!current_user()->is_anonymous()) {
+        if (isset($this->user_votes)) {
+            $forum_user_vote = $this->user_votes[$this->post->id] ?? null;
         } else {
-            $forum_user_vote = null;
+            $forum_user_vote = ForumPostVote::user_vote(current_user()->id, $this->post->id);
         }
-      ?>
+    } else {
+        $forum_user_vote = null;
+    }
+    ?>
       <span class="forum-post-votes" data-post-id="<?= $this->post->id ?>" style="margin-right: 0.5em;">
         <?php if (!current_user()->is_anonymous()) : ?>
           <a href="#" class="forum-vote-btn<?= $forum_user_vote === 1 ? ' forum-vote-active' : '' ?>" data-vote-score="1" data-post-id="<?= $this->post->id ?>" title="Vote up">+1</a>
@@ -48,7 +48,7 @@
       </span>
       <ul class="flat-list pipe-list">
       <?php if (current_user()->has_permission($this->post, 'creator_id')) : ?>
-        <li> <?= $this->linkTo($this->t('.edit'), ['action' => "edit", 'id' => $this->post->id, 'page' => (int)$this->params()->page]) ?>
+        <li> <?= $this->linkTo($this->t('.edit'), ['action' => "edit", 'id' => $this->post->id, 'page' => (int) $this->params()->page]) ?>
         <li> <?= $this->linkTo($this->t('.delete'), ["#destroy", 'id' => $this->post->id], ['confirm' => $this->t('.delete_confirm'), 'method' => 'post']) ?>
       <?php endif ?>
       <?php if ($this->post->is_parent() && current_user()->is_mod_or_higher()) : ?>

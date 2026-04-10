@@ -1,48 +1,50 @@
 <?php
+
 class ArtistUrl extends Rails\ActiveRecord\Base
 {
-    static public function tableName()
+    public static function tableName()
     {
         return 'artists_urls';
     }
-    
+
     protected function callbacks()
     {
         return [
-            'before_save' => ['normalize_url']
+            'before_save' => ['normalize_url'],
         ];
     }
-    
+
     protected function validations()
     {
         return [
             'url' => [
-                'presence' => true
-            ]
+                'presence' => true,
+            ],
         ];
     }
-    
-    static public function normalize($url)
+
+    public static function normalize($url)
     {
         if ($url) {
             $url = preg_replace(
-                array('/^http:\/\/blog\d+\.fc2/', '/^http:\/\/blog-imgs-\d+\.fc2/', '/^http:\/\/img\d+\.pixiv\.net/'),
-                array("http://blog.fc2", "http://blog.fc2", "http://img.pixiv.net"),
-                $url
+                ['/^http:\/\/blog\d+\.fc2/', '/^http:\/\/blog-imgs-\d+\.fc2/', '/^http:\/\/img\d+\.pixiv\.net/'],
+                ["http://blog.fc2", "http://blog.fc2", "http://img.pixiv.net"],
+                $url,
             );
             return $url;
         }
     }
-    
-    static public function normalize_for_search($url)
+
+    public static function normalize_for_search($url)
     {
-        if (preg_match('/\.\w+$/', $url) && preg_match('/\w\/\w/', $url))
+        if (preg_match('/\.\w+$/', $url) && preg_match('/\w\/\w/', $url)) {
             $url = dirname($url);
-        
+        }
+
         $url = preg_replace(
-            array('/^http:\/\/blog\d+\.fc2/', '/^http:\/\/blog-imgs-\d+\.fc2/', '/^http:\/\/img\d+\.pixiv\.net/'),
-            array("http://blog*.fc2", "http://blog*.fc2", "http://img*.pixiv.net"),
-            $url
+            ['/^http:\/\/blog\d+\.fc2/', '/^http:\/\/blog-imgs-\d+\.fc2/', '/^http:\/\/img\d+\.pixiv\.net/'],
+            ["http://blog*.fc2", "http://blog*.fc2", "http://img*.pixiv.net"],
+            $url,
         );
     }
 

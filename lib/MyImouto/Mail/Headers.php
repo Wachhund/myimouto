@@ -11,7 +11,7 @@ class Headers
 
     public function get($name)
     {
-        $key = strtolower(trim((string)$name));
+        $key = strtolower(trim((string) $name));
         if ($key === '') {
             throw new \InvalidArgumentException('Header name cannot be empty');
         }
@@ -25,7 +25,7 @@ class Headers
 
     public function set($name, $header)
     {
-        $key = strtolower(trim((string)$name));
+        $key = strtolower(trim((string) $name));
         if ($key === '') {
             throw new \InvalidArgumentException('Header name cannot be empty');
         }

@@ -1,4 +1,4 @@
-<?php $this->contentFor('subnavbar', function(){ ?>
+<?php $this->contentFor('subnavbar', function () { ?>
   <li><?= $this->linkTo($this->t('.list'), ['action' => "index"]) ?></li>
   <li><?= $this->linkTo($this->t('.new'), ['action' => "create"]) ?></li>
   <?= $this->content('footer') ?>

@@ -6,6 +6,6 @@
   <p>While anyone can <?= $this->linkTo("suggest", "tag_alias#index") ?> an alias, only an administrator can approve it.</p>
 </div>
 
-<?php $this->contentFor("subnavbar", function() { ?>
+<?php $this->contentFor("subnavbar", function () { ?>
   <li><?= $this->linkTo("Help", "#index") ?></li>
 <?php }) ?>

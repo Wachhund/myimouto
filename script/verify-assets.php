@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Validates compiled asset integrity for production runtime.
  *
@@ -97,7 +98,7 @@ foreach ($required as $logicalName) {
             'size exceeds target: %s is %s (max %s)',
             $logicalName,
             formatBytes($rawSize),
-            formatBytes($maxSizes[$ext])
+            formatBytes($maxSizes[$ext]),
         );
     }
 
@@ -111,7 +112,7 @@ foreach ($required as $logicalName) {
                 $warnings[] = sprintf(
                     'poor gzip ratio: %s (%.0f%% of raw)',
                     $logicalName,
-                    ($gzSize / $rawSize) * 100
+                    ($gzSize / $rawSize) * 100,
                 );
             }
         }
@@ -125,14 +126,14 @@ foreach ($required as $logicalName) {
             $logicalName,
             formatBytes($rawSize),
             $gzipEnabled && is_file($compiledPath . '.gz') ? formatBytes(filesize($compiledPath . '.gz')) : 'n/a',
-            formatBytes($brSize)
+            formatBytes($brSize),
         ) . PHP_EOL;
     } else {
         echo sprintf(
             "[assets-verify] %s: raw=%s gz=%s",
             $logicalName,
             formatBytes($rawSize),
-            $gzipEnabled && is_file($compiledPath . '.gz') ? formatBytes(filesize($compiledPath . '.gz')) : 'n/a'
+            $gzipEnabled && is_file($compiledPath . '.gz') ? formatBytes(filesize($compiledPath . '.gz')) : 'n/a',
         ) . PHP_EOL;
     }
 }
@@ -159,7 +160,7 @@ echo sprintf(
     "[assets-verify] checked=%d digest=%s gzip=%s",
     count($required),
     $digestEnabled ? 'on' : 'off',
-    $gzipEnabled ? 'on' : 'off'
+    $gzipEnabled ? 'on' : 'off',
 ) . PHP_EOL;
 
 function formatBytes(int $bytes): string

@@ -3,7 +3,7 @@
 
 <div style="margin-bottom: 2em">
   <h6><?= $this->t('user_invites2') ?></h6>
-  <?= $this->formTag([], ['onsubmit' => "return confirm('".$this->t('user_invites_text2')."' + \$F('user_name') + '?')"], function(){ ?>
+  <?= $this->formTag([], ['onsubmit' => "return confirm('" . $this->t('user_invites_text2') . "' + \$F('user_name') + '?')"], function () { ?>
     <table width="100%">
       <tfoot>
         <tr>
@@ -42,8 +42,8 @@
       <?php foreach ($this->invited_users as $user) : ?>
         <tr>
           <td><?= $this->linkTo($this->h($user->pretty_name()), ['user#show', 'id' => $user->id]) ?></td>
-          <td><?= $this->linkTo(Post::where('user_id = '.$user->id)->count(), ['post#index', 'tags' => 'user:'.$user->name]) ?></td>
-          <td><?= $this->linkTo($user->post_votes->select(['score' => 3])->size(), ['controller' => 'post', 'action' => 'index', 'tags' => 'vote:3:'.$user->name.' order:vote']) ?></td>
+          <td><?= $this->linkTo(Post::where('user_id = ' . $user->id)->count(), ['post#index', 'tags' => 'user:' . $user->name]) ?></td>
+          <td><?= $this->linkTo($user->post_votes->select(['score' => 3])->size(), ['controller' => 'post', 'action' => 'index', 'tags' => 'vote:3:' . $user->name . ' order:vote']) ?></td>
         </tr>
       <?php endforeach ?>
     </tbody>

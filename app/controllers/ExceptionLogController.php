@@ -1,12 +1,13 @@
 <?php
+
 class ExceptionLogController extends ApplicationController
 {
     protected function filters()
     {
         return [
             'before' => [
-                'mod_only' => ['only' => ['index', 'show', 'prune']]
-            ]
+                'mod_only' => ['only' => ['index', 'show', 'prune']],
+            ],
         ];
     }
 
@@ -36,14 +37,14 @@ class ExceptionLogController extends ApplicationController
         $this->exception_logs = $query->paginate($this->page_number(), 50);
 
         $this->respondTo([
-            'html' => function() {},
-            'json' => function() {
+            'html' => function () {},
+            'json' => function () {
                 $data = [];
                 foreach ($this->exception_logs as $log) {
                     $data[] = $log->api_attributes();
                 }
                 $this->render(['json' => $data]);
-            }
+            },
         ]);
     }
 
@@ -60,7 +61,7 @@ class ExceptionLogController extends ApplicationController
         }
 
         if ($this->request()->isPost()) {
-            $days = (int)($this->params()->days ?: 365);
+            $days = (int) ($this->params()->days ?: 365);
             ExceptionLog::prune($days);
             $this->notice("Exception logs older than {$days} days pruned.");
         }

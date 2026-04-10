@@ -110,7 +110,7 @@
       <?php else: ?>
         <li><?= $this->linkTo($this->t('static51'), 'user#home') ?></li>
         <li><?= $this->linkTo($this->t('static52'), 'user#logout') ?></li>
-        <li><?= $this->linkTo($this->t('static53'), array('user#show', 'id' => current_user()->id)) ?></li>
+        <li><?= $this->linkTo($this->t('static53'), ['user#show', 'id' => current_user()->id]) ?></li>
         <li><?= $this->linkTo($this->t('static54'), 'user_record#index') ?></li>
         <li><?= $this->linkTo($this->t('static55'), 'user#edit') ?></li>
         <li><?= $this->linkTo($this->t('static56'), 'user#show_blocked_users') ?></li>

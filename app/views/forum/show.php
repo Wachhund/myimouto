@@ -32,7 +32,7 @@
     </div>
 
     <div id="reply" style="display: none; clear: both;">
-      <?= $this->formTag(['action' => "create"], ['level' => 'member'], function(){ ?>
+      <?= $this->formTag(['action' => "create"], ['level' => 'member'], function () { ?>
         <?= $this->hiddenField("forum_post", "title", ['value' => ""]) ?>
         <?= $this->hiddenField("forum_post", "parent_id", ['value' => $this->forum_post->root_id()]) ?>
         <?= $this->textArea('forum_post', 'body', ['rows' => 20, 'cols' => 80, 'value' => ""]) ?>
@@ -52,7 +52,7 @@
   InlineImage.init();
 </script>
 
-<?php $this->contentFor('subnavbar', function() { ?>
+<?php $this->contentFor('subnavbar', function () { ?>
   <?php if (!$this->forum_post->is_locked) : ?>
     <li><?= $this->linkToFunction($this->t('.reply'), "Element.toggle('reply')") ?></li>
   <?php endif ?>

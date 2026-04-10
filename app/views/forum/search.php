@@ -1,6 +1,6 @@
 <div id="forum">
   <div style="margin-bottom: 1em;">
-    <?= $this->formTag(['action' => "search"], ['method' => 'get'], function(){ ?>
+    <?= $this->formTag(['action' => "search"], ['method' => 'get'], function () { ?>
       <?= $this->textFieldTag("query", $this->h($this->params()->query), ['size' => 40]) ?>
       <?= $this->submitTag($this->t('.search'))?>
     <?php }) ?>

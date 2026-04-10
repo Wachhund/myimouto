@@ -1,6 +1,6 @@
 <h4>Mod Actions</h4>
 
-<?= $this->formTag(['mod_action#index'], ['method' => 'get'], function() { ?>
+<?= $this->formTag(['mod_action#index'], ['method' => 'get'], function () { ?>
   <fieldset style="margin-bottom: 1em;">
     <legend>Filter</legend>
 
@@ -8,7 +8,7 @@
     <select id="mod_action_action_type" name="action_type">
       <option value="">all</option>
       <?php foreach ($this->action_types as $type) : ?>
-        <option value="<?= $this->h($type) ?>" <?php if ((string)$this->params()->action_type === $type) : ?>selected="selected"<?php endif ?>>
+        <option value="<?= $this->h($type) ?>" <?php if ((string) $this->params()->action_type === $type) : ?>selected="selected"<?php endif ?>>
           <?= $this->h($type) ?>
         </option>
       <?php endforeach ?>
@@ -59,8 +59,8 @@
         <td><?= $this->h($ma->created_at) ?></td>
         <td>
           <?= $this->linkTo(
-            $this->h(User::find_name((int)$ma->creator_id)),
-            ['controller' => 'user', 'action' => 'show', 'id' => $ma->creator_id]
+              $this->h(User::find_name((int) $ma->creator_id)),
+              ['controller' => 'user', 'action' => 'show', 'id' => $ma->creator_id],
           ) ?>
         </td>
         <td><?= $this->h($ma->action_label()) ?></td>
@@ -69,8 +69,8 @@
           <?php $target_id = $ma->target_id(); ?>
           <?php if ($link_path && $target_id !== null) : ?>
             <?= $this->linkTo(
-              $this->h($ma->target_type() . ' #' . $target_id),
-              $link_path
+                $this->h($ma->target_type() . ' #' . $target_id),
+                $link_path,
             ) ?>
           <?php elseif ($target_id !== null) : ?>
             <?= $this->h($ma->target_type() . ' #' . $target_id) ?>
@@ -83,7 +83,7 @@
           <?php if (!empty($parsed)) : ?>
             <?php $parts = []; ?>
             <?php foreach ($parsed as $k => $v) : ?>
-              <?php $parts[] = $this->h($k) . '=' . $this->h(is_array($v) ? json_encode($v) : (string)$v); ?>
+              <?php $parts[] = $this->h($k) . '=' . $this->h(is_array($v) ? json_encode($v) : (string) $v); ?>
             <?php endforeach ?>
             <?= implode(', ', $parts) ?>
           <?php else : ?>

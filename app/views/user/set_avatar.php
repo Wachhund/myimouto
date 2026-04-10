@@ -7,7 +7,7 @@
     <?= $this->imageTag($this->post->sample_url(), ['id' => 'image', 'width' => $this->post->get_sample_width(), 'height' => $this->post->get_sample_height()]) ?>
   </div>
 
-  <?= $this->formTag([], ['level' => 'member'], function(){ ?>
+  <?= $this->formTag([], ['level' => 'member'], function () { ?>
     <?= $this->hiddenFieldTag("post_id", $this->params()->id) ?> 
     <?php if ($this->params()->user_id) : ?>
       <?=$this->hiddenFieldTag("user_id", $this->params()->user_id) ?> 

@@ -1,11 +1,12 @@
 <?php
+
 namespace MyImouto\PostReplacement;
 
 class ApplyService
 {
     public static function approve(\PostReplacement $replacement, \User $reviewer, $moderation_reason = null, ?array $resolved = null)
     {
-        if ((string)$replacement->status !== \PostReplacement::STATUS_PENDING) {
+        if ((string) $replacement->status !== \PostReplacement::STATUS_PENDING) {
             throw new \RuntimeException('Replacement is not in pending state');
         }
 
@@ -20,7 +21,7 @@ class ApplyService
         $from_staged_record = !empty($resolved['from_record']);
         $post_replace_context = [
             'old_paths' => [],
-            'new_paths' => []
+            'new_paths' => [],
         ];
 
         try {
@@ -33,10 +34,10 @@ class ApplyService
             }
 
             $replacement->status = \PostReplacement::STATUS_APPROVED;
-            $replacement->reviewed_by_id = (int)$reviewer->id;
+            $replacement->reviewed_by_id = (int) $reviewer->id;
             $replacement->reviewed_at = date('Y-m-d H:i:s');
             $replacement->moderation_reason = self::normalizeOptionalText($moderation_reason);
-            $replacement->replacement_md5 = (string)$post->md5;
+            $replacement->replacement_md5 = (string) $post->md5;
 
             // Uploaded replacement payload is no longer needed after approval.
             $replacement->replacement_file_path = null;
@@ -63,7 +64,7 @@ class ApplyService
     {
         if (is_array($resolved) && !empty($resolved['path'])) {
             $resolved['from_record'] = !empty($resolved['from_record']);
-            $resolved['name'] = !empty($resolved['name']) ? (string)$resolved['name'] : basename((string)$resolved['path']);
+            $resolved['name'] = !empty($resolved['name']) ? (string) $resolved['name'] : basename((string) $resolved['path']);
             return $resolved;
         }
 
@@ -71,7 +72,7 @@ class ApplyService
             return [
                 'path' => $replacement->replacement_file_path,
                 'name' => $replacement->replacement_file_name ?: basename($replacement->replacement_file_path),
-                'from_record' => true
+                'from_record' => true,
             ];
         }
 
@@ -84,7 +85,7 @@ class ApplyService
 
     private static function normalizeOptionalText($text)
     {
-        $text = trim((string)$text);
+        $text = trim((string) $text);
         return $text === '' ? null : $text;
     }
 

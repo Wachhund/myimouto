@@ -1,6 +1,6 @@
 <div id="blacklisted-sidebar" style="display: none;">
   <h5>
-    <?= $this->linkToFunction($this->t('.hidden_posts'), "$('blacklisted-list-box').toggle()", array('class' => 'no-focus-outline')) ?>
+    <?= $this->linkToFunction($this->t('.hidden_posts'), "$('blacklisted-list-box').toggle()", ['class' => 'no-focus-outline']) ?>
     <span id="blacklist-count" class="post-count"></span>
   </h5>
   <div id="blacklisted-list-box" style="display: none; margin-bottom: 1em;">
@@ -8,11 +8,11 @@
       <li>
     </ul>
 
-    <?= $this->formTag("#", array('id' => 'blacklisted-tag-add', 'level' => 'member'), function(){ ?>
+    <?= $this->formTag("#", ['id' => 'blacklisted-tag-add', 'level' => 'member'], function () { ?>
       <div>
-        » <?= $this->textFieldTag("add-blacklist", "", array('size' => '20')) ?>
-        <?= $this->linkToFunction($this->t('.add'), "Post.blacklist_add_commit();", array('class' => 'text-button', 'style' => 'padding: 0px 4px', 'level' => 'blocked')) ?>
-        <?= $this->submitTag($this->t('.add'), array('style' => 'display: none;')) ?>
+        » <?= $this->textFieldTag("add-blacklist", "", ['size' => '20']) ?>
+        <?= $this->linkToFunction($this->t('.add'), "Post.blacklist_add_commit();", ['class' => 'text-button', 'style' => 'padding: 0px 4px', 'level' => 'blocked']) ?>
+        <?= $this->submitTag($this->t('.add'), ['style' => 'display: none;']) ?>
       </div>
       <?= $this->t('.info') ?>
     <?php }) ?>
@@ -20,7 +20,7 @@
 
 </div>
 
-<?= $this->contentFor('post_cookie_javascripts', function() { ?>
+<?= $this->contentFor('post_cookie_javascripts', function () { ?>
 <script type="text/javascript">
   document.observe("dom:loaded", function() {
     $("blacklisted-tag-add").observe("submit", function(e) {

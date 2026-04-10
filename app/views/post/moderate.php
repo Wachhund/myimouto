@@ -60,7 +60,7 @@
             <?= $this->buttonToFunction($this->t('buttons.select.all'), "$$('.p').each(function (i) {i.checked = true; highlight_row(i)})") ?>
             <?= $this->buttonToFunction($this->t('buttons.select.invert'), "$$('.p').each(function (i) {i.checked = !i.checked; highlight_row(i)})") ?>
             <?= $this->submitTag($this->t('buttons.approve')) ?>
-            <?= $this->submitTag($this->t('buttons.delete'), ['onclick' => "var reason = prompt('".$this->t('.prompt_reason')."'); if (reason != null) {\$('reason').value = reason; return true} else {return false}"]) ?>
+            <?= $this->submitTag($this->t('buttons.delete'), ['onclick' => "var reason = prompt('" . $this->t('.prompt_reason') . "'); if (reason != null) {\$('reason').value = reason; return true} else {return false}"]) ?>
           </td>
         </tr>
       </tfoot>
@@ -71,14 +71,15 @@
             <td><?= $this->linkTo($this->imageTag($p->preview_url(), ['width' => $p->preview_dimensions()[0], 'height' => $p->preview_dimensions()[1], 'loading' => 'lazy']), ['post#show', 'id' => $p->id]) ?></td>
             <td class="checkbox-cell">
               <ul>
-                <li><?= $this->t(['.uploaded_by_when_html', 'u' => $this->linkTo($p->author(), ['user#show', 'id' => $p->user->id]), 't_ago' => $this->t(['time.x_ago', 't' => $this->timeAgoInWords($p->created_at)]), 'mod' => $this->linkTo($this->t('.mod'), ['#moderate', 'query' => 'user:'.$p->author()])]) ?></li>
+                <li><?= $this->t(['.uploaded_by_when_html', 'u' => $this->linkTo($p->author(), ['user#show', 'id' => $p->user->id]), 't_ago' => $this->t(['time.x_ago', 't' => $this->timeAgoInWords($p->created_at)]), 'mod' => $this->linkTo($this->t('.mod'), ['#moderate', 'query' => 'user:' . $p->author()])]) ?></li>
                 <li><?= $this->t('.rating') ?>: <?= $p->pretty_rating() ?></li>
                 <?php if ($p->parent_id) : ?>
-                  <li><?= $this->t('.parent') ?>: <?= $this->linkTo($p->parent_id, ['action' => 'moderate', 'query' => 'parent:'.$p->parent_id]) ?></li>
+                  <li><?= $this->t('.parent') ?>: <?= $this->linkTo($p->parent_id, ['action' => 'moderate', 'query' => 'parent:' . $p->parent_id]) ?></li>
                 <?php endif ?>
                 <li><?= $this->t('.tags') ?>: <?= $this->h($p->cached_tags) ?></li>
                 <li><?= $this->t('.score') ?>: <span id="post-score-<?= $p->id ?>"><?= $p->score ?></span></li>
-                <?php $p_flag = $p->latest_flag(); if ($p_flag) : ?>
+                <?php $p_flag = $p->latest_flag();
+            if ($p_flag) : ?>
                 <li>
                   <?php if ($p_flag->reason_category) : ?>
                     <span class="flag-cat-label flag-cat-<?= $this->h($p_flag->reason_category) ?>">[<?= $this->h($p_flag->reason_category) ?>]</span>
@@ -109,7 +110,7 @@
             <?= $this->buttonToFunction($this->t('buttons.select.all'), "$$('.f').each(function (i) {i.checked = true; highlight_row(i)})") ?>
             <?= $this->buttonToFunction($this->t('buttons.select.invert'), "$$('.f').each(function (i) {i.checked = !i.checked; highlight_row(i)})") ?>
             <?= $this->submitTag($this->t('buttons.approve')) ?>
-            <?= $this->submitTag($this->t('buttons.delete'), ['onclick' => "var reason = prompt('".$this->t('.prompt_reason')."'); if (reason != null) {\$('reason2').value = reason; return true} else {return false}"]) ?>
+            <?= $this->submitTag($this->t('buttons.delete'), ['onclick' => "var reason = prompt('" . $this->t('.prompt_reason') . "'); if (reason != null) {\$('reason2').value = reason; return true} else {return false}"]) ?>
           </td>
         </tr>
       </tfoot>
@@ -120,18 +121,18 @@
             <td><?= $this->linkTo($this->imageTag($p->preview_url(), ['width' => $p->preview_dimensions()[0], 'height' => $p->preview_dimensions()[1], 'loading' => 'lazy']), ['post#show', 'id' => $p->id]) ?></td>
             <td class="checkbox-cell">
               <ul>
-                <li><?= $this->t(['.uploaded_by_when_html', 'u' => $this->linkTo($p->author(), ['user#show', 'id' => $p->user->id]), 't_ago' => $this->t(['time.x_ago', 't' => $this->timeAgoInWords($p->created_at)]), 'mod' => $this->linkTo($this->t('.mod'), ['#moderate', 'query' => 'user:'.$p->author()])]) ?></li>
+                <li><?= $this->t(['.uploaded_by_when_html', 'u' => $this->linkTo($p->author(), ['user#show', 'id' => $p->user->id]), 't_ago' => $this->t(['time.x_ago', 't' => $this->timeAgoInWords($p->created_at)]), 'mod' => $this->linkTo($this->t('.mod'), ['#moderate', 'query' => 'user:' . $p->author()])]) ?></li>
                 <li><?= $this->t('.rating') ?>: <?= $p->pretty_rating() ?></li>
                 <?php if ($p->parent_id) : ?>
-                  <li><?= $this->t('.parent') ?>: <?= $this->linkTo($p->parent_id, ['action' => 'moderate', 'query' => 'parent:'.$p->parent_id]) ?></li>
+                  <li><?= $this->t('.parent') ?>: <?= $this->linkTo($p->parent_id, ['action' => 'moderate', 'query' => 'parent:' . $p->parent_id]) ?></li>
                 <?php endif ?>
                 <li><?= $this->t('.tags') ?>: <?= $this->h($p->cached_tags) ?></li>
                 <li><?= $this->t('.score') ?>: <?= $p->score ?> (vote <?= $this->linkToFunction($this->t('.down'), "Post.vote(-1, {$p->id}, {})") ?>)</li>
                 <?php
-                  $post_flags = isset($this->flags_by_post[$p->id]) ? $this->flags_by_post[$p->id] : [];
-                  if (!empty($post_flags)) :
-                    foreach ($post_flags as $pf) :
-                ?>
+              $post_flags = isset($this->flags_by_post[$p->id]) ? $this->flags_by_post[$p->id] : [];
+            if (!empty($post_flags)) :
+                foreach ($post_flags as $pf) :
+                    ?>
                 <li>
                   <?php if ($pf->reason_category) : ?>
                     <span class="flag-cat-label flag-cat-<?= $this->h($pf->reason_category) ?>">[<?= $this->h($pf->reason_category) ?>]</span>
@@ -141,11 +142,11 @@
                   <button type="button" class="flag-resolve-btn" onclick="resolve_flag(<?= $pf->id ?>, this)">Resolve</button>
                 </li>
                 <?php
-                    endforeach;
-                  else :
-                    $p_flag = $p->latest_flag();
-                    if ($p_flag) :
-                ?>
+                endforeach;
+            else :
+                $p_flag = $p->latest_flag();
+                if ($p_flag) :
+                    ?>
                 <li>
                   <?php if ($p_flag->reason_category) : ?>
                     <span class="flag-cat-label flag-cat-<?= $this->h($p_flag->reason_category) ?>">[<?= $this->h($p_flag->reason_category) ?>]</span>
@@ -154,9 +155,9 @@
                   (<?php if (!$p_flag->user_id): ?>automatic flag<?php else: ?><?= $this->linkTo($this->h($p_flag->author()), ['user#show', 'id' => $p_flag->user_id]) ?><?php endif ?>)
                 </li>
                 <?php
-                    endif;
-                  endif;
-                ?>
+                        endif;
+            endif;
+            ?>
                 <li><?= $this->t('.size') ?>: <?= $this->numberToHumanSize($p->file_size) ?>, <?= $p->width ?>x<?= $p->height ?></li>
               </ul>
             </td>
@@ -169,7 +170,7 @@
   <script type="text/javascript">
     var cells = $$(".checkbox-cell")
     $$(".checkbox-cell").invoke("observe", "click", function(e) {this.up().firstDescendant().down("input").click()})
-    <?php $this->pending_posts->merge($this->flagged_posts)->unique()->each(function($post){ ?>
+    <?php $this->pending_posts->merge($this->flagged_posts)->unique()->each(function ($post) { ?>
       Post.register(<?= $post->toJson() ?>)
     <?php }) ?>
   </script>

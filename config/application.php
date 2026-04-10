@@ -1,15 +1,16 @@
 <?php
+
 namespace MyImouto;
 
 class Application extends \Rails\Application\Base
 {
     private $booruConfig;
-    
+
     public function booruConfig()
     {
         return $this->booruConfig;
     }
-    
+
     protected function init()
     {
         require __DIR__ . '/default_config.php';
@@ -24,14 +25,14 @@ class Application extends \Rails\Application\Base
             if (RAILS_ENV === 'production') {
                 throw new \RuntimeException(
                     'SECURITY: Default password salt is still active. ' .
-                    'Set a unique $user_password_salt in config/config.php before running in production.'
+                    'Set a unique $user_password_salt in config/config.php before running in production.',
                 );
             } else {
                 error_log('[WARN] Default password salt "choujin-steiner" is active. Override in config/config.php for production use.');
             }
         }
     }
-    
+
     protected function initConfig($config)
     {
         $config->assets->enabled = true;
@@ -48,11 +49,11 @@ class Application extends \Rails\Application\Base
             'method' => 'run',
             'static' => true,
         ];
-        
+
         $config->action_view->layout = 'default';
-        
+
         $config->plugins = [
-            'Rails\WillPaginate'
+            'Rails\WillPaginate',
         ];
     }
 }

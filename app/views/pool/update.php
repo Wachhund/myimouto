@@ -1,6 +1,6 @@
 <h3><?=$this->t('.title') ?></h3>
 
-<?= $this->formTag([], function(){ ?>
+<?= $this->formTag([], function () { ?>
   <table class="form">
     <tbody>
       <tr>

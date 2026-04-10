@@ -1,7 +1,7 @@
 <div id="ticket-index">
   <h4>Tickets<?php if (!current_user()->is_mod_or_higher()) : ?> (Your Tickets)<?php endif ?></h4>
 
-  <?= $this->formTag(['ticket#index'], ['method' => 'get'], function() { ?>
+  <?= $this->formTag(['ticket#index'], ['method' => 'get'], function () { ?>
     <fieldset style="margin-bottom: 1em;">
       <legend>Filter</legend>
 
@@ -9,7 +9,7 @@
       <select id="ticket_status" name="status">
         <option value="">all</option>
         <?php foreach (Ticket::VALID_STATUSES as $status) : ?>
-          <option value="<?= $this->h($status) ?>" <?php if ((string)$this->params()->status === $status) : ?>selected="selected"<?php endif ?>>
+          <option value="<?= $this->h($status) ?>" <?php if ((string) $this->params()->status === $status) : ?>selected="selected"<?php endif ?>>
             <?= $this->h($status) ?>
           </option>
         <?php endforeach ?>
@@ -19,7 +19,7 @@
       <select id="ticket_qtype" name="qtype">
         <option value="">all</option>
         <?php foreach (Ticket::VALID_QTYPES as $qtype) : ?>
-          <option value="<?= $this->h($qtype) ?>" <?php if ((string)$this->params()->qtype === $qtype) : ?>selected="selected"<?php endif ?>>
+          <option value="<?= $this->h($qtype) ?>" <?php if ((string) $this->params()->qtype === $qtype) : ?>selected="selected"<?php endif ?>>
             <?= $this->h($qtype) ?>
           </option>
         <?php endforeach ?>
@@ -53,20 +53,20 @@
     <tbody>
       <?php foreach ($this->tickets as $ticket) : ?>
         <tr class="<?= $this->cycle('even', 'odd') ?>">
-          <td><?= $this->linkTo('#' . (int)$ticket->id, ['action' => 'show', 'id' => $ticket->id]) ?></td>
+          <td><?= $this->linkTo('#' . (int) $ticket->id, ['action' => 'show', 'id' => $ticket->id]) ?></td>
           <td><?= $this->h($ticket->qtype) ?></td>
           <td><span class="<?= $ticket->status_class() ?>"><?= $this->h($ticket->status_label()) ?></span></td>
           <td>
             <?php try { ?>
-              <?= $this->linkTo($this->h(User::find_name((int)$ticket->creator_id)), ['user#show', 'id' => $ticket->creator_id]) ?>
+              <?= $this->linkTo($this->h(User::find_name((int) $ticket->creator_id)), ['user#show', 'id' => $ticket->creator_id]) ?>
             <?php } catch (Exception $e) { ?>
-              User #<?= (int)$ticket->creator_id ?>
+              User #<?= (int) $ticket->creator_id ?>
             <?php } ?>
           </td>
           <?php if (current_user()->is_mod_or_higher()) : ?>
             <td>
               <?php if ($ticket->model_type && $ticket->model_id) : ?>
-                <?= $this->h($ticket->model_type) ?> #<?= (int)$ticket->model_id ?>
+                <?= $this->h($ticket->model_type) ?> #<?= (int) $ticket->model_id ?>
               <?php else : ?>
                 -
               <?php endif ?>
@@ -74,16 +74,16 @@
             <td>
               <?php if ($ticket->claimant_id) : ?>
                 <?php try { ?>
-                  <?= $this->linkTo($this->h(User::find_name((int)$ticket->claimant_id)), ['user#show', 'id' => $ticket->claimant_id]) ?>
+                  <?= $this->linkTo($this->h(User::find_name((int) $ticket->claimant_id)), ['user#show', 'id' => $ticket->claimant_id]) ?>
                 <?php } catch (Exception $e) { ?>
-                  User #<?= (int)$ticket->claimant_id ?>
+                  User #<?= (int) $ticket->claimant_id ?>
                 <?php } ?>
               <?php else : ?>
                 -
               <?php endif ?>
             </td>
           <?php endif ?>
-          <td><?= $this->h(mb_strimwidth((string)$ticket->reason, 0, 80, '...')) ?></td>
+          <td><?= $this->h(mb_strimwidth((string) $ticket->reason, 0, 80, '...')) ?></td>
           <td><?= $this->h($ticket->created_at) ?></td>
           <td><?= $this->linkTo('View', ['action' => 'show', 'id' => $ticket->id]) ?></td>
         </tr>

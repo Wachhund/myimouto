@@ -35,7 +35,7 @@ $users = User::where('name IN (?, ?)', $targetNames[0], $targetNames[1])->take()
 $userIds = [];
 
 foreach ($users as $user) {
-    $userIds[] = (int)$user->id;
+    $userIds[] = (int) $user->id;
 }
 
 if (empty($userIds)) {
@@ -50,7 +50,7 @@ $summary = [
         $dmailCondition,
         $userIds,
         $userIds,
-        'PROJ16 QA%'
+        'PROJ16 QA%',
     )->count(),
 ];
 
@@ -63,7 +63,7 @@ if ($dryRun) {
 }
 
 try {
-    User::transaction(function() use ($userIds, $dmailCondition) {
+    User::transaction(function () use ($userIds, $dmailCondition) {
         // Remove QA dmails first to avoid orphaned rows.
         Dmail::destroyAll($dmailCondition, $userIds, $userIds, 'PROJ16 QA%');
 

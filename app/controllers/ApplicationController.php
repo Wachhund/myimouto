@@ -1,4 +1,5 @@
 <?php
+
 class ApplicationController extends Rails\ActionController\Base
 {
     protected $authenticated_with_api_key = false;
@@ -13,53 +14,54 @@ class ApplicationController extends Rails\ActionController\Base
                 return false;
             }
         }
-        
+
         # For many actions, GET invokes the HTML UI, and a POST actually invokes
         # the action, so we often want to require higher access for POST (so the UI
         # can invoke the login dialog).
         elseif (preg_match("/^post_(\w+)_only$/", $method, $m)) {
-            if (!$this->request()->isPost())
+            if (!$this->request()->isPost()) {
                 return true;
-            elseif (current_user()->{'is_' . $m[1] . '_or_higher'}())
+            } elseif (current_user()->{'is_' . $m[1] . '_or_higher'}()) {
                 return true;
-            else {
+            } else {
                 $this->access_denied();
                 return false;
             }
         }
-        
+
         return parent::__call($method, $params);
     }
-    
+
     /**
      * This is found in SessionHelper in Moebooru
      */
     public function page_number()
     {
-        if (!isset($this->page_number))
+        if (!isset($this->page_number)) {
             $this->page_number = $this->params()->page ?: 1;
+        }
         return $this->page_number;
     }
-    
+
     # LoginSystem {
     protected function access_denied()
     {
         $previous_url = $this->params()->url || $this->request()->fullPath();
-        
+
         $this->respondTo([
-            'html' => function()use($previous_url) {
+            'html' => function () use ($previous_url) {
                 $this->notice('Access denied');
-                $this->redirectTo("user#login", array('url' => $previous_url));
+                $this->redirectTo("user#login", ['url' => $previous_url]);
             },
-            'xml'  => function() {
-                $this->render(array('xml' => array('success' => false, 'reason' => "access denied"), 'root' => "response", 'status' => 403));
+            'xml'  => function () {
+                $this->render(['xml' => ['success' => false, 'reason' => "access denied"], 'root' => "response", 'status' => 403]);
             },
-            'json' => function() {
-                $this->render(array('json' => array('success' => false, 'reason' => "access denied"), 'status' => 403));
-            }
+            'json' => function () {
+                $this->render(['json' => ['success' => false, 'reason' => "access denied"], 'status' => 403]);
+            },
         ]);
     }
-    
+
     public function user_can_see_posts()
     {
         if (!current_user()->can_see_posts()) {
@@ -70,7 +72,7 @@ class ApplicationController extends Rails\ActionController\Base
     protected function set_current_user()
     {
         $user = null;
-        $AnonymousUser = array(
+        $AnonymousUser = [
             'id'                       => 0,
             'level'                    => 0,
             'name'                     => "Anonymous",
@@ -79,9 +81,9 @@ class ApplicationController extends Rails\ActionController\Base
             'secondary_languages'      => '',
             'pool_browse_mode'         => 1,
             'always_resize_images'     => true,
-            'ip_addr'                  => $this->request()->remoteIp()
-        );
-        
+            'ip_addr'                  => $this->request()->remoteIp(),
+        ];
+
         $api_auth_attempted = false;
         $this->authenticated_with_api_key = false;
 
@@ -93,7 +95,7 @@ class ApplicationController extends Rails\ActionController\Base
                 $current_ph = $user->bcrypt_password_hash
                     ? substr(hash('sha256', $user->bcrypt_password_hash), 0, 16)
                     : '';
-                if ((string)$this->session()->ph !== $current_ph) {
+                if ((string) $this->session()->ph !== $current_ph) {
                     // Password changed since session was created -- invalidate.
                     $this->session()->delete('user_id');
                     $this->session()->delete('ph');
@@ -110,7 +112,7 @@ class ApplicationController extends Rails\ActionController\Base
                     if ($user) {
                         $apiKey->touch_usage(
                             $this->request()->remoteIp(),
-                            $this->request()->userAgent() ?? ''
+                            $this->request()->userAgent() ?? '',
                         );
                         $this->authenticated_with_api_key = true;
                     } else {
@@ -163,17 +165,18 @@ class ApplicationController extends Rails\ActionController\Base
             $user = new User();
             $user->assignAttributes($AnonymousUser, ['without_protection' => true]);
         }
-        
+
         User::set_current_user($user);
         $this->current_user = $user;
-        
+
         # For convenient access in activerecord models
         $user->ip_addr = $this->request()->remoteIp();
-        
+
         Moebooru\Versioning\Versioning::init_history();
-        
-        if (!current_user()->is_anonymous())
+
+        if (!current_user()->is_anonymous()) {
             current_user()->log($this->request()->remoteIp());
+        }
     }
 
     # iTODO:
@@ -181,86 +184,87 @@ class ApplicationController extends Rails\ActionController\Base
     {
         current_user()->country = '--';
         // current_user()->country = Rails::cache()->fetch(['type' => 'geoip', 'ip' => $this->request()->remote_ip()], ['expires_in' => '+1 month']) do
-            // begin
-                // GeoIP->new(Rails.root.join('db', 'GeoIP.dat').to_s).country($this->request()->remote_ip()).country_code2
-            // rescue
-                // '--'
-            // end
+        // begin
+        // GeoIP->new(Rails.root.join('db', 'GeoIP.dat').to_s).country($this->request()->remote_ip()).country_code2
+        // rescue
+        // '--'
+        // end
         // end
     }
-    
-    # } RespondToHelpers {
-    
-    protected function respond_to_success($notice, $redirect_to_params, array $options = array())
-    {
-        $extra_api_params = isset($options['api']) ? $options['api'] : array();
 
-        $this->respondTo(array(
-            'html' => function() use ($notice, $redirect_to_params) {
+    # } RespondToHelpers {
+
+    protected function respond_to_success($notice, $redirect_to_params, array $options = [])
+    {
+        $extra_api_params = isset($options['api']) ? $options['api'] : [];
+
+        $this->respondTo([
+            'html' => function () use ($notice, $redirect_to_params) {
                 $this->notice($notice);
                 $this->redirectTo($redirect_to_params);
             },
-            'json' => function() use ($extra_api_params) {
-                $this->render(array('json' => array_merge($extra_api_params, array('success' => true))));
+            'json' => function () use ($extra_api_params) {
+                $this->render(['json' => array_merge($extra_api_params, ['success' => true])]);
             },
-            'xml' => function() use ($extra_api_params) {
-                $this->render(array('xml' => array_merge($extra_api_params, array('success' => true)), 'root' => "response"));
-            }
-        ));
+            'xml' => function () use ($extra_api_params) {
+                $this->render(['xml' => array_merge($extra_api_params, ['success' => true]), 'root' => "response"]);
+            },
+        ]);
     }
 
-    protected function respond_to_error($obj, $redirect_to_params, $options = array())
+    protected function respond_to_error($obj, $redirect_to_params, $options = [])
     {
-        !is_array($redirect_to_params) && $redirect_to_params = array($redirect_to_params);
-        $extra_api_params = isset($options['api']) ? $options['api'] : array();
+        !is_array($redirect_to_params) && $redirect_to_params = [$redirect_to_params];
+        $extra_api_params = isset($options['api']) ? $options['api'] : [];
         $status = isset($options['status']) ? $options['status'] : 500;
 
         if ($obj instanceof Rails\ActiveRecord\Base) {
             $obj = $obj->errors()->fullMessages(", ");
             $status = 420;
         }
-        
-        if ($status == 420)
-            $status = "420 Invalid Record";
-        elseif ($status == 421)
-            $status = "421 User Throttled";
-        elseif ($status == 422)
-            $status = "422 Locked";
-        elseif ($status == 423)
-            $status = "423 Already Exists";
-        elseif ($status == 424)
-            $status = "424 Invalid Parameters";
 
-        $this->respondTo(array(
-            'html' => function()use($obj, $redirect_to_params) {
+        if ($status == 420) {
+            $status = "420 Invalid Record";
+        } elseif ($status == 421) {
+            $status = "421 User Throttled";
+        } elseif ($status == 422) {
+            $status = "422 Locked";
+        } elseif ($status == 423) {
+            $status = "423 Already Exists";
+        } elseif ($status == 424) {
+            $status = "424 Invalid Parameters";
+        }
+
+        $this->respondTo([
+            'html' => function () use ($obj, $redirect_to_params) {
                 $this->notice("Error: " . $obj);
                 $this->redirectTo($redirect_to_params);
             },
-            
-            'json' => function()use($obj, $extra_api_params, $status) {
-                $this->render(array('json' => array_merge($extra_api_params, array('success' => false, 'reason' => $obj)), 'status' => $status));
+
+            'json' => function () use ($obj, $extra_api_params, $status) {
+                $this->render(['json' => array_merge($extra_api_params, ['success' => false, 'reason' => $obj]), 'status' => $status]);
             },
-            
-            'xml' => function()use($obj, $extra_api_params, $status) {
-                $this->render(array('xml' => array_merge($extra_api_params, array('success' => false, 'reason' => $obj)), 'root' => "response", 'status' => $status));
-            }
-        ));
+
+            'xml' => function () use ($obj, $extra_api_params, $status) {
+                $this->render(['xml' => array_merge($extra_api_params, ['success' => false, 'reason' => $obj]), 'root' => "response", 'status' => $status]);
+            },
+        ]);
     }
 
-    protected function respond_to_list($inst_var_name, array $formats = array())
+    protected function respond_to_list($inst_var_name, array $formats = [])
     {
         $inst_var = $this->$inst_var_name;
-        
-        $this->respondTo(array(
+
+        $this->respondTo([
             'html',
             isset($formats['atom']) ? 'atom' : null,
-            'json' => function() use ($inst_var) {
-                $this->render(array('json' => $inst_var->toJson()));
+            'json' => function () use ($inst_var) {
+                $this->render(['json' => $inst_var->toJson()]);
             },
-            'xml'  => function() use ($inst_var, $inst_var_name) {
-                $this->render(array('xml' => $inst_var, 'root' => $inst_var_name));
-            }
-        ));
+            'xml'  => function () use ($inst_var, $inst_var_name) {
+                $this->render(['xml' => $inst_var, 'root' => $inst_var_name]);
+            },
+        ]);
     }
 
     protected function _render_error($record)
@@ -269,22 +273,22 @@ class ApplicationController extends Rails\ActionController\Base
         $this->render(['inline' => '<?= $this->record->errors()->fullMessages("<br />") ?>', 'layout' => "bare", 'status' => 500]);
     }
     # }
-    
-  // protected :build_cache_key
-  // protected :get_cache_key
-    
+
+    // protected :build_cache_key
+    // protected :get_cache_key
+
     public function get_ip_ban()
     {
         $ban = IpBans::where("ip_addr = ?", $this->request()->remoteIp())->first();
         return $ban ?: null;
     }
-    
+
     protected function check_ip_ban()
     {
-         if ($this->request()->controller() == "banned" and $this->request()->action() == "index") {
+        if ($this->request()->controller() == "banned" and $this->request()->action() == "index") {
             return;
         }
-        
+
         $ban = $this->get_ip_ban();
         if (!$ban) {
             return;
@@ -329,7 +333,7 @@ class ApplicationController extends Rails\ActionController\Base
         $tos_version = TosController::effective_tos_version();
         $accepted = $this->current_user->tos_accepted_version ?? 0;
 
-        if ((int)$accepted >= $tos_version) {
+        if ((int) $accepted >= $tos_version) {
             return;
         }
 
@@ -337,18 +341,18 @@ class ApplicationController extends Rails\ActionController\Base
         $tos_url = $this->urlFor(['controller' => 'tos', 'action' => 'show']);
 
         $this->respondTo([
-            'html' => function() use ($return_to) {
+            'html' => function () use ($return_to) {
                 $this->notice('You must accept the current Terms of Service to continue.');
                 $this->redirectTo(['controller' => 'tos', 'action' => 'show', 'return_to' => $return_to]);
             },
-            'xml' => function() use ($tos_url) {
+            'xml' => function () use ($tos_url) {
                 $this->render([
                     'xml' => ['success' => false, 'reason' => 'Terms of Service acceptance required', 'tos_url' => $tos_url],
                     'root' => 'response',
                     'status' => 451,
                 ]);
             },
-            'json' => function() use ($tos_url) {
+            'json' => function () use ($tos_url) {
                 $this->render([
                     'json' => ['success' => false, 'reason' => 'Terms of Service acceptance required', 'tos_url' => $tos_url],
                     'status' => 451,
@@ -360,10 +364,11 @@ class ApplicationController extends Rails\ActionController\Base
     protected function save_tags_to_cookie()
     {
         if ($this->params()->tags || (is_array($this->params()->post) && isset($this->params()->post['tags']))) {
-            $post_tags = isset($this->params()->post['tags']) ? (string)$this->params()->post['tags'] : '';
+            $post_tags = isset($this->params()->post['tags']) ? (string) $this->params()->post['tags'] : '';
             $tags = TagAlias::to_aliased(explode(' ', (strtolower($this->params()->tags ?: $post_tags))));
-            if ($recent_tags = trim($this->cookies()->recent_tags))
+            if ($recent_tags = trim($this->cookies()->recent_tags)) {
                 $tags = array_merge($tags, explode(' ', $recent_tags));
+            }
             $this->cookies()->recent_tags = implode(" ", array_slice($tags, 0, 20));
         }
     }
@@ -377,24 +382,24 @@ class ApplicationController extends Rails\ActionController\Base
     public function cache_action()
     {
         // if ($this->request()->method() == 'get' && !preg_match('/Googlebot/', $this->request()->env()) && $this->params()->format != "xml" && $this->params()->format != "json") {
-            // list($key, $expiry) = $this->get_cache_key($this->controller_name(), $this->action_name(), $this->params(), 'user' => current_user());
+        // list($key, $expiry) = $this->get_cache_key($this->controller_name(), $this->action_name(), $this->params(), 'user' => current_user());
 
-            // if ($key && count($key) < 200) {
-                // $cached = Rails::cache()->read($key);
+        // if ($key && count($key) < 200) {
+        // $cached = Rails::cache()->read($key);
 
-                // if ($cached) {
-                    // $this->render(['text' => $cached, 'layout' => false]);
-                    // return;
-                // }
-            // }
+        // if ($cached) {
+        // $this->render(['text' => $cached, 'layout' => false]);
+        // return;
+        // }
+        // }
 
-            // $this->yield();
+        // $this->yield();
 
-            // if ($key && strpos($this->response->headers['Status'], '200') === 0) {
-                // Rails::cache()->write($key, $this->response->body, ['expires_in' => $expiry]);
-            // }
+        // if ($key && strpos($this->response->headers['Status'], '200') === 0) {
+        // Rails::cache()->write($key, $this->response->body, ['expires_in' => $expiry]);
+        // }
         // } else {
-            // $this->yield();
+        // $this->yield();
         // }
     }
 
@@ -405,7 +410,7 @@ class ApplicationController extends Rails\ActionController\Base
         }
 
         $forum_posts = ForumPost::where("parent_id IS NULL")->order("updated_at DESC")->limit(10)->take();
-        $this->cookies()->current_forum_posts = json_encode(array_map(function($fp) {
+        $this->cookies()->current_forum_posts = json_encode(array_map(function ($fp) {
             if (current_user()->is_anonymous()) {
                 $updated = false;
             } else {
@@ -417,61 +422,64 @@ class ApplicationController extends Rails\ActionController\Base
         $this->cookies()->country = current_user()->country;
 
         if (!current_user()->is_anonymous()) {
-            $this->cookies()->user_id = (string)current_user()->id;
-            
+            $this->cookies()->user_id = (string) current_user()->id;
+
             $this->cookies()->user_info = current_user()->user_info_cookie();
 
             $this->cookies()->has_mail = (current_user()->has_mail ? "1" : "0");
-            
+
             $this->cookies()->forum_updated = (current_user()->is_privileged_or_higher() && ForumPost::updated(current_user()) ? "1" : "0");
-            
+
             $this->cookies()->comments_updated = (current_user()->is_privileged_or_higher() && Comment::updated(current_user()) ? "1" : "0");
-            
+
             if (current_user()->is_janitor_or_higher()) {
                 $mod_pending = Post::where("status = 'flagged' OR status = 'pending'")->count();
-                $this->cookies()->mod_pending = (string)$mod_pending;
+                $this->cookies()->mod_pending = (string) $mod_pending;
             }
 
             if (current_user()->is_blocked()) {
-                if (current_user()->ban)
-                    $this->cookies()->block_reason = "You have been blocked. Reason: ".current_user()->ban->reason.". Expires: ".substr(current_user()->ban->expires_at, 0, 10);
-                else
+                if (current_user()->ban) {
+                    $this->cookies()->block_reason = "You have been blocked. Reason: " . current_user()->ban->reason . ". Expires: " . substr(current_user()->ban->expires_at, 0, 10);
+                } else {
                     $this->cookies()->block_reason = "You have been blocked.";
-            } else
+                }
+            } else {
                 $this->cookies()->block_reason = "";
-            
+            }
+
             $this->cookies()->resize_image = (current_user()->always_resize_images ? "1" : "0");
 
             $this->cookies()->show_advanced_editing = (current_user()->show_advanced_editing ? "1" : "0");
             $this->cookies()->my_tags = current_user()->my_tags;
             $this->cookies()->blacklisted_tags = json_encode(current_user()->blacklisted_tags_array());
-            $this->cookies()->held_post_count = (string)current_user()->held_post_count();
+            $this->cookies()->held_post_count = (string) current_user()->held_post_count();
         } else {
             $this->cookies()->delete('user_info');
             $this->cookies()->delete('login');
             $this->cookies()->blacklisted_tags = json_encode(CONFIG()->default_blacklists);
         }
-        
+
         if ($this->session()->notice) {
             $this->cookies()->notice = $this->session()->notice;
             $this->session()->delete('notice');
         }
     }
-    
+
     protected function set_title($title = null)
     {
-        if (!$title)
+        if (!$title) {
             $title = CONFIG()->app_name;
-        else
+        } else {
             $title .= ' | ' . CONFIG()->app_name;
+        }
         $this->page_title = $title;
     }
-    
+
     protected function notice($str)
     {
         $this->session()->notice = $str;
     }
-    
+
     protected function set_locale()
     {
         if ($this->params()->locale and in_array($this->params()->locale, CONFIG()->available_locales)) {
@@ -479,52 +487,60 @@ class ApplicationController extends Rails\ActionController\Base
             $this->I18n()->setLocale($this->params()->locale);
         } elseif ($this->cookies()->locale and in_array($this->cookies()->locale, CONFIG()->available_locales)) {
             $this->I18n()->setLocale($this->cookies()->locale);
-        } else
+        } else {
             $this->I18n()->setLocale(CONFIG()->default_locale);
+        }
     }
 
     protected function sanitize_params()
     {
         if ($this->params()->page) {
-            if ($this->params()->page < 1)
+            if ($this->params()->page < 1) {
                 $this->params()->page = 1;
-        } else
+            }
+        } else {
             $this->params()->page = 1;
+        }
     }
 
     protected function admin_only()
     {
-        if (!current_user()->is_admin())
+        if (!current_user()->is_admin()) {
             $this->access_denied();
+        }
     }
-    
+
     protected function member_only()
     {
-        if (!current_user()->is_member_or_higher())
+        if (!current_user()->is_member_or_higher()) {
             $this->access_denied();
+        }
     }
-    
+
     protected function post_privileged_only()
     {
-        if (!current_user()->is_privileged_or_higher())
+        if (!current_user()->is_privileged_or_higher()) {
             $this->access_denied();
+        }
     }
-    
+
     protected function post_member_only()
     {
-        if (!current_user()->is_member_or_higher())
+        if (!current_user()->is_member_or_higher()) {
             $this->access_denied();
+        }
     }
-    
+
     protected function no_anonymous()
     {
-        if (current_user()->is_anonymous())
+        if (current_user()->is_anonymous()) {
             $this->access_denied();
+        }
     }
 
     protected function sanitize_id()
     {
-        $this->params()->id = (int)$this->params()->id;
+        $this->params()->id = (int) $this->params()->id;
     }
 
     protected function form_authenticity_token()
@@ -533,13 +549,13 @@ class ApplicationController extends Rails\ActionController\Base
             $this->session()->csrf_token = $this->generate_csrf_token();
         }
 
-        return (string)$this->session()->csrf_token;
+        return (string) $this->session()->csrf_token;
     }
 
     protected function valid_authenticity_token($token)
     {
-        $expected = (string)$this->session()->csrf_token;
-        $provided = (string)$token;
+        $expected = (string) $this->session()->csrf_token;
+        $provided = (string) $token;
 
         if ($expected === '' || $provided === '') {
             return false;
@@ -601,7 +617,7 @@ class ApplicationController extends Rails\ActionController\Base
             },
             'xml' => function () {
                 $this->render(['xml' => ['success' => false, 'reason' => 'invalid authenticity token'], 'root' => 'response', 'status' => 403]);
-            }
+            },
         ]);
     }
 
@@ -624,7 +640,7 @@ class ApplicationController extends Rails\ActionController\Base
 
         $headers->add(
             'Content-Security-Policy',
-            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'self'"
+            "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'self'",
         );
     }
 
@@ -640,12 +656,12 @@ class ApplicationController extends Rails\ActionController\Base
                 'check_ip_ban',
                 'check_tos_acceptance',
                 'set_csrf_token',
-                'verify_authenticity_token'
+                'verify_authenticity_token',
             ],
             'after' => [
                 'init_cookies',
-                'set_security_headers'
-            ]
+                'set_security_headers',
+            ],
         ];
     }
 }

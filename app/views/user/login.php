@@ -18,7 +18,7 @@
     </p>
   <?php endif ?>
 
-  <?= $this->formTag(['action' => 'authenticate'], function(){ ?>
+  <?= $this->formTag(['action' => 'authenticate'], function () { ?>
     <?= $this->hiddenFieldTag("url", $this->params()->url) ?>
     <table class="form">
       <tr>

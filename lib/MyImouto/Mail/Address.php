@@ -9,8 +9,8 @@ class Address
 
     public function __construct($email, $name = '')
     {
-        $email = trim((string)$email);
-        $name = trim((string)$name);
+        $email = trim((string) $email);
+        $name = trim((string) $name);
 
         if ($email === '') {
             throw new \InvalidArgumentException('Email cannot be empty');

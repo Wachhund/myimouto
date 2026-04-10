@@ -1,4 +1,5 @@
 <?php
+
 class ForumPostVote extends Rails\ActiveRecord\Base
 {
     protected function associations()
@@ -6,8 +7,8 @@ class ForumPostVote extends Rails\ActiveRecord\Base
         return [
             'belongs_to' => [
                 'user',
-                'forum_post' => ['class_name' => 'ForumPost']
-            ]
+                'forum_post' => ['class_name' => 'ForumPost'],
+            ],
         ];
     }
 
@@ -19,23 +20,23 @@ class ForumPostVote extends Rails\ActiveRecord\Base
      * @param int $score  -1, 0, or 1
      * @return bool
      */
-    static public function vote($user_id, $post_id, $score)
+    public static function vote($user_id, $post_id, $score)
     {
-        $score = max(-1, min(1, (int)$score));
+        $score = max(-1, min(1, (int) $score));
 
-        $existing = self::where('user_id = ? AND forum_post_id = ?', (int)$user_id, (int)$post_id)->first();
+        $existing = self::where('user_id = ? AND forum_post_id = ?', (int) $user_id, (int) $post_id)->first();
 
         if ($existing) {
             $existing->updateAttributes([
                 'score'      => $score,
-                'updated_at' => date('Y-m-d H:i:s')
+                'updated_at' => date('Y-m-d H:i:s'),
             ]);
             return true;
         }
 
         $vote = new self();
-        $vote->user_id = (int)$user_id;
-        $vote->forum_post_id = (int)$post_id;
+        $vote->user_id = (int) $user_id;
+        $vote->forum_post_id = (int) $post_id;
         $vote->score = $score;
         $vote->created_at = date('Y-m-d H:i:s');
         return $vote->save();
@@ -44,9 +45,9 @@ class ForumPostVote extends Rails\ActiveRecord\Base
     /**
      * Remove a user's vote on a forum post.
      */
-    static public function unvote($user_id, $post_id)
+    public static function unvote($user_id, $post_id)
     {
-        $vote = self::where('user_id = ? AND forum_post_id = ?', (int)$user_id, (int)$post_id)->first();
+        $vote = self::where('user_id = ? AND forum_post_id = ?', (int) $user_id, (int) $post_id)->first();
         if ($vote) {
             $vote->destroy();
             return true;
@@ -57,24 +58,24 @@ class ForumPostVote extends Rails\ActiveRecord\Base
     /**
      * Get the current vote score for a user on a post, or null if not voted.
      */
-    static public function user_vote($user_id, $post_id)
+    public static function user_vote($user_id, $post_id)
     {
-        $vote = self::where('user_id = ? AND forum_post_id = ?', (int)$user_id, (int)$post_id)
+        $vote = self::where('user_id = ? AND forum_post_id = ?', (int) $user_id, (int) $post_id)
             ->select('score')
             ->first();
-        return $vote ? (int)$vote->score : null;
+        return $vote ? (int) $vote->score : null;
     }
 
     /**
      * Get the total score (SUM) for a forum post.
      */
-    static public function post_score($post_id)
+    public static function post_score($post_id)
     {
         $result = self::connection()->selectValue(
             "SELECT COALESCE(SUM(score), 0) FROM forum_post_votes WHERE forum_post_id = ?",
-            (int)$post_id
+            (int) $post_id,
         );
-        return (int)$result;
+        return (int) $result;
     }
 
     /**
@@ -83,7 +84,7 @@ class ForumPostVote extends Rails\ActiveRecord\Base
      * @param int[] $post_ids
      * @return array<int, int>  post_id => total score
      */
-    static public function bulk_post_scores(array $post_ids)
+    public static function bulk_post_scores(array $post_ids)
     {
         $scores = [];
         if (empty($post_ids)) {
@@ -93,10 +94,10 @@ class ForumPostVote extends Rails\ActiveRecord\Base
         $placeholders = implode(',', array_fill(0, count($post_ids), '?'));
         $rows = self::connection()->select(
             "SELECT forum_post_id, COALESCE(SUM(score), 0) AS total_score FROM forum_post_votes WHERE forum_post_id IN ($placeholders) GROUP BY forum_post_id",
-            ...$post_ids
+            ...$post_ids,
         );
         foreach ($rows as $row) {
-            $scores[(int)$row->forum_post_id] = (int)$row->total_score;
+            $scores[(int) $row->forum_post_id] = (int) $row->total_score;
         }
         return $scores;
     }
@@ -108,7 +109,7 @@ class ForumPostVote extends Rails\ActiveRecord\Base
      * @param int[] $post_ids
      * @return array<int, int>  post_id => score
      */
-    static public function bulk_user_votes($user_id, array $post_ids)
+    public static function bulk_user_votes($user_id, array $post_ids)
     {
         $votes = [];
         if (empty($post_ids)) {
@@ -118,10 +119,10 @@ class ForumPostVote extends Rails\ActiveRecord\Base
         $placeholders = implode(',', array_fill(0, count($post_ids), '?'));
         $rows = self::connection()->select(
             "SELECT forum_post_id, score FROM forum_post_votes WHERE forum_post_id IN ($placeholders) AND user_id = ?",
-            ...[...$post_ids, (int)$user_id]
+            ...[...$post_ids, (int) $user_id],
         );
         foreach ($rows as $row) {
-            $votes[(int)$row->forum_post_id] = (int)$row->score;
+            $votes[(int) $row->forum_post_id] = (int) $row->score;
         }
         return $votes;
     }

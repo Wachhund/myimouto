@@ -1,5 +1,6 @@
 <?php
-MyImouto\Application::routes()->draw(function() {
+
+MyImouto\Application::routes()->draw(function () {
     # Admin
     $this->match('admin(/index)', 'admin#index', ['via' => ['get', 'post']]);
     $this->match('admin/edit_user', ['via' => ['get', 'post']]);
@@ -8,11 +9,11 @@ MyImouto\Application::routes()->draw(function() {
     $this->post('admin/purge_tags');
 
     # Advertisements
-    $this->resources('advertisements', function() {
-        $this->collection(function() {
+    $this->resources('advertisements', function () {
+        $this->collection(function () {
             $this->post('update_multiple');
         });
-        $this->member(function() {
+        $this->member(function () {
             $this->get('redirect');
         });
     });
@@ -209,7 +210,7 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('report/post_uploads', ['via' => ['get', 'post']]);
     $this->match('report/votes', ['via' => ['get', 'post']]);
     $this->match('report/set_dates', ['via' => ['get', 'post']]);
-    
+
     # Settings
     $this->match('settings/api', 'settings_api#show', ['via' => ['get']]);
     $this->match('settings/api', 'settings_api#update', ['via' => ['post', 'put']]);

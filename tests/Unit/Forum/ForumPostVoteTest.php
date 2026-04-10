@@ -57,11 +57,11 @@ final class ForumPostVoteTest extends TestCase
     {
         $source = file_get_contents(dirname(__DIR__, 3) . '/app/models/ForumPostVote.php');
 
-        // Method declaration: static public function unvote($user_id, $post_id)
+        // Method declaration: public static function unvote($user_id, $post_id)
         self::assertMatchesRegularExpression(
-            '/static\s+public\s+function\s+unvote\s*\(\s*\$user_id\s*,\s*\$post_id\s*\)/',
+            '/public\s+static\s+function\s+unvote\s*\(\s*\$user_id\s*,\s*\$post_id\s*\)/',
             $source,
-            'unvote() must be a static public method with $user_id and $post_id params'
+            'unvote() must be a static public method with $user_id and $post_id params',
         );
     }
 
@@ -93,7 +93,7 @@ final class ForumPostVoteTest extends TestCase
         self::assertMatchesRegularExpression(
             '/function\s+bulk_post_scores\s*\(\s*array\s+\$post_ids\s*\)/',
             $source,
-            'bulk_post_scores() must accept a typed array parameter'
+            'bulk_post_scores() must accept a typed array parameter',
         );
 
         // Verify early return for empty array
@@ -113,7 +113,7 @@ final class ForumPostVoteTest extends TestCase
         self::assertMatchesRegularExpression(
             '/function\s+bulk_user_votes\s*\(\s*\$user_id\s*,\s*array\s+\$post_ids\s*\)/',
             $source,
-            'bulk_user_votes() must accept $user_id and typed array $post_ids'
+            'bulk_user_votes() must accept $user_id and typed array $post_ids',
         );
 
         // Verify early return for empty array

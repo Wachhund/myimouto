@@ -1,7 +1,7 @@
 <div id="takedown-index">
   <h4>Takedowns</h4>
 
-  <?= $this->formTag(['takedown#index'], ['method' => 'get'], function() { ?>
+  <?= $this->formTag(['takedown#index'], ['method' => 'get'], function () { ?>
     <fieldset style="margin-bottom: 1em;">
       <legend>Filter</legend>
 
@@ -9,7 +9,7 @@
       <select id="takedown_status" name="status">
         <option value="">all</option>
         <?php foreach (Takedown::VALID_STATUSES as $status) : ?>
-          <option value="<?= $this->h($status) ?>" <?php if ((string)$this->params()->status === $status) : ?>selected="selected"<?php endif ?>>
+          <option value="<?= $this->h($status) ?>" <?php if ((string) $this->params()->status === $status) : ?>selected="selected"<?php endif ?>>
             <?= $this->h($status) ?>
           </option>
         <?php endforeach ?>
@@ -36,29 +36,29 @@
     <tbody>
       <?php foreach ($this->takedowns as $takedown) : ?>
         <tr class="<?= $this->cycle('even', 'odd') ?>">
-          <td><?= $this->linkTo('#' . (int)$takedown->id, ['action' => 'show', 'id' => $takedown->id]) ?></td>
+          <td><?= $this->linkTo('#' . (int) $takedown->id, ['action' => 'show', 'id' => $takedown->id]) ?></td>
           <td><?= $this->h($takedown->status_label()) ?></td>
           <td><?= $this->h($takedown->email) ?></td>
           <td>
             <?php if ($takedown->creator_id) : ?>
               <?php try { ?>
-                <?= $this->linkTo($this->h(User::find_name((int)$takedown->creator_id)), ['user#show', 'id' => $takedown->creator_id]) ?>
+                <?= $this->linkTo($this->h(User::find_name((int) $takedown->creator_id)), ['user#show', 'id' => $takedown->creator_id]) ?>
               <?php } catch (Exception $e) { ?>
-                User #<?= (int)$takedown->creator_id ?>
+                User #<?= (int) $takedown->creator_id ?>
               <?php } ?>
             <?php else : ?>
               -
             <?php endif ?>
           </td>
-          <td><?= (int)$takedown->post_count() ?></td>
-          <td><?= $this->h(mb_strimwidth((string)$takedown->reason, 0, 80, '...')) ?></td>
+          <td><?= (int) $takedown->post_count() ?></td>
+          <td><?= $this->h(mb_strimwidth((string) $takedown->reason, 0, 80, '...')) ?></td>
           <td><?= $this->h($takedown->created_at) ?></td>
           <td>
             <?php if ($takedown->approver_id) : ?>
               <?php try { ?>
-                <?= $this->linkTo($this->h(User::find_name((int)$takedown->approver_id)), ['user#show', 'id' => $takedown->approver_id]) ?>
+                <?= $this->linkTo($this->h(User::find_name((int) $takedown->approver_id)), ['user#show', 'id' => $takedown->approver_id]) ?>
               <?php } catch (Exception $e) { ?>
-                User #<?= (int)$takedown->approver_id ?>
+                User #<?= (int) $takedown->approver_id ?>
               <?php } ?>
             <?php else : ?>
               -

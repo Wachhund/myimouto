@@ -1,7 +1,7 @@
 <div id="artist-create">
   <p><?= $this->t('.info') ?></p>
 
-  <?= $this->formTag(['action' => "create"], ['level' => 'member'], function(){ ?>
+  <?= $this->formTag(['action' => "create"], ['level' => 'member'], function () { ?>
     <table class="form">
       <tr>
         <th><label for="artist_name"><?= $this->t('.name') ?></label></th>

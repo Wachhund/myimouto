@@ -1,5 +1,5 @@
 <div id="admin-edit-user">
-  <?= $this->formTag('#edit_user', function() { ?>
+  <?= $this->formTag('#edit_user', function () { ?>
     <table class="form">
       <tr>
         <th width="15%"><label class="block" for="user_name"><?= $this->t('.user') ?></label></th>
@@ -12,7 +12,11 @@
           <label class="block" for="user_level"><?= $this->t('.level') ?></label>
         </th>
         <td>
-          <?= $this->select('user', 'level', array_filter(array_map(function($x) { if ($x > CONFIG()->user_levels['Blocked']) return $x; }, CONFIG()->user_levels))) ?>
+          <?= $this->select('user', 'level', array_filter(array_map(function ($x) {
+              if ($x > CONFIG()->user_levels['Blocked']) {
+                  return $x;
+              }
+          }, CONFIG()->user_levels))) ?>
         </td>
       </tr>
       <tr>

@@ -1,7 +1,7 @@
 <?php $this->provide('title', $this->t('.title')) ?>
 <h1><?= $this->t('.title') ?></h1>
 <div id="user-edit">
-  <?= $this->formTag('user#update', function(){ ?>
+  <?= $this->formTag('user#update', function () { ?>
     <table class="form">
       <tfoot>
         <tr>

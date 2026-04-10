@@ -1,5 +1,5 @@
 <div id="ticket-show">
-  <h4>Ticket #<?= (int)$this->ticket->id ?></h4>
+  <h4>Ticket #<?= (int) $this->ticket->id ?></h4>
 
   <table width="100%">
     <tbody>
@@ -15,9 +15,9 @@
         <th>Creator</th>
         <td>
           <?php try { ?>
-            <?= $this->linkTo($this->h(User::find_name((int)$this->ticket->creator_id)), ['user#show', 'id' => $this->ticket->creator_id]) ?>
+            <?= $this->linkTo($this->h(User::find_name((int) $this->ticket->creator_id)), ['user#show', 'id' => $this->ticket->creator_id]) ?>
           <?php } catch (Exception $e) { ?>
-            User #<?= (int)$this->ticket->creator_id ?>
+            User #<?= (int) $this->ticket->creator_id ?>
           <?php } ?>
         </td>
       </tr>
@@ -26,9 +26,9 @@
           <th>Accused</th>
           <td>
             <?php try { ?>
-              <?= $this->linkTo($this->h(User::find_name((int)$this->ticket->accused_id)), ['user#show', 'id' => $this->ticket->accused_id]) ?>
+              <?= $this->linkTo($this->h(User::find_name((int) $this->ticket->accused_id)), ['user#show', 'id' => $this->ticket->accused_id]) ?>
             <?php } catch (Exception $e) { ?>
-              User #<?= (int)$this->ticket->accused_id ?>
+              User #<?= (int) $this->ticket->accused_id ?>
             <?php } ?>
           </td>
         </tr>
@@ -36,7 +36,7 @@
       <?php if ($this->ticket->model_type && $this->ticket->model_id) : ?>
         <tr>
           <th>Target</th>
-          <td><?= $this->h($this->ticket->model_type) ?> #<?= (int)$this->ticket->model_id ?></td>
+          <td><?= $this->h($this->ticket->model_type) ?> #<?= (int) $this->ticket->model_id ?></td>
         </tr>
       <?php endif ?>
       <tr>
@@ -48,9 +48,9 @@
           <th>Claimed By</th>
           <td>
             <?php try { ?>
-              <?= $this->linkTo($this->h(User::find_name((int)$this->ticket->claimant_id)), ['user#show', 'id' => $this->ticket->claimant_id]) ?>
+              <?= $this->linkTo($this->h(User::find_name((int) $this->ticket->claimant_id)), ['user#show', 'id' => $this->ticket->claimant_id]) ?>
             <?php } catch (Exception $e) { ?>
-              User #<?= (int)$this->ticket->claimant_id ?>
+              User #<?= (int) $this->ticket->claimant_id ?>
             <?php } ?>
           </td>
         </tr>
@@ -79,20 +79,20 @@
       <h5>Moderation Actions</h5>
 
       <?php
-        $can_claim = in_array((string)$this->ticket->status, [Ticket::STATUS_PENDING, Ticket::STATUS_IN_PROGRESS], true);
-        $can_unclaim = (string)$this->ticket->status === Ticket::STATUS_IN_PROGRESS && $this->ticket->claimant_id;
-        $can_respond = in_array((string)$this->ticket->status, [Ticket::STATUS_PENDING, Ticket::STATUS_IN_PROGRESS], true);
+        $can_claim = in_array((string) $this->ticket->status, [Ticket::STATUS_PENDING, Ticket::STATUS_IN_PROGRESS], true);
+      $can_unclaim = (string) $this->ticket->status === Ticket::STATUS_IN_PROGRESS && $this->ticket->claimant_id;
+      $can_respond = in_array((string) $this->ticket->status, [Ticket::STATUS_PENDING, Ticket::STATUS_IN_PROGRESS], true);
       ?>
 
       <?php if ($can_claim) : ?>
-        <?= $this->formTag(['action' => 'claim', 'id' => $this->ticket->id], ['method' => 'post', 'style' => 'display:inline-block; margin-right: 0.5em;'], function() { ?>
+        <?= $this->formTag(['action' => 'claim', 'id' => $this->ticket->id], ['method' => 'post', 'style' => 'display:inline-block; margin-right: 0.5em;'], function () { ?>
           <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
           <?= $this->submitTag('Claim') ?>
         <?php }) ?>
       <?php endif ?>
 
       <?php if ($can_unclaim) : ?>
-        <?= $this->formTag(['action' => 'unclaim', 'id' => $this->ticket->id], ['method' => 'post', 'style' => 'display:inline-block; margin-right: 0.5em;'], function() { ?>
+        <?= $this->formTag(['action' => 'unclaim', 'id' => $this->ticket->id], ['method' => 'post', 'style' => 'display:inline-block; margin-right: 0.5em;'], function () { ?>
           <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
           <?= $this->submitTag('Unclaim') ?>
         <?php }) ?>
@@ -100,7 +100,7 @@
 
       <?php if ($can_respond) : ?>
         <div style="margin-top: 1em;">
-          <?= $this->formTag(['action' => 'update', 'id' => $this->ticket->id], ['method' => 'post'], function() { ?>
+          <?= $this->formTag(['action' => 'update', 'id' => $this->ticket->id], ['method' => 'post'], function () { ?>
             <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
 
             <table>

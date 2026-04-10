@@ -4,7 +4,7 @@
   <h2 class="wiki-title"><?= $this->h($this->wiki_page->pretty_title()) ?> (Editing)</h2>
   <div id="wiki-view">
   </div>
-  <?= $this->formTag(['action' => "update"], ['level'=>'member'], function(){ ?>
+  <?= $this->formTag(['action' => "update"], ['level' => 'member'], function () { ?>
     <?= $this->hiddenField("wiki_page", "title", ['value' => $this->wiki_page->title]) ?>
     <?= $this->partial("edit_buttons") ?>
   <?php }) ?>

@@ -1,4 +1,4 @@
-<?= $this->formTag("#update", function() { ?>
+<?= $this->formTag("#update", function () { ?>
   <h4><?= $this->t('sub_edit') ?></h4>
   <div style="margin-bottom: 1em;">
     <?=$this->t('sub_text') ?><?= CONFIG()->max_tag_subscriptions ?><?=$this->t('sub_text2') ?>

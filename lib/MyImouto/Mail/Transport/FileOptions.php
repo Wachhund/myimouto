@@ -19,7 +19,7 @@ class FileOptions
 
     public function setPath($path)
     {
-        $this->path = trim((string)$path);
+        $this->path = trim((string) $path);
         return $this;
     }
 

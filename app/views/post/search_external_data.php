@@ -52,8 +52,8 @@ table.form td.tags:not(.diff) a:hover {
 
 <?php
 if ($this->posts->any()) :
-  foreach ($this->posts as $post) :
-?>
+    foreach ($this->posts as $post) :
+        ?>
 <div class="post_compare" id="p<?= $post->id ?>">
   <div class="header">
     <h4><a href="#" class="title">Post #<?= $post->id ?></a></h4>
@@ -89,21 +89,21 @@ if ($this->posts->any()) :
             <tr>
               <th><label class="block" for="p<?= $post->id ?>_post_rating">Rating</label></th>
               <td>
-                <?= $this->radioButtonTag("post[rating]", "e", $post->rating == "e", array('id' =>  'p'.$post->id.'_post_rating_explicit')) ?>
+                <?= $this->radioButtonTag("post[rating]", "e", $post->rating == "e", ['id' =>  'p' . $post->id . '_post_rating_explicit']) ?>
                 <label for="p<?= $post->id ?>_post_rating_explicit"><?= $this->t('ratings.e') ?></label>
-                <?= $this->radioButtonTag("post[rating]", "q", $post->rating == "q", array('id' =>  'p'.$post->id.'_post_rating_questionable')) ?>
+                <?= $this->radioButtonTag("post[rating]", "q", $post->rating == "q", ['id' =>  'p' . $post->id . '_post_rating_questionable']) ?>
                 <label for="p<?= $post->id ?>_post_rating_questionable"><?= $this->t('ratings.q') ?></label>
-                <?= $this->radioButtonTag("post[rating]", "s", $post->rating == "s", array('id' =>  'p'.$post->id.'_post_rating_safe')) ?>
+                <?= $this->radioButtonTag("post[rating]", "s", $post->rating == "s", ['id' =>  'p' . $post->id . '_post_rating_safe']) ?>
                 <label for="p<?= $post->id ?>_post_rating_safe"><?= $this->t('ratings.s') ?></label>
               </td>
             </tr>
             <tr>
               <th><label class="block" for="p<?= $post->id ?>_post_source">Source</label></th>
-              <td><?= $this->textFieldTag("post[source]", $post->source, array('size' => '40', 'id' => 'p'.$post->id.'_post_source')) ?></td>
+              <td><?= $this->textFieldTag("post[source]", $post->source, ['size' => '40', 'id' => 'p' . $post->id . '_post_source']) ?></td>
             </tr>
             <tr>
               <th width="15%"><label class="block" for="p<?= $post->id ?>_post_tags">Tags</label></th>
-              <td width="85%"><?= $this->textAreaTag("post[tags]", $post->cached_tags, array('size' => '50x6', 'id' => 'p'.$post->id.'_post_tags')) ?></td>
+              <td width="85%"><?= $this->textAreaTag("post[tags]", $post->cached_tags, ['size' => '50x6', 'id' => 'p' . $post->id . '_post_tags']) ?></td>
             </tr>
           </tbody><table>
         </form>

@@ -3,10 +3,10 @@
   <div class="status-notice">
     <?= $this->t(['.flagged.info', 'user' => $this->h($latest_flag ? $latest_flag->author() : ''), 'reason' => $this->h($latest_flag ? $latest_flag->reason : '')]) ?>
     <?php if (current_user()->is_mod_or_higher() or ($latest_flag && $latest_flag->user_id == current_user()->id)) : ?>
-    (<?= $this->linkToFunction($this->t('.flagged.unflag'), 'Post.unflag('.$this->post->id.', function() { window.location.reload(); })') ?>)
+    (<?= $this->linkToFunction($this->t('.flagged.unflag'), 'Post.unflag(' . $this->post->id . ', function() { window.location.reload(); })') ?>)
     <?php endif ?>
     <?php if (current_user()->is_janitor_or_higher()) : ?>
-      (<?= $this->linkToFunction($this->t('.flagged.delete'), 'Post.prompt_to_delete('.$this->post->id.');') ?></li>)
+      (<?= $this->linkToFunction($this->t('.flagged.delete'), 'Post.prompt_to_delete(' . $this->post->id . ');') ?></li>)
     <?php endif ?>
   </div>
 <?php elseif ($this->post->is_pending()) : ?>
@@ -17,8 +17,8 @@
       <?= $this->t('.reason') ?><?= $this->h($latest_flag->reason) ?>
     <?php endif ?>
     <?php if (current_user()->is_janitor_or_higher()) : ?>
-      (<?= $this->linkToFunction($this->t('.pending.approve._'), "if (confirm('".$this->t('.pending.approve.confirm')."')) {Post.approve(".$this->post->id.")}") ?></li>)
-      (<?= $this->linkToFunction($this->t('.pending.delete'), "Post.prompt_to_delete(".$this->post->id.");") ?></li>)
+      (<?= $this->linkToFunction($this->t('.pending.approve._'), "if (confirm('" . $this->t('.pending.approve.confirm') . "')) {Post.approve(" . $this->post->id . ")}") ?></li>)
+      (<?= $this->linkToFunction($this->t('.pending.delete'), "Post.prompt_to_delete(" . $this->post->id . ");") ?></li>)
     <?php endif ?>
   </div>
 <?php elseif ($this->post->is_deleted()) : ?>
@@ -27,7 +27,7 @@
     <?= $this->t('.deleted_info') ?>
     <?php if ($latest_flag) : ?>
       <?php if (current_user()->is_mod_or_higher()) : ?>
-        <?= $this->t('.by') ?>: <?= $this->linkTo($this->h($latest_flag->author()), array('user#show', 'id' => $latest_flag->user_id)) ?>
+        <?= $this->t('.by') ?>: <?= $this->linkTo($this->h($latest_flag->author()), ['user#show', 'id' => $latest_flag->user_id]) ?>
       <?php endif ?>
 
       <?= $this->t('.reason') ?>: <?= $this->h($latest_flag->reason) ?>. MD5: <?= $this->post->md5 ?>
@@ -39,7 +39,7 @@
   <div class="status-notice" id="held-notice">
     <?= $this->t('.held.info') ?>
     <?php if (current_user()->has_permission($this->post)) : ?>
-      (<?= $this->linkToFunction($this->t('.held.activate'), 'Post.activate_post('.$this->post->id.');') ?>)
+      (<?= $this->linkToFunction($this->t('.held.activate'), 'Post.activate_post(' . $this->post->id . ');') ?>)
     <?php endif ?>
   </div>
 <?php endif ?>
@@ -67,19 +67,22 @@
 <?php if (CONFIG()->enable_parent_posts) : ?>
   <?php if ($this->post->parent_id) : ?>
     <div class="status-notice">
-      <?= $this->t(['.parent.has_parent_html', 'parent' => $this->linkTo($this->t('.parent.parent'), array('#show', 'id' => $this->post->parent_id))]) ?><?php
-      ?><span class="advanced-editing"> (<?= $this->linkToFunction($this->t('.parent.make_parent'), 'Post.reparent_post('.$this->post->id.', '.$this->post->parent_id.', '.($this->post->get_parent()->parent_id ? "true":"false").')') ?>)</span>
+      <?= $this->t(['.parent.has_parent_html', 'parent' => $this->linkTo($this->t('.parent.parent'), ['#show', 'id' => $this->post->parent_id])]) ?><?php
+      ?><span class="advanced-editing"> (<?= $this->linkToFunction($this->t('.parent.make_parent'), 'Post.reparent_post(' . $this->post->id . ', ' . $this->post->parent_id . ', ' . ($this->post->get_parent()->parent_id ? "true" : "false") . ')') ?>)</span>
     </div>
   <?php endif ?>
 
   <?php if ($this->post->has_children) : ?>
-    <?php $children = $this->post->children; $s = $this; ?>
+    <?php $children = $this->post->children;
+      $s = $this; ?>
     <div class="status-notice">
-      <?= $this->t(['.parent.has_child_html', 'child' => $this->linkTo(($children->size() == 1? $this->t('.parent.child'):$this->t('.parent.children')), array('#index', 'tags' => 'parent:'.$this->post->id))]) ?> (<?= $this->t(['.parent.child_post_html', 'child' =>  implode(', ', array_map(function($child){return $this->linkTo($child->id, array('#show', 'id' => $child->id));}, $children->members()))]) ?>).
+      <?= $this->t(['.parent.has_child_html', 'child' => $this->linkTo(($children->size() == 1 ? $this->t('.parent.child') : $this->t('.parent.children')), ['#index', 'tags' => 'parent:' . $this->post->id])]) ?> (<?= $this->t(['.parent.child_post_html', 'child' =>  implode(', ', array_map(function ($child) {
+          return $this->linkTo($child->id, ['#show', 'id' => $child->id]);
+      }, $children->members()))]) ?>).
     </div>
   <?php endif ?>
 <?php endif ?>
 
 <?php foreach ($this->pools as $pool) : ?>
-  <?= $this->partial("post/show_partials/pool", array('pool' => $pool, 'pool_post' => PoolPost::where("pool_id = ? AND post_id = ?", $pool->id, $this->post->id)->first())) ?>
+  <?= $this->partial("post/show_partials/pool", ['pool' => $pool, 'pool_post' => PoolPost::where("pool_id = ? AND post_id = ?", $pool->id, $this->post->id)->first()]) ?>
 <?php endforeach ?>

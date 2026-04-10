@@ -7,11 +7,11 @@ class ApiContract
     public static function buildSearchEnvelope(array $posts, array $options = [])
     {
         $batchData = isset($options['batch_data']) && is_array($options['batch_data']) ? $options['batch_data'] : [];
-        $query = isset($options['query']) ? (string)$options['query'] : '';
-        $count = isset($options['count']) ? (int)$options['count'] : count($posts);
-        $page = isset($options['page']) ? (int)$options['page'] : 1;
-        $perPage = isset($options['per_page']) ? (int)$options['per_page'] : count($posts);
-        $apiVersion = isset($options['api_version']) ? (string)$options['api_version'] : '1';
+        $query = isset($options['query']) ? (string) $options['query'] : '';
+        $count = isset($options['count']) ? (int) $options['count'] : count($posts);
+        $page = isset($options['page']) ? (int) $options['page'] : 1;
+        $perPage = isset($options['per_page']) ? (int) $options['per_page'] : count($posts);
+        $apiVersion = isset($options['api_version']) ? (string) $options['api_version'] : '1';
 
         return [
             'success' => true,
@@ -33,13 +33,13 @@ class ApiContract
 
     public static function buildCountEnvelope($query, $count, array $options = [])
     {
-        $apiVersion = isset($options['api_version']) ? (string)$options['api_version'] : '1';
+        $apiVersion = isset($options['api_version']) ? (string) $options['api_version'] : '1';
         $filter = !empty($options['filter']);
 
         return [
             'success' => true,
-            'query' => (string)$query,
-            'count' => (int)$count,
+            'query' => (string) $query,
+            'count' => (int) $count,
             'meta' => [
                 'api_version' => $apiVersion,
                 'response_version' => 1,

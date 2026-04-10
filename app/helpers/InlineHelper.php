@@ -1,4 +1,5 @@
 <?php
+
 class InlineHelper extends Rails\ActionView\Helper
 {
     public function inline_image_tag($image, array $options = [], array $tag_options = [])
@@ -12,7 +13,7 @@ class InlineHelper extends Rails\ActionView\Helper
             $tag_options['width'] = $image->width;
             $tag_options['height'] = $image->height;
         }
-        
+
         return $this->imageTag($url, $tag_options);
     }
 }

@@ -1,6 +1,6 @@
 <h4><?= $this->t('.title') ?></h4>
 
-<?= $this->formTag($this->updateMultipleAdvertisementsPath(), function() { ?>
+<?= $this->formTag($this->updateMultipleAdvertisementsPath(), function () { ?>
   <?php $ads = [] ?>
   <table>
     <thead>
@@ -26,9 +26,9 @@
           <td><?= $this->linkTo($ad->id, $ad) ?></td>
           <td><?php
             if (!$ad->html) {
-              echo $this->linkTo($ad->image_url, $ad->image_url);
+                echo $this->linkTo($ad->image_url, $ad->image_url);
             } else {
-              echo '<pre style="font-size:1.15em;margin:0px;">' . substr($this->h($ad->html), 0, 100) . '...</pre>';
+                echo '<pre style="font-size:1.15em;margin:0px;">' . substr($this->h($ad->html), 0, 100) . '...</pre>';
             }
           ?></td>
           <td><?= $this->linkTo($ad->referral_url, $ad->referral_url) ?></td>

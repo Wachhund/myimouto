@@ -1,4 +1,5 @@
 <?php
+
 class BatchUpload extends Rails\ActiveRecord\Base
 {
     public $data;
@@ -10,7 +11,7 @@ class BatchUpload extends Rails\ActiveRecord\Base
 
     public function run()
     {
-        Rails::systemExit()->register(function() {
+        Rails::systemExit()->register(function () {
             if (!$this->finished) {
                 $this->active = false;
                 $this->data->success = false;
@@ -46,7 +47,7 @@ class BatchUpload extends Rails\ActiveRecord\Base
             $this->data->success = false;
             $this->data->error = "Post already exists";
             $this->data->post_id = $p->id;
-       } else {
+        } else {
             $this->data->success = false;
             $this->data->error = $post->errors()->fullMessages(", ");
         }
@@ -68,8 +69,8 @@ class BatchUpload extends Rails\ActiveRecord\Base
     {
         return [
             'belongs_to' => [
-                'user'
-            ]
+                'user',
+            ],
         ];
     }
 
@@ -85,15 +86,15 @@ class BatchUpload extends Rails\ActiveRecord\Base
 
     // protected function data_setter($hoge)
     // {
-        // $this->data_as_json = json_encode($hoge);
+    // $this->data_as_json = json_encode($hoge);
     // }
 
     protected function callbacks()
     {
         return [
             'before_save' => [
-                'encode_data'
-            ]
+                'encode_data',
+            ],
         ];
     }
 }

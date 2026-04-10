@@ -1,6 +1,6 @@
 <div id="pool-index">
   <div style="margin-bottom: 2em;">
-    <?= $this->formTag([], ['method' => 'get'], function(){ ?>
+    <?= $this->formTag([], ['method' => 'get'], function () { ?>
       <?php if ($this->params()->order) : ?>
       <?= $this->hiddenFieldTag("order", $this->params()->order) ?>
       <?php endif ?>
@@ -13,7 +13,7 @@
   </div>
 
   <div style="margin-bottom: 2em;">
-    <?= $this->formTag([], ['method' => 'get'], function(){ ?>
+    <?= $this->formTag([], ['method' => 'get'], function () { ?>
       <?php if ($this->params()->order) : ?>
       <?= $this->hiddenFieldTag("order", $this->params()->order) ?>
       <?php endif ?>
@@ -55,7 +55,7 @@
   <?= $this->willPaginate($this->pools) ?>
 </div>
 
-<?php $this->contentFor('post_cookie_javascripts', function(){ ?>
+<?php $this->contentFor('post_cookie_javascripts', function () { ?>
 <script type="text/javascript">
   var thumb = $("hover-thumb");
   <?php foreach ($this->samples as $pool_id => $post) : ?>

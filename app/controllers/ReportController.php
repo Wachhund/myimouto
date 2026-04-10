@@ -1,4 +1,5 @@
 <?php
+
 class ReportController extends ApplicationController
 {
     protected function filters()
@@ -6,8 +7,8 @@ class ReportController extends ApplicationController
         return [
             'before' => [
                 'mod_only' => ['only' => ['tagUpdates', 'noteUpdates', 'wikiUpdates', 'postUploads', 'votes', 'setDates']],
-                'load_report_params' => ['only' => ['tagUpdates', 'noteUpdates', 'wikiUpdates', 'postUploads', 'votes', 'setDates']]
-            ]
+                'load_report_params' => ['only' => ['tagUpdates', 'noteUpdates', 'wikiUpdates', 'postUploads', 'votes', 'setDates']],
+            ],
         ];
     }
 
@@ -16,8 +17,8 @@ class ReportController extends ApplicationController
         $this->users = Report::tag_updates($this->start_date, $this->end_date, $this->limit, $this->level);
         $this->report_action = 'tag_updates';
         $this->report_title = 'Tag Updates';
-        $this->change_params = function($user_id) {
-            return ['history#index', 'search' => 'type:post user:' . User::find_name((int)$user_id)];
+        $this->change_params = function ($user_id) {
+            return ['history#index', 'search' => 'type:post user:' . User::find_name((int) $user_id)];
         };
         $this->set_title($this->report_title);
         $this->render(['action' => 'common']);
@@ -28,8 +29,8 @@ class ReportController extends ApplicationController
         $this->users = Report::note_updates($this->start_date, $this->end_date, $this->limit, $this->level);
         $this->report_action = 'note_updates';
         $this->report_title = 'Note Updates';
-        $this->change_params = function($user_id) {
-            return ['note#history', 'user_id' => (int)$user_id];
+        $this->change_params = function ($user_id) {
+            return ['note#history', 'user_id' => (int) $user_id];
         };
         $this->set_title($this->report_title);
         $this->render(['action' => 'common']);
@@ -40,8 +41,8 @@ class ReportController extends ApplicationController
         $this->users = Report::wiki_updates($this->start_date, $this->end_date, $this->limit, $this->level);
         $this->report_action = 'wiki_updates';
         $this->report_title = 'Wiki Updates';
-        $this->change_params = function($user_id) {
-            return ['wiki#recent_changes', 'user_id' => (int)$user_id];
+        $this->change_params = function ($user_id) {
+            return ['wiki#recent_changes', 'user_id' => (int) $user_id];
         };
         $this->set_title($this->report_title);
         $this->render(['action' => 'common']);
@@ -52,8 +53,8 @@ class ReportController extends ApplicationController
         $this->users = Report::post_uploads($this->start_date, $this->end_date, $this->limit, $this->level);
         $this->report_action = 'post_uploads';
         $this->report_title = 'Post Uploads';
-        $this->change_params = function($user_id) {
-            return ['post#index', 'tags' => 'user:' . User::find_name((int)$user_id)];
+        $this->change_params = function ($user_id) {
+            return ['post#index', 'tags' => 'user:' . User::find_name((int) $user_id)];
         };
         $this->set_title($this->report_title);
         $this->render(['action' => 'common']);
@@ -67,9 +68,9 @@ class ReportController extends ApplicationController
 
     public function setDates()
     {
-        $target = (string)$this->params()->report;
+        $target = (string) $this->params()->report;
         if (!$target) {
-            $target = (string)$this->params()->to;
+            $target = (string) $this->params()->to;
         }
 
         $allowed = ['tag_updates', 'note_updates', 'wiki_updates', 'post_uploads', 'votes'];
@@ -81,7 +82,7 @@ class ReportController extends ApplicationController
             'report#' . $target,
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
-            'limit' => $this->limit
+            'limit' => $this->limit,
         ];
 
         if ($this->level !== null) {
@@ -108,17 +109,17 @@ class ReportController extends ApplicationController
         if (!$this->limit) {
             $this->limit = 29;
         }
-        $this->limit = max(1, min(100, (int)$this->limit));
+        $this->limit = max(1, min(100, (int) $this->limit));
 
         $this->level_options = ['Any' => ''];
         foreach (CONFIG()->user_levels as $name => $value) {
-            $this->level_options[$name] = (int)$value;
+            $this->level_options[$name] = (int) $value;
         }
     }
 
     protected function parse_date_param($value)
     {
-        $value = trim((string)$value);
+        $value = trim((string) $value);
         if ($value === '') {
             return null;
         }
@@ -141,6 +142,6 @@ class ReportController extends ApplicationController
             return null;
         }
 
-        return (int)$value;
+        return (int) $value;
     }
 }

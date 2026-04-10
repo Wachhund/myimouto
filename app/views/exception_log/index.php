@@ -1,6 +1,6 @@
 <h4>Exception Logs</h4>
 
-<?= $this->formTag(['exception_log#index'], ['method' => 'get'], function() { ?>
+<?= $this->formTag(['exception_log#index'], ['method' => 'get'], function () { ?>
   <fieldset style="margin-bottom: 1em;">
     <legend>Filter</legend>
 
@@ -96,7 +96,7 @@
 <?php if (current_user()->is_admin()) : ?>
   <div style="margin-top: 1em; padding: 0.5em; border: 1px solid #ccc;">
     <h5>Prune Old Logs</h5>
-    <?= $this->formTag(['exception_log#prune'], ['method' => 'post'], function() { ?>
+    <?= $this->formTag(['exception_log#prune'], ['method' => 'post'], function () { ?>
       <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token, ['id' => '']) ?>
       <label for="prune_days">Delete logs older than</label>
       <input id="prune_days" name="days" type="number" value="365" size="6" min="1" />

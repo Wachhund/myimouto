@@ -1,4 +1,5 @@
 <?php
+
 trait TagApiMethods
 {
     public function api_attributes()
@@ -8,10 +9,10 @@ trait TagApiMethods
             'name'  => $this->name,
             'count' => $this->post_count,
             'type'  => $this->tag_type,
-            'ambiguous' => $this->is_ambiguous
+            'ambiguous' => $this->is_ambiguous,
         ];
     }
-    
+
     public function toXml(array $options = [])
     {
         $options['root'] = 'tag';

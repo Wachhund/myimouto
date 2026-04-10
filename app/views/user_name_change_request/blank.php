@@ -5,7 +5,7 @@
 <?php else : ?>
   <p>Your current username is <strong><?= $this->h(current_user()->name) ?></strong>.</p>
 
-  <?= $this->formTag(['user_name_change_request#create'], ['method' => 'post'], function() { ?>
+  <?= $this->formTag(['user_name_change_request#create'], ['method' => 'post'], function () { ?>
     <input type="hidden" name="csrf_token" value="<?= $this->h($this->csrf_token) ?>" />
     <table class="form">
       <tr>

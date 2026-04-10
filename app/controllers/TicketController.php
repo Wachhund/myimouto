@@ -1,4 +1,5 @@
 <?php
+
 class TicketController extends ApplicationController
 {
     protected function filters()
@@ -6,8 +7,8 @@ class TicketController extends ApplicationController
         return [
             'before' => [
                 'member_only' => ['only' => ['index', 'create', 'show']],
-                'mod_only' => ['only' => ['update', 'claim', 'unclaim']]
-            ]
+                'mod_only' => ['only' => ['update', 'claim', 'unclaim']],
+            ],
         ];
     }
 
@@ -30,7 +31,7 @@ class TicketController extends ApplicationController
 
         // Creator filter (mod only)
         if (current_user()->is_mod_or_higher() && $this->params()->creator_id) {
-            $query->where('creator_id = ?', (int)$this->params()->creator_id);
+            $query->where('creator_id = ?', (int) $this->params()->creator_id);
         }
 
         $this->tickets = $query->order('updated_at DESC, created_at DESC')->paginate($this->page_number(), 25);
@@ -43,7 +44,7 @@ class TicketController extends ApplicationController
                     $data[] = $ticket->api_attributes();
                 }
                 $this->render(['json' => $data]);
-            }
+            },
         ]);
     }
 
@@ -66,7 +67,7 @@ class TicketController extends ApplicationController
             'html',
             'json' => function () {
                 $this->render(['json' => $this->ticket->api_attributes()]);
-            }
+            },
         ]);
     }
 
@@ -84,7 +85,7 @@ class TicketController extends ApplicationController
             $this->respond_to_error(
                 'You have too many pending tickets (max ' . Ticket::MAX_PENDING_PER_USER . ')',
                 ['#index'],
-                ['status' => 421]
+                ['status' => 421],
             );
             return;
         }
@@ -98,15 +99,15 @@ class TicketController extends ApplicationController
             'model_id' => $ticket_params['model_id'] ?? $this->params()->model_id,
             'reason' => $ticket_params['reason'] ?? $this->params()->reason,
             'accused_id' => $ticket_params['accused_id'] ?? $this->params()->accused_id,
-            'created_at' => date('Y-m-d H:i:s')
+            'created_at' => date('Y-m-d H:i:s'),
         ];
 
         // Duplicate detection (AC-3) — Mod+ can bypass
         if (!current_user()->is_mod_or_higher()) {
             $existing = Ticket::find_duplicate(
-                (int)current_user()->id,
+                (int) current_user()->id,
                 $attrs['model_type'],
-                $attrs['model_id']
+                $attrs['model_id'],
             );
             if ($existing) {
                 $this->respondTo([
@@ -119,11 +120,11 @@ class TicketController extends ApplicationController
                             'json' => [
                                 'success' => false,
                                 'reason' => 'duplicate',
-                                'existing_ticket_id' => (int)$existing->id
+                                'existing_ticket_id' => (int) $existing->id,
                             ],
-                            'status' => 409
+                            'status' => 409,
                         ]);
-                    }
+                    },
                 ]);
                 return;
             }
@@ -133,7 +134,7 @@ class TicketController extends ApplicationController
 
         if ($this->ticket->errors()->blank()) {
             $this->respond_to_success('Ticket created', ['#show', 'id' => $this->ticket->id], [
-                'api' => ['ticket' => $this->ticket->api_attributes()]
+                'api' => ['ticket' => $this->ticket->api_attributes()],
             ]);
             return;
         }
@@ -160,7 +161,7 @@ class TicketController extends ApplicationController
 
         if ($result) {
             $this->respond_to_success('Ticket updated', ['#show', 'id' => $this->ticket->id], [
-                'api' => ['ticket' => $this->ticket->api_attributes()]
+                'api' => ['ticket' => $this->ticket->api_attributes()],
             ]);
         } else {
             $this->respond_to_error('Failed to update ticket', ['#show', 'id' => $this->ticket->id]);
@@ -178,7 +179,7 @@ class TicketController extends ApplicationController
 
         if ($result['success']) {
             $this->respond_to_success('Ticket claimed', ['#show', 'id' => $this->ticket->id], [
-                'api' => ['ticket' => $this->ticket->api_attributes()]
+                'api' => ['ticket' => $this->ticket->api_attributes()],
             ]);
         } elseif ($result['reason'] === 'already_claimed') {
             $claimant_name = htmlspecialchars($result['claimant'] ?: 'another staff member', ENT_QUOTES, 'UTF-8');
@@ -192,11 +193,11 @@ class TicketController extends ApplicationController
                         'json' => [
                             'success' => false,
                             'reason' => 'already_claimed',
-                            'claimant' => $result['claimant']
+                            'claimant' => $result['claimant'],
                         ],
-                        'status' => 409
+                        'status' => 409,
                     ]);
-                }
+                },
             ]);
         } else {
             $this->respond_to_error('Cannot claim this ticket', ['#show', 'id' => $this->ticket->id]);
@@ -212,7 +213,7 @@ class TicketController extends ApplicationController
 
         if ($this->ticket->unclaim()) {
             $this->respond_to_success('Ticket unclaimed', ['#show', 'id' => $this->ticket->id], [
-                'api' => ['ticket' => $this->ticket->api_attributes()]
+                'api' => ['ticket' => $this->ticket->api_attributes()],
             ]);
         } else {
             $this->respond_to_error('Cannot unclaim this ticket', ['#show', 'id' => $this->ticket->id]);
@@ -221,7 +222,7 @@ class TicketController extends ApplicationController
 
     protected function find_ticket_from_params()
     {
-        $id = (int)$this->params()->id;
+        $id = (int) $this->params()->id;
         if ($id <= 0) {
             $this->respond_to_error('Ticket not found', ['#index'], ['status' => 404]);
             return null;
@@ -254,13 +255,13 @@ class TicketController extends ApplicationController
 
         // Janitor+ see own tickets + post-type tickets
         if (!$user->is_anonymous() && $user->is_janitor_or_higher()) {
-            $query->where("(creator_id = ? OR qtype = 'post')", (int)$user->id);
+            $query->where("(creator_id = ? OR qtype = 'post')", (int) $user->id);
             return $query;
         }
 
         // Logged-in members see only their own tickets
         if (!$user->is_anonymous()) {
-            $query->where('creator_id = ?', (int)$user->id);
+            $query->where('creator_id = ?', (int) $user->id);
             return $query;
         }
 
@@ -283,12 +284,12 @@ class TicketController extends ApplicationController
         }
 
         // Creator can always see their own ticket
-        if (!$user->is_anonymous() && (int)$ticket->creator_id === (int)$user->id) {
+        if (!$user->is_anonymous() && (int) $ticket->creator_id === (int) $user->id) {
             return true;
         }
 
         // Janitor+ can see post-type tickets
-        if (!$user->is_anonymous() && $user->is_janitor_or_higher() && (string)$ticket->qtype === 'post') {
+        if (!$user->is_anonymous() && $user->is_janitor_or_higher() && (string) $ticket->qtype === 'post') {
             return true;
         }
 

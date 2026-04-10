@@ -1,1 +1,1 @@
-<?= $this->format_text($this->params()->body) ?>
+<?= $this->format_text($this->params()->body);

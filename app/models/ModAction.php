@@ -1,132 +1,133 @@
 <?php
+
 class ModAction extends Rails\ActiveRecord\Base
 {
-    const ACTION_REGISTRY = [
+    public const ACTION_REGISTRY = [
         'user_ban' => [
             'label' => 'User Banned',
             'target_type' => 'user',
             'target_key' => 'user_id',
-            'params' => ['user_id', 'user_name', 'reason', 'duration']
+            'params' => ['user_id', 'user_name', 'reason', 'duration'],
         ],
         'user_unban' => [
             'label' => 'User Unbanned',
             'target_type' => 'user',
             'target_key' => 'user_id',
-            'params' => ['user_id', 'user_name']
+            'params' => ['user_id', 'user_name'],
         ],
         'user_delete' => [
             'label' => 'User Deleted',
             'target_type' => 'user',
             'target_key' => 'user_id',
-            'params' => ['user_id', 'user_name']
+            'params' => ['user_id', 'user_name'],
         ],
         'post_approve' => [
             'label' => 'Post Approved',
             'target_type' => 'post',
             'target_key' => 'post_id',
-            'params' => ['post_id']
+            'params' => ['post_id'],
         ],
         'post_delete' => [
             'label' => 'Post Deleted',
             'target_type' => 'post',
             'target_key' => 'post_id',
-            'params' => ['post_id', 'reason']
+            'params' => ['post_id', 'reason'],
         ],
         'post_undelete' => [
             'label' => 'Post Undeleted',
             'target_type' => 'post',
             'target_key' => 'post_id',
-            'params' => ['post_id']
+            'params' => ['post_id'],
         ],
         'post_flag_resolve' => [
             'label' => 'Post Flag Resolved',
             'target_type' => 'post',
             'target_key' => 'post_id',
-            'params' => ['post_id']
+            'params' => ['post_id'],
         ],
         'user_record_create' => [
             'label' => 'User Record Created',
             'target_type' => 'user',
             'target_key' => 'user_id',
-            'params' => ['user_id', 'user_name', 'is_positive', 'body']
+            'params' => ['user_id', 'user_name', 'is_positive', 'body'],
         ],
         'user_record_delete' => [
             'label' => 'User Record Deleted',
             'target_type' => 'user',
             'target_key' => 'user_id',
-            'params' => ['user_id', 'user_name', 'record_id']
+            'params' => ['user_id', 'user_name', 'record_id'],
         ],
         'ticket_claim' => [
             'label' => 'Ticket Claimed',
             'target_type' => 'ticket',
             'target_key' => 'ticket_id',
-            'params' => ['ticket_id']
+            'params' => ['ticket_id'],
         ],
         'ticket_unclaim' => [
             'label' => 'Ticket Unclaimed',
             'target_type' => 'ticket',
             'target_key' => 'ticket_id',
-            'params' => ['ticket_id']
+            'params' => ['ticket_id'],
         ],
         'ticket_update' => [
             'label' => 'Ticket Updated',
             'target_type' => 'ticket',
             'target_key' => 'ticket_id',
-            'params' => ['ticket_id', 'status']
+            'params' => ['ticket_id', 'status'],
         ],
         'takedown_process' => [
             'label' => 'Takedown Processed',
             'target_type' => 'takedown',
             'target_key' => 'takedown_id',
-            'params' => ['takedown_id', 'status']
+            'params' => ['takedown_id', 'status'],
         ],
         'upload_whitelist_create' => [
             'label' => 'Upload Whitelist Created',
             'target_type' => 'upload_whitelist',
             'target_key' => 'pattern',
-            'params' => ['pattern', 'note']
+            'params' => ['pattern', 'note'],
         ],
         'upload_whitelist_update' => [
             'label' => 'Upload Whitelist Updated',
             'target_type' => 'upload_whitelist',
             'target_key' => 'pattern',
-            'params' => ['pattern', 'note']
+            'params' => ['pattern', 'note'],
         ],
         'upload_whitelist_delete' => [
             'label' => 'Upload Whitelist Deleted',
             'target_type' => 'upload_whitelist',
             'target_key' => 'pattern',
-            'params' => ['pattern']
+            'params' => ['pattern'],
         ],
         'post_replacement_approve' => [
             'label' => 'Post Replacement Approved',
             'target_type' => 'post',
             'target_key' => 'post_id',
-            'params' => ['post_id', 'replacement_id']
+            'params' => ['post_id', 'replacement_id'],
         ],
         'post_replacement_reject' => [
             'label' => 'Post Replacement Rejected',
             'target_type' => 'post',
             'target_key' => 'post_id',
-            'params' => ['post_id', 'replacement_id', 'reason']
+            'params' => ['post_id', 'replacement_id', 'reason'],
         ],
         'post_set_update' => [
             'label' => 'Post Set Updated',
             'target_type' => 'post_set',
             'target_key' => 'post_set_id',
-            'params' => ['post_set_id', 'post_set_name']
+            'params' => ['post_set_id', 'post_set_name'],
         ],
         'username_change_approve' => [
             'label' => 'Username Change Approved',
             'target_type' => 'user',
             'target_key' => 'user_id',
-            'params' => ['user_id', 'old_name', 'new_name']
+            'params' => ['user_id', 'old_name', 'new_name'],
         ],
         'username_change_reject' => [
             'label' => 'Username Change Rejected',
             'target_type' => 'user',
             'target_key' => 'user_id',
-            'params' => ['user_id', 'user_name', 'reason']
+            'params' => ['user_id', 'user_name', 'reason'],
         ],
     ];
 
@@ -134,8 +135,8 @@ class ModAction extends Rails\ActiveRecord\Base
     {
         return [
             'belongs_to' => [
-                'creator' => ['class_name' => 'User', 'foreign_key' => 'creator_id']
-            ]
+                'creator' => ['class_name' => 'User', 'foreign_key' => 'creator_id'],
+            ],
         ];
     }
 
@@ -166,7 +167,7 @@ class ModAction extends Rails\ActiveRecord\Base
             }
 
             $record = new self();
-            $record->creator_id = (int)$creator_id;
+            $record->creator_id = (int) $creator_id;
             $record->action = $action;
             $record->values = !empty($values) ? json_encode($values) : null;
             $record->created_at = date('Y-m-d H:i:s');
@@ -174,7 +175,7 @@ class ModAction extends Rails\ActiveRecord\Base
         } catch (\Throwable $e) {
             try {
                 \Rails::log()->warning(
-                    sprintf('ModAction::log failed for action=%s: %s', $action, $e->getMessage())
+                    sprintf('ModAction::log failed for action=%s: %s', $action, $e->getMessage()),
                 );
             } catch (\Throwable $inner) {
                 // Last-resort: swallow to never crash the caller.
@@ -190,7 +191,7 @@ class ModAction extends Rails\ActiveRecord\Base
         if ($this->values === null || $this->values === '') {
             return [];
         }
-        $decoded = json_decode((string)$this->values, true);
+        $decoded = json_decode((string) $this->values, true);
         return is_array($decoded) ? $decoded : [];
     }
 
@@ -202,7 +203,7 @@ class ModAction extends Rails\ActiveRecord\Base
         if (isset(self::ACTION_REGISTRY[$this->action])) {
             return self::ACTION_REGISTRY[$this->action]['label'];
         }
-        return (string)$this->action;
+        return (string) $this->action;
     }
 
     /**
@@ -245,11 +246,11 @@ class ModAction extends Rails\ActiveRecord\Base
 
         switch ($type) {
             case 'user':
-                return ['controller' => 'user', 'action' => 'show', 'id' => (int)$id];
+                return ['controller' => 'user', 'action' => 'show', 'id' => (int) $id];
             case 'post':
-                return ['controller' => 'post', 'action' => 'show', 'id' => (int)$id];
+                return ['controller' => 'post', 'action' => 'show', 'id' => (int) $id];
             case 'post_set':
-                return ['controller' => 'post_set', 'action' => 'show', 'id' => (int)$id];
+                return ['controller' => 'post_set', 'action' => 'show', 'id' => (int) $id];
             default:
                 return null;
         }
@@ -261,9 +262,9 @@ class ModAction extends Rails\ActiveRecord\Base
     public function api_attributes()
     {
         return [
-            'id' => (int)$this->id,
-            'creator_id' => (int)$this->creator_id,
-            'action' => (string)$this->action,
+            'id' => (int) $this->id,
+            'creator_id' => (int) $this->creator_id,
+            'action' => (string) $this->action,
             'values' => $this->parsed_values(),
             'created_at' => $this->created_at,
         ];

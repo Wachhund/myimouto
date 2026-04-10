@@ -13,7 +13,7 @@ class ContentType
 
     public function setType($type)
     {
-        $type = trim((string)$type);
+        $type = trim((string) $type);
         if ($type === '') {
             $type = 'text/plain';
         }

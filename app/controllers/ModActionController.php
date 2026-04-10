@@ -1,12 +1,13 @@
 <?php
+
 class ModActionController extends ApplicationController
 {
     protected function filters()
     {
         return [
             'before' => [
-                'mod_only' => ['only' => ['index']]
-            ]
+                'mod_only' => ['only' => ['index']],
+            ],
         ];
     }
 
@@ -18,7 +19,7 @@ class ModActionController extends ApplicationController
             $query = $query->where('action = ?', $this->params()->action_type);
         }
         if ($this->params()->creator_id) {
-            $query = $query->where('creator_id = ?', (int)$this->params()->creator_id);
+            $query = $query->where('creator_id = ?', (int) $this->params()->creator_id);
         }
         if ($this->params()->creator_name) {
             $user = User::where('name = ?', $this->params()->creator_name)->first();
@@ -44,7 +45,7 @@ class ModActionController extends ApplicationController
                     $data[] = $ma->api_attributes();
                 }
                 $this->render(['json' => $data]);
-            }
+            },
         ]);
     }
 }

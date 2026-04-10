@@ -1,4 +1,5 @@
 <?php
+
 class ApiKey extends Rails\ActiveRecord\Base
 {
     /**
@@ -65,9 +66,9 @@ class ApiKey extends Rails\ActiveRecord\Base
         self::connection()->executeSql(
             "UPDATE api_keys SET last_used_at = ?, last_ip_address = ?, last_user_agent = ? WHERE id = ?",
             $now,
-            substr((string)$ip, 0, 45),
-            substr((string)$user_agent, 0, 255),
-            $this->id
+            substr((string) $ip, 0, 45),
+            substr((string) $user_agent, 0, 255),
+            $this->id,
         );
         $this->last_used_at = $now;
         $this->last_ip_address = $ip;
@@ -87,7 +88,7 @@ class ApiKey extends Rails\ActiveRecord\Base
             "UPDATE api_keys SET hashed_key = ?, created_at = ? WHERE id = ?",
             $pair['hashed_key'],
             $now,
-            $this->id
+            $this->id,
         );
         $this->hashed_key = $pair['hashed_key'];
         $this->created_at = $now;
@@ -119,13 +120,13 @@ class ApiKey extends Rails\ActiveRecord\Base
     public function api_attributes()
     {
         return [
-            'id' => (int)$this->id,
-            'user_id' => (int)$this->user_id,
-            'name' => (string)$this->name,
+            'id' => (int) $this->id,
+            'user_id' => (int) $this->user_id,
+            'name' => (string) $this->name,
             'expires_at' => $this->expires_at,
             'last_used_at' => $this->last_used_at,
             'last_ip_address' => $this->last_ip_address,
-            'created_at' => $this->created_at
+            'created_at' => $this->created_at,
         ];
     }
 
@@ -145,8 +146,8 @@ class ApiKey extends Rails\ActiveRecord\Base
     {
         return [
             'belongs_to' => [
-                'user'
-            ]
+                'user',
+            ],
         ];
     }
 
@@ -154,7 +155,7 @@ class ApiKey extends Rails\ActiveRecord\Base
     {
         return [
             'name' => ['presence' => true],
-            'user_id' => ['presence' => true]
+            'user_id' => ['presence' => true],
         ];
     }
 

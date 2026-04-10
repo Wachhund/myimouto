@@ -6,7 +6,7 @@
 <?php else: ?>
   <p><?= $this->t('user_signup_text3') ?><a href="/static/terms_of_service"><?= $this->t('user_signup_text4') ?></a><?= $this->t('user_signup_text5') ?><strong><?= $this->t('user_signup_text6') ?></strong></p>
 
-  <?= $this->formTag('user#create', function(){ ?>
+  <?= $this->formTag('user#create', function () { ?>
     <table class="form">
       <tfoot>
         <tr>

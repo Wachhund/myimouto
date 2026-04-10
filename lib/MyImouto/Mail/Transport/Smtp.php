@@ -24,13 +24,13 @@ class Smtp
             [];
 
         $smtpSettings = [
-            'address' => isset($options['host']) ? (string)$options['host'] : '127.0.0.1',
-            'domain' => isset($options['name']) ? (string)$options['name'] : 'localhost',
-            'port' => isset($options['port']) ? (int)$options['port'] : 25,
-            'authentication' => isset($options['connection_class']) ? (string)$options['connection_class'] : 'login',
-            'user_name' => isset($connection['username']) ? (string)$connection['username'] : '',
-            'password' => isset($connection['password']) ? (string)$connection['password'] : '',
-            'enable_starttls_auto' => !empty($connection['ssl']) && strtolower((string)$connection['ssl']) === 'tls',
+            'address' => isset($options['host']) ? (string) $options['host'] : '127.0.0.1',
+            'domain' => isset($options['name']) ? (string) $options['name'] : 'localhost',
+            'port' => isset($options['port']) ? (int) $options['port'] : 25,
+            'authentication' => isset($options['connection_class']) ? (string) $options['connection_class'] : 'login',
+            'user_name' => isset($connection['username']) ? (string) $connection['username'] : '',
+            'password' => isset($connection['password']) ? (string) $connection['password'] : '',
+            'enable_starttls_auto' => !empty($connection['ssl']) && strtolower((string) $connection['ssl']) === 'tls',
         ];
 
         $transport = new \MyImouto\Mail\PHPMailerTransport($smtpSettings);

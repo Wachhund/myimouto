@@ -7,7 +7,7 @@ function run_command(array $parts): int
     $escaped = array_map('escapeshellarg', $parts);
     $command = implode(' ', $escaped);
     passthru($command, $code);
-    return (int)$code;
+    return (int) $code;
 }
 
 $root = dirname(__DIR__, 2);
@@ -35,4 +35,3 @@ $command = [
 ];
 
 exit(run_command($command));
-

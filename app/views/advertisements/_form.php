@@ -1,4 +1,4 @@
-<?= $this->formFor($this->ad, function($f) { ?>
+<?= $this->formFor($this->ad, function ($f) { ?>
   <?php $action = $this->request()->action() ?>
   <?= $this->partial('shared/error_messages', ['object' => $f->object()]) ?>
 
@@ -55,7 +55,9 @@
       </script>
     </tbody>
    
-    <tbody class="ad_position<?php if ($f->object()->ad_type == 'vertical') echo ' hide-box' ?>">
+    <tbody class="ad_position<?php if ($f->object()->ad_type == 'vertical') {
+        echo ' hide-box';
+    } ?>">
       <tr>
         <th><?= $f->label('position') ?></th>
         <td><?= $f->select('position', ['Any' => 'a', 'Top' => 't', 'Bottom' => 'b']) ?></td>
@@ -68,7 +70,7 @@
         <td><?= $f->select('status', ['Active' => 'active', 'Disabled' => 'disabled']) ?></td>
       </tr>
       
-      <?php if (false && $action == 'edit') : // Why is this here? ?> 
+      <?php if (false && $action == 'edit') : // Why is this here??> 
       <tr>
         <th><?= $f->label('reset_hit_count') ?></th>
         <td><?= $this->checkBoxTag('reset_hit_count', 1, false, ['id' => 'advertisement_reset_hit_count']) ?></td>
@@ -85,7 +87,9 @@
       </tr>
     </tbody>
 
-    <tbody class="type-fields type-image<?php if ($action != 'blank' && $f->object()->html) echo ' hide-box' ?>">
+    <tbody class="type-fields type-image<?php if ($action != 'blank' && $f->object()->html) {
+        echo ' hide-box';
+    } ?>">
       <tr>
         <th><?= $f->label('image_url') ?></th>
         <td><?= $f->textField('image_url') ?></td>
@@ -96,7 +100,9 @@
       </tr>
     </tbody>
     
-    <tbody class="type-fields type-html<?php if ($action == 'blank' || !$f->object()->html) echo ' hide-box' ?>">
+    <tbody class="type-fields type-html<?php if ($action == 'blank' || !$f->object()->html) {
+        echo ' hide-box';
+    } ?>">
       <tr>
         <th><?= $f->label('html') ?></th>
         <td><?= $f->textArea('html', ['style' => 'height: 300px;']) ?></td>

@@ -1,8 +1,8 @@
 <?php
 if ($this->inline->inline_images->size() > 0) {
-  list($block, $script, $inline_html_id) = $this->format_inline($this->inline, 0, "inline", "");
+    list($block, $script, $inline_html_id) = $this->format_inline($this->inline, 0, "inline", "");
 } else {
-  $block = $script = $inline_html_id = null;
+    $block = $script = $inline_html_id = null;
 }
 ?>
 
@@ -20,7 +20,7 @@ if ($this->inline->inline_images->size() > 0) {
 
 
   <div id="post-add" style="display: none;">
-    <?= $this->formTag(['action' => "add_image"], ['level' => 'member', 'multipart' => true], function(){ ?>
+    <?= $this->formTag(['action' => "add_image"], ['level' => 'member', 'multipart' => true], function () { ?>
       <?= $this->hiddenFieldTag("id", $this->inline->id) ?>
       <div id="posts">
         <table class="form">
@@ -57,19 +57,21 @@ if ($this->inline->inline_images->size() > 0) {
 
 <div id="inline-edit">
   <?php foreach ($this->inline->inline_images as $image) : ?>
-    <?= $this->formTag(['action' => "delete_image"], ['id' => "delete-image-" . $image->id], function() use ($image) { ?>
+    <?= $this->formTag(['action' => "delete_image"], ['id' => "delete-image-" . $image->id], function () use ($image) { ?>
       <?= $this->hiddenFieldTag("id", $image->id) ?>
     <?php }) ?>
   <?php endforeach ?>
 
-  <?= $this->formTag('#update', function() { ?>
+  <?= $this->formTag('#update', function () { ?>
     <label for="inline_description"><?= $this->t('.description') ?>:</label>
     <br>
     <span id="inline-description">
       <a id="inline-description-edit-button" href="#" onclick="show_edit_desc(); return false;">
         <?= $this->format_text($this->inline->description) ?>
 
-        <?php if (!$this->inline->description) echo $this->t('.add_set_description_info') ?>
+        <?php if (!$this->inline->description) {
+            echo $this->t('.add_set_description_info');
+        } ?>
       </a>
       <br>
     </span>
@@ -172,14 +174,14 @@ function orderShift(id, direction) {
 
 </script>
 
-<?= $this->formTag(['action' => "delete"], ['id' => "delete-group"], function(){ ?>
+<?= $this->formTag(['action' => "delete"], ['id' => "delete-group"], function () { ?>
   <?= $this->hiddenFieldTag("id", $this->inline->id) ?>
 <?php }) ?>
-<?= $this->formTag(['action' => "copy"], ['id' => "copy-group"], function() { ?>
+<?= $this->formTag(['action' => "copy"], ['id' => "copy-group"], function () { ?>
   <?= $this->hiddenFieldTag("id", $this->inline->id) ?>
 <?php }) ?>
 
-<?php $this->contentFor('subnavbar', function() { ?>
+<?php $this->contentFor('subnavbar', function () { ?>
   <?php if (current_user()->has_permission($this->inline)) : ?>
     <li><?= $this->linkTo($this->t('.delete'), "#", ['onclick' => "if(confirm('" . $this->t('.delete_confirm') . "')) $('delete-group').submit(); return false;"]) ?></li>
     <li><?= $this->linkTo($this->t('.crop'), ['action' => "crop", 'id' => $this->inline->id]) ?></li>

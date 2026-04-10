@@ -1,19 +1,20 @@
 <?php
+
 class CommentController extends ApplicationController
 {
     protected function init()
     {
         $this->helper('Avatar', 'Post');
     }
-    
+
     protected function filters()
     {
-        return array(
+        return [
             'before' => [
-                'member_only' => ['only' => array('create', 'destroy', 'update')],
-                'janitor_only' => ['only' => array('moderate')]
-            ]
-        );
+                'member_only' => ['only' => ['create', 'destroy', 'update']],
+                'janitor_only' => ['only' => ['moderate']],
+            ],
+        ];
     }
 
     public function edit()
@@ -41,7 +42,7 @@ class CommentController extends ApplicationController
         $comment = Comment::find($this->params()->id);
         if (current_user()->has_permission($comment)) {
             $comment->destroy();
-            $this->respond_to_success("Comment deleted", array('post#show', 'id' => $comment->post_id));
+            $this->respond_to_success("Comment deleted", ['post#show', 'id' => $comment->post_id]);
         } else {
             $this->access_denied();
         }
@@ -49,20 +50,20 @@ class CommentController extends ApplicationController
 
     public function create()
     {
-         if (current_user()->is_member_or_lower() && $this->params()->commit == "Post" && Comment::where("user_id = ? AND created_at > ?", current_user()->id, strtotime('-1 hour'))->count() >= CONFIG()->member_comment_limit) {
+        if (current_user()->is_member_or_lower() && $this->params()->commit == "Post" && Comment::where("user_id = ? AND created_at > ?", current_user()->id, strtotime('-1 hour'))->count() >= CONFIG()->member_comment_limit) {
             # TODO: move this to the model
-            $this->respond_to_error("Hourly limit exceeded", '#index', array('status' => 421));
+            $this->respond_to_error("Hourly limit exceeded", '#index', ['status' => 421]);
             return;
         }
 
         $user_id = current_user()->id;
         $comment_params = $this->normalized_comment_params();
-        
-        $comment = new Comment(array_merge($comment_params, array('ip_addr' => $this->request()->remoteIp(), 'user_id' => $user_id)));
+
+        $comment = new Comment(array_merge($comment_params, ['ip_addr' => $this->request()->remoteIp(), 'user_id' => $user_id]));
         if ($this->params()->commit == "Post without bumping") {
             $comment->do_not_bump_post = true;
         }
-        
+
         if ($comment->save()) {
             $this->respond_to_success("Comment created", '#index');
         } else {
@@ -80,7 +81,7 @@ class CommentController extends ApplicationController
     public function index()
     {
         $this->set_title('Comments');
-        
+
         if ($this->request()->format() == "json" || $this->request()->format() == "xml") {
             $this->comments = Comment::generate_sql($this->params()->all())->order("id DESC")->paginate($this->page_number(), 25);
             $this->respond_to_list("comments");
@@ -88,14 +89,20 @@ class CommentController extends ApplicationController
             $this->posts = Post::where("last_commented_at IS NOT NULL")->order("last_commented_at DESC")->paginate($this->page_number(), 10);
 
             $comments = new Rails\ActiveRecord\Collection();
-            $this->posts->each(function($post)use($comments){$comments->merge($post->recent_comments());});
+            $this->posts->each(function ($post) use ($comments) {
+                $comments->merge($post->recent_comments());
+            });
 
-            $newest_comment = $comments->max(function($a, $b){return $a->created_at > $b->created_at ? $a : $b;});
+            $newest_comment = $comments->max(function ($a, $b) {
+                return $a->created_at > $b->created_at ? $a : $b;
+            });
             if (!current_user()->is_anonymous() && $newest_comment && current_user()->last_comment_read_at < $newest_comment->created_at) {
                 current_user()->updateAttribute('last_comment_read_at', $newest_comment->created_at);
             }
 
-            $this->posts->deleteIf(function($x){return !$x->can_be_seen_by(current_user(), array('show_deleted' => true));});
+            $this->posts->deleteIf(function ($x) {
+                return !$x->can_be_seen_by(current_user(), ['show_deleted' => true]);
+            });
         }
     }
 
@@ -103,16 +110,16 @@ class CommentController extends ApplicationController
     {
         $query        = Comment::order('id desc');
         $search_query = explode(' ', $this->params()->query);
-        $search_terms = array();
-        
+        $search_terms = [];
+
         foreach ($search_query as $s) {
             if (!$s) {
                 continue;
             }
-            
+
             if (strpos($s, 'user:') === 0 && strlen($s) > 5) {
                 list($search_type, $param) = explode(':', $s);
-                
+
                 if ($user = User::where(['name' => $param])->first()) {
                     $query->where('user_id = ?', $user->id);
                 } else {
@@ -123,7 +130,7 @@ class CommentController extends ApplicationController
 
             $search_terms[] = $s;
         }
-        
+
         if ($search_terms) {
             $query->where('body LIKE ?', '%' . implode('%', $search_terms) . '%');
         } else {
@@ -146,7 +153,7 @@ class CommentController extends ApplicationController
             if ($this->params()->commit == "Delete") {
                 $coms->each('destroy');
             } elseif ($this->params()->commit == "Approve") {
-                $coms->each('updateAttribute', array('is_spam', false));
+                $coms->each('updateAttribute', ['is_spam', false]);
             }
 
             $this->redirectTo('#moderate');
@@ -158,7 +165,7 @@ class CommentController extends ApplicationController
     public function markAsSpam()
     {
         $this->comment = Comment::find($this->params()->id);
-        $this->comment->updateAttributes(array('is_spam' => true));
+        $this->comment->updateAttributes(['is_spam' => true]);
         $this->respond_to_success("Comment marked as spam", '#index');
     }
 

@@ -1,5 +1,5 @@
 <div style="display: none;" class="post-hover-overlay" id="index-hover-overlay">
-  <a href="#"><?= $this->imageTag('images/blank.gif', array('alt' => '')) ?></a>
+  <a href="#"><?= $this->imageTag('images/blank.gif', ['alt' => '']) ?></a>
 </div>
 
 <div style="display: none;" class="post-hover" id="index-hover-info">
@@ -33,10 +33,13 @@
     <span id="hover-tags">
       <?php
       $tags = [];
-      foreach (array_unique(CONFIG()->tag_types) as $tag)
-        $tags[] = Tag::type_name_from_value($tag);
-        usort($tags, function($a, $b) {return strcmp((string)Tag::tag_list_order($a), (string)Tag::tag_list_order($b)); });
-      foreach ($tags as $name) :
+  foreach (array_unique(CONFIG()->tag_types) as $tag) {
+      $tags[] = Tag::type_name_from_value($tag);
+  }
+  usort($tags, function ($a, $b) {
+      return strcmp((string) Tag::tag_list_order($a), (string) Tag::tag_list_order($b));
+  });
+  foreach ($tags as $name) :
       ?>
         <span class="tag-type-<?= $name ?>"><a id="hover-tag-<?= $name ?>"></a></span>
       <?php endforeach ?>
@@ -44,7 +47,7 @@
   </div>
 </div>
 
-<?= $this->contentFor('post_cookie_javascripts', function() { ?>
+<?= $this->contentFor('post_cookie_javascripts', function () { ?>
 <script type="text/javascript">Post.hover_info_init();</script>
 <?php }) ?>
 

@@ -15,11 +15,11 @@
       <tr class="<?= $this->cycle('even', 'odd') ?>">
         <td style="background: <?= $this->id_to_color($note->post_id) ?>;"></td>
         <td><?= $this->linkTo($note->post_id, ['post#show', 'id' => $note->post_id]) ?></td>
-        <td><?= $this->linkTo($note->note_id.".".$note->version, ['note#history', 'id' => $note->note_id]) ?></td>
+        <td><?= $this->linkTo($note->note_id . "." . $note->version, ['note#history', 'id' => $note->note_id]) ?></td>
         <td><?= $this->h($note->body) ?> <?php if (!$note->is_active) : ?>(deleted)<?php endif ?></td>
         <td><?= $this->linkTo($this->h($note->author()), ['user#show', 'id' => $note->user_id]) ?></td>
         <td><?= date('F', strtotime($note->updated_at)) ?></td>
-        <td><?= $this->linkTo($this->t('.revert'), array('note#revert', 'id' => $note->note_id, 'version' => $note->version), ['method' => 'post', 'confirm' => $this->t('.revert_confirm')]) ?></td>
+        <td><?= $this->linkTo($this->t('.revert'), ['note#revert', 'id' => $note->note_id, 'version' => $note->version], ['method' => 'post', 'confirm' => $this->t('.revert_confirm')]) ?></td>
       </tr>
     <?php endforeach ?>
   </tbody>

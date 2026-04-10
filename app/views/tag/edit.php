@@ -1,4 +1,4 @@
-<?= $this->formTag(['action' => "update"], function() { ?>
+<?= $this->formTag(['action' => "update"], function () { ?>
   <table class="form">
     <tr>
       <th width="15%"><label for="tag_name"><?= $this->t('tag_name') ?></label></th>

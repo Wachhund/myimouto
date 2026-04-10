@@ -4,7 +4,7 @@
 
 <p><?= $this->t('pool_add_text') ?></p>
 
-<?= $this->formTag("#add_post", function(){ ?>
+<?= $this->formTag("#add_post", function () { ?>
   <?= $this->hiddenFieldTag("post_id", $this->post->id) ?>
 
   <table>

@@ -29,27 +29,27 @@
             <td><?= $this->h($invite->updated_at) ?></td>
             <td>
               <?php if ($invite->status == PostSetMaintainer::STATUS_PENDING) : ?>
-                <?= $this->formTag(['action' => 'deny', 'id' => $invite->id], ['method' => 'post'], function() { ?>
+                <?= $this->formTag(['action' => 'deny', 'id' => $invite->id], ['method' => 'post'], function () { ?>
                   <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
                   <?= $this->submitTag('Cancel Request') ?>
                 <?php }) ?>
 
-                <?= $this->formTag(['action' => 'block', 'id' => $invite->id], ['method' => 'post'], function() { ?>
+                <?= $this->formTag(['action' => 'block', 'id' => $invite->id], ['method' => 'post'], function () { ?>
                   <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
                   <?= $this->submitTag('Block') ?>
                 <?php }) ?>
               <?php elseif ($invite->status == PostSetMaintainer::STATUS_APPROVED) : ?>
-                <?= $this->formTag(['action' => 'deny', 'id' => $invite->id], ['method' => 'post'], function() { ?>
+                <?= $this->formTag(['action' => 'deny', 'id' => $invite->id], ['method' => 'post'], function () { ?>
                   <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
                   <?= $this->submitTag('Leave set') ?>
                 <?php }) ?>
 
-                <?= $this->formTag(['action' => 'block', 'id' => $invite->id], ['method' => 'post'], function() { ?>
+                <?= $this->formTag(['action' => 'block', 'id' => $invite->id], ['method' => 'post'], function () { ?>
                   <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
                   <?= $this->submitTag('Leave + Block') ?>
                 <?php }) ?>
               <?php elseif ($invite->status == PostSetMaintainer::STATUS_BLOCKED) : ?>
-                <?= $this->formTag(['action' => 'deny', 'id' => $invite->id], ['method' => 'post'], function() { ?>
+                <?= $this->formTag(['action' => 'deny', 'id' => $invite->id], ['method' => 'post'], function () { ?>
                   <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
                   <?= $this->submitTag('Unblock') ?>
                 <?php }) ?>

@@ -21,7 +21,7 @@
         <li><?= $this->linkTo($this->t('.logout'), ['action' => 'logout']) ?></li>
         <li><?= $this->linkTo($this->t('.my_profile'), ['action' => 'show', 'id' => current_user()->id]) ?></li>
         <li><?= $this->linkTo($this->t('.my_mail'), ['controller' => 'dmail', 'action' => 'inbox']) ?></li>
-        <li><?= $this->linkTo($this->t('.my_favorites'), ['controller' => 'post', 'action' => 'index', 'tags' => 'vote:3:'.current_user()->name.' order:vote']) ?></li>
+        <li><?= $this->linkTo($this->t('.my_favorites'), ['controller' => 'post', 'action' => 'index', 'tags' => 'vote:3:' . current_user()->name . ' order:vote']) ?></li>
         <li><?= $this->linkTo($this->t('.settings'), ['action' => 'edit']) ?></li>
         <li><?= $this->linkTo($this->t('.change_password'), ['action' => 'change_password']) ?></li>
       </ul>

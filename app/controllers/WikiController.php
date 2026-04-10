@@ -1,4 +1,5 @@
 <?php
+
 class WikiController extends ApplicationController
 {
     protected function filters()
@@ -6,8 +7,8 @@ class WikiController extends ApplicationController
         return [
             'before' => [
                 'post_member_only' => ['only' => ['update', 'create', 'edit', 'revert']],
-                'mod_only' => ['only' => ['lock', 'unlock', 'destroy', 'rename']]
-            ]
+                'mod_only' => ['only' => ['lock', 'unlock', 'destroy', 'rename']],
+            ],
         ];
     }
 
@@ -15,7 +16,7 @@ class WikiController extends ApplicationController
     {
         $this->helper('Post');
     }
-    
+
     public function destroy()
     {
         $page = WikiPage::find_page($this->params()->title);
@@ -40,7 +41,7 @@ class WikiController extends ApplicationController
     public function index()
     {
         $this->set_title('Wiki');
-        
+
         $this->params = $this->params();
         if ($this->params()->order == "date") {
             $order = "updated_at DESC";
@@ -128,7 +129,9 @@ class WikiController extends ApplicationController
         }
         $this->title  = $this->params()->title;
         $this->page   = WikiPage::find_page($this->params()->title, $this->params()->version);
-        $this->posts  = Post::find_by_tag_join($this->params()->title, ['limit' => 8])->select(function($x){return $x->can_be_seen_by(current_user());});
+        $this->posts  = Post::find_by_tag_join($this->params()->title, ['limit' => 8])->select(function ($x) {
+            return $x->can_be_seen_by(current_user());
+        });
         $this->artist = Artist::where(['name' => $this->params()->title])->first();
         $this->tag    = Tag::where(['name' => $this->params()->title])->first();
         $this->set_title(str_replace("_", " ", $this->params()->title));
@@ -156,12 +159,12 @@ class WikiController extends ApplicationController
     public function recentChanges()
     {
         $this->set_title('Recent Changes');
-        
+
         if ($this->params()->user_id) {
             $this->params()->user_id = $this->params()->user_id;
-            $this->wiki_pages = WikiPage::where("user_id = ?", $this->params()->user_id)->order("updated_at DESC")->paginate($this->page_number(), (int)$this->params()->per_page ?: 25);
+            $this->wiki_pages = WikiPage::where("user_id = ?", $this->params()->user_id)->order("updated_at DESC")->paginate($this->page_number(), (int) $this->params()->per_page ?: 25);
         } else {
-            $this->wiki_pages = WikiPage::order("updated_at DESC")->paginate($this->page_number(), (int)$this->params()->per_page ?: 25);
+            $this->wiki_pages = WikiPage::order("updated_at DESC")->paginate($this->page_number(), (int) $this->params()->per_page ?: 25);
         }
         $this->respond_to_list("wiki_pages");
     }
@@ -169,15 +172,16 @@ class WikiController extends ApplicationController
     public function history()
     {
         $this->set_title('Wiki History');
-        
+
         if ($this->params()->title) {
             $wiki = WikiPage::find_by_title($this->params()->title);
             $wiki_id = $wiki ? $wiki->id : null;
         } elseif ($this->params()->id) {
             $wiki_id = $this->params()->id;
-        } else
+        } else {
             $wiki_id = null;
-        
+        }
+
         $this->wiki_pages = WikiPageVersion::where('wiki_page_id = ?', $wiki_id)->order('version DESC')->take();
 
         $this->respond_to_list("wiki_pages");
@@ -186,10 +190,11 @@ class WikiController extends ApplicationController
     public function diff()
     {
         $this->set_title('Wiki Diff');
-        
+
         if ($this->params()->redirect) {
             $this->redirectTo(['action' => "diff", 'title' => $this->params()->title, 'from' => $this->params()->from, 'to' => $this->params()->to]);
-            return;        }
+            return;
+        }
 
         if (!$this->params()->title || !$this->params()->to || !$this->params()->from) {
             $this->notice("No title was specificed");

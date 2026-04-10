@@ -1,4 +1,5 @@
 <?php
+
 namespace MyImouto;
 
 use Rails;
@@ -31,7 +32,7 @@ class RateLimiter
     public static function isLimited(string $key, int $max, int $windowSeconds): bool
     {
         $cacheKey = self::cacheKey($key, $windowSeconds);
-        $hits = (int)Rails::cache()->read($cacheKey);
+        $hits = (int) Rails::cache()->read($cacheKey);
         return $hits >= $max;
     }
 
@@ -41,7 +42,7 @@ class RateLimiter
     public static function hit(string $key, int $windowSeconds): void
     {
         $cacheKey = self::cacheKey($key, $windowSeconds);
-        $hits = (int)Rails::cache()->read($cacheKey);
+        $hits = (int) Rails::cache()->read($cacheKey);
         Rails::cache()->write($cacheKey, $hits + 1, ['expires_in' => $windowSeconds . ' seconds']);
     }
 
@@ -51,7 +52,7 @@ class RateLimiter
     public static function remaining(string $key, int $max, int $windowSeconds): int
     {
         $cacheKey = self::cacheKey($key, $windowSeconds);
-        $hits = (int)Rails::cache()->read($cacheKey);
+        $hits = (int) Rails::cache()->read($cacheKey);
         return max(0, $max - $hits);
     }
 
@@ -60,14 +61,14 @@ class RateLimiter
      */
     public static function retryAfter(int $windowSeconds): int
     {
-        $bucket = (int)floor(time() / $windowSeconds);
+        $bucket = (int) floor(time() / $windowSeconds);
         $nextWindow = ($bucket + 1) * $windowSeconds;
         return max(1, $nextWindow - time());
     }
 
     private static function cacheKey(string $key, int $windowSeconds): string
     {
-        $bucket = (int)floor(time() / $windowSeconds);
+        $bucket = (int) floor(time() / $windowSeconds);
         return 'rate_limit:' . $key . ':' . $bucket;
     }
 }

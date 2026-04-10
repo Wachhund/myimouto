@@ -7,7 +7,7 @@ function run_command(array $parts): int
     $escaped = array_map('escapeshellarg', $parts);
     $command = implode(' ', $escaped);
     passthru($command, $code);
-    return (int)$code;
+    return (int) $code;
 }
 
 $root = dirname(__DIR__, 2);
@@ -25,7 +25,7 @@ if (!is_file($phpunitBin)) {
 $hasTests = false;
 if (is_dir($testsDir)) {
     $iterator = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($testsDir, FilesystemIterator::SKIP_DOTS)
+        new RecursiveDirectoryIterator($testsDir, FilesystemIterator::SKIP_DOTS),
     );
     foreach ($iterator as $file) {
         /** @var SplFileInfo $file */
@@ -62,4 +62,3 @@ if (!$hasConfig && is_dir($testsDir)) {
 }
 
 exit(run_command($command));
-

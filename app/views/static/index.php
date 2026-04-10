@@ -1,16 +1,16 @@
 <div id="static-index">
   <h1 id="static-index-header"><?= $this->linkTo(CONFIG()->app_name, "/") ?></h1>
   <div style="margin-bottom: 1em;" id="links">
-    <?= $this->linkTo($this->t('static_posts'), 'post#index', array('title' => $this->t('static_posts_text'))) ?>
-    <?= $this->linkTo($this->t('static_comments'), 'comment#index', array('title' => $this->t('static_comments_text'))) ?>
-    <?= $this->linkTo($this->t('static_tags'), 'tag#index', array('title' => $this->t('static_tags_text'))) ?>
-    <?= $this->linkTo($this->t('static_wiki'), 'wiki#', array('title' => $this->t('static_wiki_text'))) ?>
-    <?= $this->linkTo('»', 'static#more', array('title' => $this->t('static_more'))) ?>
+    <?= $this->linkTo($this->t('static_posts'), 'post#index', ['title' => $this->t('static_posts_text')]) ?>
+    <?= $this->linkTo($this->t('static_comments'), 'comment#index', ['title' => $this->t('static_comments_text')]) ?>
+    <?= $this->linkTo($this->t('static_tags'), 'tag#index', ['title' => $this->t('static_tags_text')]) ?>
+    <?= $this->linkTo($this->t('static_wiki'), 'wiki#', ['title' => $this->t('static_wiki_text')]) ?>
+    <?= $this->linkTo('»', 'static#more', ['title' => $this->t('static_more')]) ?>
   </div>
   <div style="margin-bottom: 2em;">
-    <?= $this->formTag('post#index', array('method' => "get"), function() { ?>
+    <?= $this->formTag('post#index', ['method' => "get"], function () { ?>
       <div>
-        <?= $this->textFieldTag("tags", "", array('size' => 30)) ?><br />
+        <?= $this->textFieldTag("tags", "", ['size' => 30]) ?><br />
         <?= $this->submitTag($this->t('static_search')) ?>
       </div>
     <?php }) ?>
@@ -29,6 +29,7 @@
 </div>
 
 <?php
-if (CONFIG()->enable_tag_completion && CONFIG()->tag_completion_in_homepage)
-    echo $this->tag_completion_box('$("tags")', [], true)
-?> 
+if (CONFIG()->enable_tag_completion && CONFIG()->tag_completion_in_homepage) {
+    echo $this->tag_completion_box('$("tags")', [], true);
+}
+  ?> 

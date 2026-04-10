@@ -3,7 +3,7 @@
 
 <div>
   <div style="margin-bottom: 1em;">
-    <?= $this->formTag('report#' . $this->report_action, ['method' => 'get'], function(){ ?>
+    <?= $this->formTag('report#' . $this->report_action, ['method' => 'get'], function () { ?>
       <table width="100%">
         <tfoot>
           <tr>
@@ -42,7 +42,7 @@
         </tr>
       </thead>
       <tfoot>
-        <?php $sum = !empty($this->users) ? (int)$this->users[0]['sum'] : 0 ?>
+        <?php $sum = !empty($this->users) ? (int) $this->users[0]['sum'] : 0 ?>
         <tr>
           <td><?= $this->t('report_total') ?></td>
           <td><?= $sum ?></td>
@@ -56,13 +56,13 @@
               <td><?= $this->linkTo($user['name'], ['user#show', 'id' => $user['id']]) ?></td>
               <td>
                 <?php $change_path = call_user_func($this->change_params, $user['id']) ?>
-                <?= $this->linkTo((int)$user['change_count'], $change_path) ?>
+                <?= $this->linkTo((int) $user['change_count'], $change_path) ?>
               </td>
             <?php else : ?>
               <td><?= $this->h($user['name']) ?></td>
-              <td><?= (int)$user['change_count'] ?></td>
+              <td><?= (int) $user['change_count'] ?></td>
             <?php endif ?>
-            <?php $percent = $sum > 0 ? number_format((100 * (int)$user['change_count']) / $sum, 1) : '0.0' ?>
+            <?php $percent = $sum > 0 ? number_format((100 * (int) $user['change_count']) / $sum, 1) : '0.0' ?>
             <td><?= $percent ?>%</td>
           </tr>
         <?php endforeach ?>
@@ -72,8 +72,10 @@
 </div>
 
 <?php $common_params = ['start_date' => $this->start_date, 'end_date' => $this->end_date, 'limit' => $this->limit] ?>
-<?php if ($this->level !== null) $common_params['level'] = $this->level ?>
-<?php $this->contentFor('subnavbar', function() use ($common_params) { ?>
+<?php if ($this->level !== null) {
+    $common_params['level'] = $this->level;
+} ?>
+<?php $this->contentFor('subnavbar', function () use ($common_params) { ?>
   <li><?= $this->linkTo($this->t('report_tags'), array_merge(['report#tag_updates'], $common_params)) ?></li>
   <li><?= $this->linkTo($this->t('report_notes'), array_merge(['report#note_updates'], $common_params)) ?></li>
   <li><?= $this->linkTo($this->t('report_wiki'), array_merge(['report#wiki_updates'], $common_params)) ?></li>

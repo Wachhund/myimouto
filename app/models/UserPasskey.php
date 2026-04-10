@@ -1,12 +1,13 @@
 <?php
+
 class UserPasskey extends Rails\ActiveRecord\Base
 {
     protected function associations()
     {
         return [
             'belongs_to' => [
-                'user'
-            ]
+                'user',
+            ],
         ];
     }
 
@@ -15,20 +16,20 @@ class UserPasskey extends Rails\ActiveRecord\Base
         return [
             'user_id' => ['presence' => true],
             'credential_id' => ['presence' => true],
-            'public_key' => ['presence' => true]
+            'public_key' => ['presence' => true],
         ];
     }
 
     public function api_attributes()
     {
         return [
-            'id' => (int)$this->id,
-            'user_id' => (int)$this->user_id,
-            'credential_id' => (string)$this->credential_id,
-            'sign_count' => (int)$this->sign_count,
+            'id' => (int) $this->id,
+            'user_id' => (int) $this->user_id,
+            'credential_id' => (string) $this->credential_id,
+            'sign_count' => (int) $this->sign_count,
             'device_label' => $this->device_label,
             'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at
+            'updated_at' => $this->updated_at,
         ];
     }
 

@@ -1,4 +1,5 @@
 <?php
+
 class ForumPost extends Rails\ActiveRecord\Base
 {
     protected function associations()
@@ -7,41 +8,43 @@ class ForumPost extends Rails\ActiveRecord\Base
             'belongs_to' => [
                 'creator' => ['class_name' => 'User', 'foreign_key' => 'creator_id'],
                 'updater' => ['class_name' => 'User', 'foreign_key' => 'last_updated_by'],
-                'parent'  => ['class_name' => "ForumPost", 'foreign_key' => 'parent_id']
+                'parent'  => ['class_name' => "ForumPost", 'foreign_key' => 'parent_id'],
             ],
             'has_many' => [
-                'children' => [function() { $this->order('id'); }, 'class_name' => "ForumPost", 'foreign_key' => 'parent_id']
-            ]
+                'children' => [function () {
+                    $this->order('id');
+                }, 'class_name' => "ForumPost", 'foreign_key' => 'parent_id'],
+            ],
         ];
     }
-    
+
     protected function callbacks()
     {
         return [
             'after_create'      => ['initialize_last_updated_by', 'update_parent_on_create', 'clear_cache'],
             'before_destroy'    => ['update_parent_on_destroy'],
-            'before_validation' => ['validate_title', 'validate_lock']
+            'before_validation' => ['validate_title', 'validate_lock'],
         ];
     }
-    
+
     protected function validations()
     {
         return [
             'body' => [
-                'length' => ['minimum' => 1, 'message' => "You need to enter a body"]
-            ]
+                'length' => ['minimum' => 1, 'message' => "You need to enter a body"],
+            ],
         ];
     }
 
     /* LockMethods { */
-    
-    static public function lock($id)
+
+    public static function lock($id)
     {
         # Run raw SQL to skip the lock check
         self::connection()->executeSql("UPDATE forum_posts SET is_locked = TRUE WHERE id = ?", $id);
     }
 
-    static public function unlock($id)
+    public static function unlock($id)
     {
         # Run raw SQL to skip the lock check
         self::connection()->executeSql("UPDATE forum_posts SET is_locked = FALSE WHERE id = ?", $id);
@@ -55,21 +58,21 @@ class ForumPost extends Rails\ActiveRecord\Base
         }
         return true;
     }
-    
+
     /* } StickyMethods { */
-    
-    static public function stick($id)
+
+    public static function stick($id)
     {
         # Run raw SQL to skip the lock check
         self::connection()->executeSql("UPDATE forum_posts SET is_sticky = TRUE WHERE id = ?", $id);
     }
 
-    static public function unstick($id)
+    public static function unstick($id)
     {
         # Run raw SQL to skip the lock check
         self::connection()->executeSql("UPDATE forum_posts SET is_sticky = FALSE WHERE id = ?", $id);
     }
-    
+
     /* } ParentMethods { */
 
     public function update_parent_on_destroy()
@@ -90,7 +93,7 @@ class ForumPost extends Rails\ActiveRecord\Base
 
     public function is_parent()
     {
-        return !(bool)$this->parent_id;
+        return !(bool) $this->parent_id;
     }
 
     public function root()
@@ -110,9 +113,9 @@ class ForumPost extends Rails\ActiveRecord\Base
             return $this->parent_id;
         }
     }
-    
+
     /* } ApiMethods { */
-    
+
     public function api_attributes()
     {
         return [
@@ -123,7 +126,7 @@ class ForumPost extends Rails\ActiveRecord\Base
             'parent_id'  => $this->parent_id,
             'title'      => $this->title,
             'updated_at' => $this->updated_at,
-            'pages'      => ceil((!$this->response_count ? 1 : $this->response_count) / 30)
+            'pages'      => ceil((!$this->response_count ? 1 : $this->response_count) / 30),
         ];
     }
 
@@ -136,20 +139,22 @@ class ForumPost extends Rails\ActiveRecord\Base
     {
         return parent::toXml(array_merge($options, ['root' => "forum-post", 'attributes' => $this->api_attributes()]));
     }
-    
+
     /* } */
-    
-    static public function updated($user)
+
+    public static function updated($user)
     {
         $query = ForumPost::none();
-        
-        if (!$user->is_anonymous())
+
+        if (!$user->is_anonymous()) {
             $query->where("creator_id <> " . $user->id);
+        }
 
         $newest_topic = $query->order("id desc")->limit(1)->select("created_at")->first();
-        
-        if (!$newest_topic)
+
+        if (!$newest_topic) {
             return false;
+        }
         return $newest_topic->created_at > $user->last_forum_topic_read_at;
     }
 
@@ -180,7 +185,7 @@ class ForumPost extends Rails\ActiveRecord\Base
     {
         return $this->creator->name;
     }
-    
+
     protected function clear_cache()
     {
         Rails::cache()->delete("forum_posts");

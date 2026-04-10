@@ -1,4 +1,5 @@
 <?php
+
 class HelpController extends ApplicationController
 {
     public function index()

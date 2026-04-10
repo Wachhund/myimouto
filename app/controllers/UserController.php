@@ -1,4 +1,5 @@
 <?php
+
 class UserController extends ApplicationController
 {
     protected function filters()
@@ -11,8 +12,8 @@ class UserController extends ApplicationController
                 'post_member_only'    => ['only' => ['setAvatar']],
                 'no_anonymous'        => ['only' => ['changePassword', 'changeEmail']],
                 'member_only'         => ['only' => ['deleteAccount', 'executeDeleteAccount', 'error']],
-                'set_settings_layout' => ['only' => ['changePassword', 'changeEmail', 'edit']]
-            ]
+                'set_settings_layout' => ['only' => ['changePassword', 'changeEmail', 'edit']],
+            ],
         ];
     }
 
@@ -31,26 +32,28 @@ class UserController extends ApplicationController
         $this->notice('Access denied');
         $this->redirectTo(['controller' => 'user', 'action' => 'home']);
     }
-    
+
     protected function set_settings_layout()
     {
         $this->setLayout('settings');
     }
-    
+
     public function autocompleteName()
     {
         $keyword = $this->params()->term;
         if (strlen($keyword) >= 2) {
             $this->users = User::where('name LIKE ?', '%' . $keyword . '%')->pluck('name');
-            if (!$this->users)
+            if (!$this->users) {
                 $this->users = [];
-        } else
-            $this->users = [];
-        
-        $this->respondTo([
-            'json' => function() {
-                $this->render(['json' => ($this->users)]);
             }
+        } else {
+            $this->users = [];
+        }
+
+        $this->respondTo([
+            'json' => function () {
+                $this->render(['json' => ($this->users)]);
+            },
         ]);
     }
 
@@ -60,7 +63,7 @@ class UserController extends ApplicationController
     public function removeAvatar()
     {
         # When removing other user's avatar, ensure current user is mod or higher.
-         if (current_user()->id != $this->params()->id and !current_user()->is_mod_or_higher()) {
+        if (current_user()->id != $this->params()->id and !current_user()->is_mod_or_higher()) {
             $this->access_denied();
             return;
         }
@@ -99,34 +102,36 @@ class UserController extends ApplicationController
         if (!$this->user) {
             $this->redirectTo("/404");
         } else {
-            if ($this->user->id == current_user()->id)
+            if ($this->user->id == current_user()->id) {
                 $this->set_title('My profile');
-            else
+            } else {
                 $this->set_title($this->user->name . "'s profile");
+            }
         }
-        
+
         if (current_user()->is_mod_or_higher()) {
             # RP: Missing feature.
             // $this->user_ips = $this->user->user_logs->order('created_at DESC').pluck('ip_addr').uniq
             $this->user_ips = array_unique(UserLog::where(['user_id' => $this->user->id])->order('created_at DESC')->take()->getAttributes('ip_addr'));
         }
-        
+
         $tag_types = CONFIG()->tag_types;
         foreach (array_keys($tag_types) as $k) {
-            if (!preg_match('/^[A-Z]/', $k) || $k == 'General' || $k == 'Faults')
+            if (!preg_match('/^[A-Z]/', $k) || $k == 'General' || $k == 'Faults') {
                 unset($tag_types[$k]);
+            }
         }
         $this->tag_types = $tag_types;
-        
-        $this->respondTo(array(
-            'html'
-        ));
+
+        $this->respondTo([
+            'html',
+        ]);
     }
 
     public function invites()
     {
         if ($this->request()->isPost()) {
-             if ($this->params()->member) {
+            if ($this->params()->member) {
                 try {
                     current_user()->invite($this->params()->member['name'], $this->params()->member['level']);
                     $this->notice("User was invited");
@@ -156,7 +161,7 @@ class UserController extends ApplicationController
     public function index()
     {
         $this->set_title('Users');
-        
+
         $this->users = User::generate_sql($this->params()->all())->paginate($this->page_number(), 20);
         $this->respond_to_list("users");
     }
@@ -180,11 +185,11 @@ class UserController extends ApplicationController
         // AC-6: IP-based rate limit (10 per 15 minutes)
         if (\MyImouto\RateLimiter::isLimited('login_ip:' . $ip, 10, 900)) {
             $retry = \MyImouto\RateLimiter::retryAfter(900);
-            $this->response()->headers()->add('Retry-After', (string)$retry);
+            $this->response()->headers()->add('Retry-After', (string) $retry);
             $this->respond_to_error(
                 'Too many login attempts. Please try again later.',
                 ['#login'],
-                ['status' => 429, 'api' => ['retry_after' => $retry]]
+                ['status' => 429, 'api' => ['retry_after' => $retry]],
             );
             return;
         }
@@ -197,18 +202,18 @@ class UserController extends ApplicationController
         if (!$user) {
             \MyImouto\RateLimiter::hit('login_ip:' . $ip, 900);
             $ret['response'] = "unknown-user";
-            $this->respond_to_success("User does not exist", array(), array('api' => $ret));
+            $this->respond_to_success("User does not exist", [], ['api' => $ret]);
             return;
         }
 
         // AC-10: Account-based lockout (20 per 30 minutes)
         if (\MyImouto\RateLimiter::isLimited('login_account:' . $user->id, 20, 1800)) {
             $retry = \MyImouto\RateLimiter::retryAfter(1800);
-            $this->response()->headers()->add('Retry-After', (string)$retry);
+            $this->response()->headers()->add('Retry-After', (string) $retry);
             $this->respond_to_error(
                 'Too many login attempts. Please try again later.',
                 ['#login'],
-                ['status' => 429, 'api' => ['retry_after' => $retry]]
+                ['status' => 429, 'api' => ['retry_after' => $retry]],
             );
             return;
         }
@@ -218,7 +223,7 @@ class UserController extends ApplicationController
         $ret['exists']   = true;
         $ret['id']       = $user->id;
         $ret['name']     = $user->name;
-        $ret['no_email'] = !((bool)$user->email);
+        $ret['no_email'] = !((bool) $user->email);
 
         $pass = $this->params()->password ?: "";
 
@@ -228,7 +233,7 @@ class UserController extends ApplicationController
             \MyImouto\RateLimiter::hit('login_ip:' . $ip, 900);
             \MyImouto\RateLimiter::hit('login_account:' . $user->id, 1800);
             $ret['response'] = "wrong-password";
-            $this->respond_to_success("Wrong password", array(), array('api' => $ret));
+            $this->respond_to_success("Wrong password", [], ['api' => $ret]);
             return;
         }
 
@@ -238,7 +243,7 @@ class UserController extends ApplicationController
         $ret['user_info'] = $authenticated_user->user_info_cookie();
         $ret['response']  = 'success';
 
-        $this->respond_to_success("Successful", array(), array('api' => $ret));
+        $this->respond_to_success("Successful", [], ['api' => $ret]);
     }
 
     public function login()
@@ -252,11 +257,11 @@ class UserController extends ApplicationController
         $ip = $this->request()->remoteIp();
         if (\MyImouto\RateLimiter::isLimited('signup_ip:' . $ip, 3, 3600)) {
             $retry = \MyImouto\RateLimiter::retryAfter(3600);
-            $this->response()->headers()->add('Retry-After', (string)$retry);
+            $this->response()->headers()->add('Retry-After', (string) $retry);
             $this->respond_to_error(
                 'Too many registration attempts. Please try again later.',
                 ['#signup'],
-                ['status' => 429, 'api' => ['retry_after' => $retry]]
+                ['status' => 429, 'api' => ['retry_after' => $retry]],
             );
             return;
         }
@@ -271,7 +276,7 @@ class UserController extends ApplicationController
                 'exists'    => false,
                 'name'      => $user->name,
                 'id'        => $user->id,
-                'user_info' => $user->user_info_cookie()
+                'user_info' => $user->user_info_cookie(),
             ];
 
             $this->respond_to_success("New account created", '#home', ['api' => array_merge(['response' => "success"], $ret)]);
@@ -324,7 +329,7 @@ class UserController extends ApplicationController
             }
         }
     }
-    
+
     public function modifyBlacklist()
     {
         $added_tags = $this->params()->add ?: [];
@@ -332,12 +337,13 @@ class UserController extends ApplicationController
 
         $tags = current_user()->blacklisted_tags_array();
         foreach ($added_tags as $tag) {
-            if (!in_array($tag, $tags))
+            if (!in_array($tag, $tags)) {
                 $tags[] = $tag;
+            }
         }
-        
+
         $tags = array_diff($tags, $removed_tags);
-        
+
         if (current_user()->user_blacklisted_tag->updateAttribute('tags', implode("\n", $tags))) {
             $this->respond_to_success("Tag blacklist updated", '#home', ['api' => ['result' => current_user()->blacklisted_tags_array()]]);
         } else {
@@ -345,9 +351,7 @@ class UserController extends ApplicationController
         }
     }
 
-    public function removeFromBlacklist()
-    {
-    }
+    public function removeFromBlacklist() {}
 
     public function edit()
     {
@@ -395,11 +399,11 @@ class UserController extends ApplicationController
             $ip = $this->request()->remoteIp();
             if (\MyImouto\RateLimiter::isLimited('reset_ip:' . $ip, 3, 3600)) {
                 $retry = \MyImouto\RateLimiter::retryAfter(3600);
-                $this->response()->headers()->add('Retry-After', (string)$retry);
+                $this->response()->headers()->add('Retry-After', (string) $retry);
                 $this->respond_to_error(
                     'Too many password reset attempts. Please try again later.',
                     ['#reset_password'],
-                    ['status' => 429, 'api' => ['retry_after' => $retry]]
+                    ['status' => 429, 'api' => ['retry_after' => $retry]],
                 );
                 return;
             }
@@ -413,33 +417,46 @@ class UserController extends ApplicationController
             }
 
             if (!$this->user->email) {
-                $this->respond_to_error("You never supplied an email address, therefore you cannot have your password automatically reset",
-                                                 '#login', ['api' => ['result' => "no-email"]]);
+                $this->respond_to_error(
+                    "You never supplied an email address, therefore you cannot have your password automatically reset",
+                    '#login',
+                    ['api' => ['result' => "no-email"]],
+                );
                 return;
             }
 
             if ($this->user->email != $this->params()->user['email']) {
-                $this->respond_to_error("That is not the email address you supplied",
-                                                 '#login', ['api' => ['result' => "wrong-email"]]);
+                $this->respond_to_error(
+                    "That is not the email address you supplied",
+                    '#login',
+                    ['api' => ['result' => "wrong-email"]],
+                );
                 return;
             }
 
             try {
                 $reset_token = $this->user->reset_password();
                 UserMailer::mail('password_reset', [$this->user, $reset_token])->deliver();
-                $this->respond_to_success("Password reset link sent. Check your email in a few minutes.",
-                                                 '#login', ['api' => ['result' => "success"]]);
+                $this->respond_to_success(
+                    "Password reset link sent. Check your email in a few minutes.",
+                    '#login',
+                    ['api' => ['result' => "success"]],
+                );
                 return;
             } catch (\Throwable $e) {
                 Rails::log()->exception($e);
-                $this->respond_to_success("Your email address was invalid",
-                                                 '#login', ['api' => ['result' => "invalid-email"]]);
+                $this->respond_to_success(
+                    "Your email address was invalid",
+                    '#login',
+                    ['api' => ['result' => "invalid-email"]],
+                );
                 return;
             }
         } else {
             $this->user = new User();
-            if ($this->params()->format and $this->params()->format != 'html')
+            if ($this->params()->format and $this->params()->format != 'html') {
                 $this->redirectTo('root');
+            }
         }
     }
 
@@ -454,9 +471,9 @@ class UserController extends ApplicationController
                 return;
             }
             !is_array($this->params()->ban) && $this->params()->ban = [];
-            
+
             $attrs = array_merge($this->params()->ban, ['banned_by' => current_user()->id, 'user_id' => $this->params()->id]);
-            
+
             Ban::create($attrs);
             $this->redirectTo('#show_blocked_users');
         } else {
@@ -466,8 +483,9 @@ class UserController extends ApplicationController
 
     public function unblock()
     {
-        foreach (array_keys($this->params()->user) as $user_id)
+        foreach (array_keys($this->params()->user) as $user_id) {
             Ban::destroyAll("user_id = ?", $user_id);
+        }
 
         $this->redirectTo('#show_blocked_users');
     }
@@ -475,7 +493,7 @@ class UserController extends ApplicationController
     public function showBlockedUsers()
     {
         $this->set_title('Blocked Users');
-        
+
         #$this->users = User.find(:all, 'select' => "users.*", 'joins' => "JOIN bans ON bans.user_id = users.id", 'conditions' => ["bans.banned_by = ?", current_user()->id])
         $this->users = User::order("expires_at ASC")->select("users.*")->joins("JOIN bans ON bans.user_id = users.id")->take();
         $this->ip_bans = IpBans::all();
@@ -490,51 +508,51 @@ class UserController extends ApplicationController
      */
     // public function resendConfirmation()
     // {
-        // if (!CONFIG()->enable_account_email_activation) {
-            // $this->access_denied();
-            // return;
-        // }
-        
-        // if ($this->request()->isPost()) {
-            // $user = User::find_by_email($this->params()->email);
+    // if (!CONFIG()->enable_account_email_activation) {
+    // $this->access_denied();
+    // return;
+    // }
 
-            // if (!$user) {
-                // $this->notice("No account exists with that email");
-                // $this->redirectTo('#home')
-                // return;
-            // }
+    // if ($this->request()->isPost()) {
+    // $user = User::find_by_email($this->params()->email);
 
-            // if ($user->is_blocked_or_higher()) {
-                // $this->notice("Your account is already activated");
-                // $this->redirectTo('#home');
-                // return;
-            // }
+    // if (!$user) {
+    // $this->notice("No account exists with that email");
+    // $this->redirectTo('#home')
+    // return;
+    // }
 
-            // UserMailer::deliver_confirmation_email($user);
-            // $this->notice("Confirmation email sent");
-            // $this->redirectTo('#home');
-        // }
+    // if ($user->is_blocked_or_higher()) {
+    // $this->notice("Your account is already activated");
+    // $this->redirectTo('#home');
+    // return;
+    // }
+
+    // UserMailer::deliver_confirmation_email($user);
+    // $this->notice("Confirmation email sent");
+    // $this->redirectTo('#home');
+    // }
     // }
 
     // public function activateUser()
     // {
-        // if (!CONFIG()->enable_account_email_activation) {
-            // $this->access_denied();
-            // return;
-        // }
-        
-        // $this->notice("Invalid confirmation code");
+    // if (!CONFIG()->enable_account_email_activation) {
+    // $this->access_denied();
+    // return;
+    // }
 
-        // $users = User::find_all(['conditions' => ["level = ?", CONFIG()->user_levels["Unactivated"]]]);
-        // foreach ($users as $user) {
-            // if (User::confirmation_hash($user->name) == $this->params()->hash) {
-                // $user->updateAttribute('level', CONFIG()->starting_level);
-                // $this->notice("Account has been activated");
-                // break;
-            // }
-        // }
+    // $this->notice("Invalid confirmation code");
 
-        // $this->redirectTo('#home');
+    // $users = User::find_all(['conditions' => ["level = ?", CONFIG()->user_levels["Unactivated"]]]);
+    // foreach ($users as $user) {
+    // if (User::confirmation_hash($user->name) == $this->params()->hash) {
+    // $user->updateAttribute('level', CONFIG()->starting_level);
+    // $this->notice("Account has been activated");
+    // break;
+    // }
+    // }
+
+    // $this->redirectTo('#home');
     // }
 
     public function setAvatar()
@@ -542,8 +560,9 @@ class UserController extends ApplicationController
         $this->user = current_user();
         if ($this->params()->user_id) {
             $this->user = User::find($this->params()->user_id);
-            if (!$this->user)
+            if (!$this->user) {
                 $this->respond_to_error("Not found", '#index', ['status' => 404]);
+            }
         }
 
         if (!$this->user->is_anonymous() && !current_user()->has_permission($this->user, 'id')) {
@@ -559,7 +578,7 @@ class UserController extends ApplicationController
             }
         }
 
-         if (!$this->user->is_anonymous() && $this->params()->id == $this->user->avatar_post_id) {
+        if (!$this->user->is_anonymous() && $this->params()->id == $this->user->avatar_post_id) {
             $this->old = $this->params();
         }
 
@@ -578,7 +597,7 @@ class UserController extends ApplicationController
         if (current_user()->is_mod_or_higher()) {
             $this->respond_to_error(
                 "Staff accounts cannot be self-deleted. Contact an administrator.",
-                '#home'
+                '#home',
             );
             return;
         }
@@ -587,7 +606,7 @@ class UserController extends ApplicationController
         if (current_user()->level <= CONFIG()->user_levels['Blocked']) {
             $this->respond_to_error(
                 "Banned accounts cannot be self-deleted",
-                '#home'
+                '#home',
             );
             return;
         }
@@ -596,7 +615,7 @@ class UserController extends ApplicationController
         if (strtotime(current_user()->created_at) > strtotime('-1 week')) {
             $this->respond_to_error(
                 "Account must be at least 1 week old to be deleted",
-                '#home'
+                '#home',
             );
             return;
         }
@@ -607,7 +626,7 @@ class UserController extends ApplicationController
      */
     public function executeDeleteAccount()
     {
-        $password = trim((string)($this->params()->password ?: ''));
+        $password = trim((string) ($this->params()->password ?: ''));
 
         if ($password === '') {
             $this->respond_to_error("Password is required", '#delete_account');
@@ -630,7 +649,7 @@ class UserController extends ApplicationController
 
             $this->respond_to_success(
                 "Your account has been deleted",
-                '#home'
+                '#home',
             );
         } catch (\RuntimeException $e) {
             $this->respond_to_error($e->getMessage(), '#delete_account');
@@ -639,7 +658,7 @@ class UserController extends ApplicationController
 
     public function error()
     {
-        $report = (string)($this->params()->report ?? '');
+        $report = (string) ($this->params()->report ?? '');
         $report = substr($report, 0, 2048);
         $report = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/', '', $report);
 
@@ -650,14 +669,14 @@ class UserController extends ApplicationController
         }
         file_put_contents($file, $report . "\n\n\n-------------------------------------------\n\n\n", FILE_APPEND);
 
-        $this->render(array('json' => array('success' => true)));
+        $this->render(['json' => ['success' => true]]);
     }
-    
+
     protected function init()
     {
         $this->helper('Post', 'TagSubscription', 'Avatar');
     }
-    
+
     protected function _save_cookies($user)
     {
         $is_https = str_starts_with(CONFIG()->url_base, 'https://');
@@ -701,7 +720,7 @@ class UserController extends ApplicationController
             'show_advanced_editing',
             'pool_browse_mode',
             'language',
-            'secondary_languages'
+            'secondary_languages',
         ];
 
         $boolean_fields = [
@@ -710,7 +729,7 @@ class UserController extends ApplicationController
             'show_samples',
             'use_browser',
             'show_advanced_editing',
-            'pool_browse_mode'
+            'pool_browse_mode',
         ];
 
         $sanitized = [];
@@ -740,7 +759,7 @@ class UserController extends ApplicationController
         $value = strtolower(trim((string) $value));
         return in_array($value, ['1', 'true', 'on', 'yes'], true) ? 1 : 0;
     }
-    
+
     protected function _get_view_name_for_edit($param)
     {
         switch ($param) {

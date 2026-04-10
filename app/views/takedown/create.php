@@ -1,7 +1,7 @@
 <div id="takedown-create">
   <h4>Create Takedown</h4>
 
-  <?= $this->formTag(['action' => 'create'], ['method' => 'post'], function() { ?>
+  <?= $this->formTag(['action' => 'create'], ['method' => 'post'], function () { ?>
     <?= $this->hiddenFieldTag('csrf_token', $this->csrf_token) ?>
 
     <table>

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PROJ-32: Removes old digest-hashed asset files before a new build.
  *

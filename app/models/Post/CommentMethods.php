@@ -1,4 +1,5 @@
 <?php
+
 trait PostCommentMethods
 {
     public function recent_comments()

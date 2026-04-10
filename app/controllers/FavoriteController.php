@@ -1,16 +1,17 @@
 <?php
+
 class FavoriteController extends ApplicationController
 {
     public function listUsers()
     {
         if ($this->favorite_list_users_rate_limited()) {
             $retry_after = $this->favorite_list_users_rate_limit_retry_after_seconds();
-            $this->response()->headers()->add('Retry-After', (string)$retry_after);
+            $this->response()->headers()->add('Retry-After', (string) $retry_after);
             $this->respond_to_error('Rate limit exceeded', ['post#index'], ['status' => 429, 'api' => ['retry_after' => $retry_after]]);
             return;
         }
 
-        $post_id = (int)$this->params()->id;
+        $post_id = (int) $this->params()->id;
         if ($post_id <= 0) {
             $this->respond_to_error('Post not found', ['post#index'], ['status' => 404]);
             return;
@@ -27,7 +28,7 @@ class FavoriteController extends ApplicationController
         $this->respondTo([
             'json' => function () use ($favorited_users) {
                 $this->render(['json' => ['favorited_users' => $favorited_users]]);
-            }
+            },
         ]);
     }
 
@@ -53,9 +54,9 @@ class FavoriteController extends ApplicationController
         }
 
         $window_seconds = $this->favorite_list_users_rate_limit_window_seconds();
-        $bucket = (int)floor(time() / $window_seconds);
+        $bucket = (int) floor(time() / $window_seconds);
         $cache_key = $this->favorite_list_users_rate_limit_cache_key($bucket);
-        $hits = (int)Rails::cache()->read($cache_key);
+        $hits = (int) Rails::cache()->read($cache_key);
 
         if ($hits >= $limit) {
             return true;
@@ -68,7 +69,7 @@ class FavoriteController extends ApplicationController
     protected function favorite_list_users_rate_limit_retry_after_seconds()
     {
         $window_seconds = $this->favorite_list_users_rate_limit_window_seconds();
-        $next_window = (((int)floor(time() / $window_seconds)) + 1) * $window_seconds;
+        $next_window = (((int) floor(time() / $window_seconds)) + 1) * $window_seconds;
         return max(1, $next_window - time());
     }
 
@@ -88,13 +89,13 @@ class FavoriteController extends ApplicationController
 
     protected function favorite_list_users_rate_limit()
     {
-        $configured = (int)CONFIG()->favorite_list_users_rate_limit;
+        $configured = (int) CONFIG()->favorite_list_users_rate_limit;
         return $configured > 0 ? $configured : 60;
     }
 
     protected function favorite_list_users_rate_limit_window_seconds()
     {
-        $configured = (int)CONFIG()->favorite_list_users_rate_limit_window_seconds;
+        $configured = (int) CONFIG()->favorite_list_users_rate_limit_window_seconds;
         return $configured > 0 ? $configured : 60;
     }
 }

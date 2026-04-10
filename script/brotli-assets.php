@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PROJ-32: Generates .br (Brotli) compressed companions for compiled assets.
  * Skips silently if the brotli CLI tool is not available.

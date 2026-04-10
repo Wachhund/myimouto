@@ -3,7 +3,7 @@
 <div class="content" style="float: left; width: 40em;">
   <div id="wiki-view">
   </div>
-  <?= $this->formTag(['action' => "create"], ['level'=>'member'], function(){ ?>
+  <?= $this->formTag(['action' => "create"], ['level' => 'member'], function () { ?>
     <?= $this->textField('wiki_page', 'title') ?>
     <?= $this->partial("edit_buttons") ?>
   <?php }) ?>

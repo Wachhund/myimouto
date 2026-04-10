@@ -1,4 +1,5 @@
 <?php
+
 class JobTaskController extends ApplicationController
 {
     public function index()
@@ -9,7 +10,7 @@ class JobTaskController extends ApplicationController
 
     public function show()
     {
-        $id = (int)$this->params()->id;
+        $id = (int) $this->params()->id;
         if ($id <= 0) {
             $this->respond_to_error('That page does not exist.', ['#index'], ['status' => 404]);
             return;
@@ -22,7 +23,7 @@ class JobTaskController extends ApplicationController
         }
 
         if ($this->job_task->task_type == "upload_post" && $this->job_task->status == "finished") {
-            $post_id = (int)$this->job_task->status_message;
+            $post_id = (int) $this->job_task->status_message;
             if ($post_id > 0 && Post::exists($post_id)) {
                 $this->redirectTo(['controller' => "post", 'action' => "show", 'id' => $post_id]);
             }
@@ -53,8 +54,8 @@ class JobTaskController extends ApplicationController
     {
         return [
             'before' => [
-                'admin_only' => ['only' => ['destroy', 'restart']]
-            ]
+                'admin_only' => ['only' => ['destroy', 'restart']],
+            ],
         ];
     }
 }

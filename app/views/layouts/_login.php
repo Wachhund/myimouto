@@ -1,4 +1,6 @@
-<?php if (CONFIG()->enable_account_email_activation) return ?>
+<?php if (CONFIG()->enable_account_email_activation) {
+    return;
+} ?>
 
 <div id="login-background" style="display: none;">&nbsp;</div>
 
@@ -19,7 +21,7 @@
           <?= $this->t('.email_info') ?>
         </p>
 
-        <?= $this->formTag("user#authenticate", array('id' => "login-popup"), function() { ?>
+        <?= $this->formTag("user#authenticate", ['id' => "login-popup"], function () { ?>
           <div style="position: absolute; top: 0; right: 0;">
             <a href="#" id="login-popup-cancel" style="font-size: 1.2em; padding: 2px;" aria-label="<?= $this->t('close', 'Close') ?>">ⓧ</a>
           </div>

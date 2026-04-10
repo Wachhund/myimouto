@@ -40,10 +40,10 @@ class File
 
     private function resolvePath()
     {
-        $path = trim((string)$this->getOptions()->getPath());
+        $path = trim((string) $this->getOptions()->getPath());
         if ($path === '') {
             if (class_exists('\\Rails', false)) {
-                $path = rtrim((string)\Rails::root(), '/\\') . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'mail';
+                $path = rtrim((string) \Rails::root(), '/\\') . DIRECTORY_SEPARATOR . 'tmp' . DIRECTORY_SEPARATOR . 'mail';
             } else {
                 $path = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'mail';
             }
@@ -60,7 +60,7 @@ class File
     {
         $callback = $this->getOptions()->getCallback();
         if ($callback) {
-            $filename = (string)call_user_func($callback);
+            $filename = (string) call_user_func($callback);
             $filename = trim($filename);
             if ($filename !== '') {
                 return $filename;
@@ -76,7 +76,7 @@ class File
         return sprintf(
             'action_mailer_%s_%s.tmp',
             gmdate('YmdHis'),
-            $suffix
+            $suffix,
         );
     }
 
@@ -84,7 +84,7 @@ class File
     {
         $lines = [];
         $lines[] = 'Date: ' . gmdate(DATE_RFC2822);
-        $lines[] = 'Subject: ' . (string)$this->safeCall($message, 'getSubject', '');
+        $lines[] = 'Subject: ' . (string) $this->safeCall($message, 'getSubject', '');
         $lines[] = 'From: ' . $this->formatAddresses($this->safeCall($message, 'getFrom', []));
         $lines[] = 'To: ' . $this->formatAddresses($this->safeCall($message, 'getTo', []));
 
@@ -141,15 +141,15 @@ class File
 
             if (is_object($address)) {
                 if (method_exists($address, 'getEmail')) {
-                    $email = trim((string)$address->getEmail());
+                    $email = trim((string) $address->getEmail());
                 } elseif (isset($address->email)) {
-                    $email = trim((string)$address->email);
+                    $email = trim((string) $address->email);
                 }
 
                 if (method_exists($address, 'getName')) {
-                    $name = trim((string)$address->getName());
+                    $name = trim((string) $address->getName());
                 } elseif (isset($address->name)) {
-                    $name = trim((string)$address->name);
+                    $name = trim((string) $address->name);
                 }
             } elseif (is_string($address)) {
                 $email = trim($address);
@@ -177,14 +177,14 @@ class File
             if (!empty($meta['seekable'])) {
                 rewind($value);
             }
-            return (string)$data;
+            return (string) $data;
         }
 
         if (is_object($value) && method_exists($value, '__toString')) {
-            return (string)$value;
+            return (string) $value;
         }
 
-        return (string)$value;
+        return (string) $value;
     }
 
     private function safeCall($object, $method, $default = null)

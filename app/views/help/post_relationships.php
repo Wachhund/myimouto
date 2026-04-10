@@ -6,6 +6,6 @@
   <p>To use this field, simply enter the id number of the parent post when you upload or edit a post. To search for all the children of a parent post, you can do a tag search for <code>post:nnnn</code>, where <code>nnnn</code> is the id number of the parent post.</p>
 </div>
 
-<?php $this->contentFor("subnavbar", function() { ?>
+<?php $this->contentFor("subnavbar", function () { ?>
   <li><?= $this->linkTo("Help", "#index") ?></li>
 <?php }) ?>

@@ -2,7 +2,7 @@
   <h2>Post Sets</h2>
 
   <div style="margin-bottom: 1.5em;">
-    <?= $this->formTag(['action' => 'index'], ['method' => 'get'], function() { ?>
+    <?= $this->formTag(['action' => 'index'], ['method' => 'get'], function () { ?>
       Name:
       <?= $this->textFieldTag('name', $this->h($this->params()->name), ['size' => 20]) ?>
       Creator:
@@ -14,8 +14,8 @@
       Visibility:
       <select name="is_public">
         <option value="" <?= $this->params()->is_public === null || $this->params()->is_public === '' ? 'selected' : '' ?>>all</option>
-        <option value="1" <?= (string)$this->params()->is_public === '1' ? 'selected' : '' ?>>public</option>
-        <option value="0" <?= (string)$this->params()->is_public === '0' ? 'selected' : '' ?>>private</option>
+        <option value="1" <?= (string) $this->params()->is_public === '1' ? 'selected' : '' ?>>public</option>
+        <option value="0" <?= (string) $this->params()->is_public === '0' ? 'selected' : '' ?>>private</option>
       </select>
       <?= $this->submitTag('Search', ['name' => '']) ?>
       <?php if (!current_user()->is_anonymous()) : ?>
@@ -45,7 +45,7 @@
             <?= $this->linkTo($this->h(User::find_name($post_set->creator_id)), ['user#show', 'id' => $post_set->creator_id]) ?>
           </td>
           <td><?= $post_set->is_public ? 'public' : 'private' ?></td>
-          <td><?= (int)$post_set->post_count ?></td>
+          <td><?= (int) $post_set->post_count ?></td>
           <td><?= $this->t(['time.x_ago', 't' => $this->timeAgoInWords($post_set->updated_at)]) ?></td>
         </tr>
       <?php endforeach ?>

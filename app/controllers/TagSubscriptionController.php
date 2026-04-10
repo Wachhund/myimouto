@@ -1,4 +1,5 @@
 <?php
+
 class TagSubscriptionController extends ApplicationController
 {
     protected function filters()
@@ -6,8 +7,8 @@ class TagSubscriptionController extends ApplicationController
         return [
             'before' => [
                 'member_only' => ['except' => ['index']],
-                'no_anonymous'
-            ]
+                'no_anonymous',
+            ],
         ];
     }
 

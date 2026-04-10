@@ -36,7 +36,7 @@
   }
 </script>
 
-<?= $this->formTag(function(){ ?>
+<?= $this->formTag(function () { ?>
   <?= $this->hiddenFieldTag("id", $this->pool->id) ?>
   <table>
     <thead>
@@ -55,8 +55,8 @@
           </td>
           <td>
             <?= $this->textFieldTag("pool_post_sequence[{$pp->id}]", $pp->sequence, ['class' => "pp", 'size' => 5, 'tabindex' => 1]) ?>
-            <?= $this->linkToFunction($this->t('.plus_one'), "orderShift({$pp->id}, +1)", ['class'=>"text-button"]) ?>
-            <?= $this->linkToFunction($this->t('.minus_one'), "orderShift({$pp->id}, -1)", ['class'=>"text-button"]) ?>
+            <?= $this->linkToFunction($this->t('.plus_one'), "orderShift({$pp->id}, +1)", ['class' => "text-button"]) ?>
+            <?= $this->linkToFunction($this->t('.minus_one'), "orderShift({$pp->id}, -1)", ['class' => "text-button"]) ?>
           </td>
         </tr>
       <?php endforeach ?>

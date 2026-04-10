@@ -1,9 +1,10 @@
 <?php
+
 namespace MyImouto\PostReplacement;
 
 class StagingService
 {
-    const STAGING_DIR = '/tmp/post_replacements';
+    public const STAGING_DIR = '/tmp/post_replacements';
 
     public static function stageUploadFromGlobals($field = 'post_replacement', $file_key = 'file')
     {
@@ -21,7 +22,7 @@ class StagingService
             throw new \RuntimeException('No upload file available');
         }
 
-        $extension = strtolower(pathinfo((string)$original_name, PATHINFO_EXTENSION));
+        $extension = strtolower(pathinfo((string) $original_name, PATHINFO_EXTENSION));
         $extension = preg_replace('/[^a-z0-9]/', '', $extension);
         $basename = bin2hex(random_bytes(16));
         $filename = $extension ? ($basename . '.' . $extension) : $basename;
@@ -43,7 +44,7 @@ class StagingService
 
         return [
             'path' => $destination,
-            'name' => $original_name ?: $filename
+            'name' => $original_name ?: $filename,
         ];
     }
 
@@ -64,7 +65,7 @@ class StagingService
             throw new \RuntimeException('Source URL returned no data');
         }
 
-        $path_part = (string)parse_url((string)$source_url, PHP_URL_PATH);
+        $path_part = (string) parse_url((string) $source_url, PHP_URL_PATH);
         $name = basename($path_part ?: 'replacement');
         if ($name === '' || $name === '/') {
             $name = 'replacement';
@@ -81,7 +82,7 @@ class StagingService
         }
 
         $real_staging = realpath(self::stagingDir());
-        $real_path = realpath((string)$path);
+        $real_path = realpath((string) $path);
         if (!$real_staging || !$real_path) {
             return;
         }
@@ -98,17 +99,17 @@ class StagingService
 
     public static function isSafeSourceUrl($source_url)
     {
-        $parts = parse_url((string)$source_url);
+        $parts = parse_url((string) $source_url);
         if (!$parts || empty($parts['scheme']) || empty($parts['host'])) {
             return false;
         }
 
-        $scheme = strtolower((string)$parts['scheme']);
+        $scheme = strtolower((string) $parts['scheme']);
         if ($scheme !== 'http' && $scheme !== 'https') {
             return false;
         }
 
-        $host = strtolower((string)$parts['host']);
+        $host = strtolower((string) $parts['host']);
         if (in_array($host, ['localhost', '127.0.0.1', '::1', 'ip6-localhost', 'ip6-loopback'], true)) {
             return false;
         }
@@ -152,22 +153,22 @@ class StagingService
                 return false;
             }
 
-            $ipv4 = long2ip((int)$parts[1]);
+            $ipv4 = long2ip((int) $parts[1]);
             if (!$ipv4) {
                 return false;
             }
 
-            return (bool)filter_var(
+            return (bool) filter_var(
                 $ipv4,
                 FILTER_VALIDATE_IP,
-                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+                FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE,
             );
         }
 
-        return (bool)filter_var(
+        return (bool) filter_var(
             $ip,
             FILTER_VALIDATE_IP,
-            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+            FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE,
         );
     }
 
@@ -205,8 +206,8 @@ class StagingService
             }
         }
 
-        $ips = array_values(array_unique(array_filter($ips, function($ip) {
-            return (bool)filter_var($ip, FILTER_VALIDATE_IP);
+        $ips = array_values(array_unique(array_filter($ips, function ($ip) {
+            return (bool) filter_var($ip, FILTER_VALIDATE_IP);
         })));
 
         return $ips;
@@ -221,7 +222,7 @@ class StagingService
         $upload = $_FILES[$field];
 
         if (isset($upload['tmp_name'][$file_key])) {
-            $error = isset($upload['error'][$file_key]) ? (int)$upload['error'][$file_key] : UPLOAD_ERR_OK;
+            $error = isset($upload['error'][$file_key]) ? (int) $upload['error'][$file_key] : UPLOAD_ERR_OK;
             if ($error === UPLOAD_ERR_NO_FILE) {
                 return null;
             }
@@ -231,12 +232,12 @@ class StagingService
 
             return [
                 'tmp_name' => $upload['tmp_name'][$file_key],
-                'name' => isset($upload['name'][$file_key]) ? $upload['name'][$file_key] : $file_key
+                'name' => isset($upload['name'][$file_key]) ? $upload['name'][$file_key] : $file_key,
             ];
         }
 
         if (isset($upload['tmp_name'])) {
-            $error = isset($upload['error']) ? (int)$upload['error'] : UPLOAD_ERR_OK;
+            $error = isset($upload['error']) ? (int) $upload['error'] : UPLOAD_ERR_OK;
             if ($error === UPLOAD_ERR_NO_FILE) {
                 return null;
             }
@@ -246,7 +247,7 @@ class StagingService
 
             return [
                 'tmp_name' => $upload['tmp_name'],
-                'name' => isset($upload['name']) ? $upload['name'] : $file_key
+                'name' => isset($upload['name']) ? $upload['name'] : $file_key,
             ];
         }
 
@@ -260,7 +261,7 @@ class StagingService
             throw new \RuntimeException('Unable to allocate temporary replacement file');
         }
 
-        $extension = strtolower(pathinfo((string)$original_name, PATHINFO_EXTENSION));
+        $extension = strtolower(pathinfo((string) $original_name, PATHINFO_EXTENSION));
         $extension = preg_replace('/[^a-z0-9]/', '', $extension);
         $target = $temp;
         if ($extension) {

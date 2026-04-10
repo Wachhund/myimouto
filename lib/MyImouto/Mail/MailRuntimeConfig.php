@@ -55,8 +55,8 @@ final class MailRuntimeConfig
     {
         $normalized = array_merge(self::DEFAULT_SMTP_SETTINGS, $settings);
 
-        $normalized['host'] = trim((string)$normalized['host']);
-        $normalized['address'] = trim((string)$normalized['address']);
+        $normalized['host'] = trim((string) $normalized['host']);
+        $normalized['address'] = trim((string) $normalized['address']);
         if ($normalized['host'] === '' && $normalized['address'] !== '') {
             $normalized['host'] = $normalized['address'];
         }
@@ -64,30 +64,30 @@ final class MailRuntimeConfig
             $normalized['address'] = $normalized['host'];
         }
 
-        $normalized['port'] = self::toPositiveInt($normalized['port'], (int)self::DEFAULT_SMTP_SETTINGS['port']);
-        $normalized['timeout'] = self::toPositiveInt($normalized['timeout'], (int)self::DEFAULT_SMTP_SETTINGS['timeout']);
+        $normalized['port'] = self::toPositiveInt($normalized['port'], (int) self::DEFAULT_SMTP_SETTINGS['port']);
+        $normalized['timeout'] = self::toPositiveInt($normalized['timeout'], (int) self::DEFAULT_SMTP_SETTINGS['timeout']);
 
-        $normalized['domain'] = trim((string)$normalized['domain']);
+        $normalized['domain'] = trim((string) $normalized['domain']);
         if ($normalized['domain'] === '') {
-            $normalized['domain'] = (string)self::DEFAULT_SMTP_SETTINGS['domain'];
+            $normalized['domain'] = (string) self::DEFAULT_SMTP_SETTINGS['domain'];
         }
 
-        $normalized['authentication'] = strtolower(trim((string)$normalized['authentication']));
+        $normalized['authentication'] = strtolower(trim((string) $normalized['authentication']));
         if ($normalized['authentication'] === '') {
-            $normalized['authentication'] = (string)self::DEFAULT_SMTP_SETTINGS['authentication'];
+            $normalized['authentication'] = (string) self::DEFAULT_SMTP_SETTINGS['authentication'];
         }
 
-        $normalized['user_name'] = trim((string)$normalized['user_name']);
-        $normalized['password'] = (string)$normalized['password'];
+        $normalized['user_name'] = trim((string) $normalized['user_name']);
+        $normalized['password'] = (string) $normalized['password'];
 
         $normalized['enable_starttls_auto'] = self::toBool(
             $normalized['enable_starttls_auto'],
-            (bool)self::DEFAULT_SMTP_SETTINGS['enable_starttls_auto']
+            (bool) self::DEFAULT_SMTP_SETTINGS['enable_starttls_auto'],
         );
 
-        $normalized['transport_label'] = trim((string)$normalized['transport_label']);
+        $normalized['transport_label'] = trim((string) $normalized['transport_label']);
         if ($normalized['transport_label'] === '') {
-            $normalized['transport_label'] = (string)self::DEFAULT_SMTP_SETTINGS['transport_label'];
+            $normalized['transport_label'] = (string) self::DEFAULT_SMTP_SETTINGS['transport_label'];
         }
 
         return $normalized;
@@ -100,17 +100,17 @@ final class MailRuntimeConfig
             $root = \Rails::root();
         }
 
-        return rtrim((string)$root, '/\\') . '/tmp/mail';
+        return rtrim((string) $root, '/\\') . '/tmp/mail';
     }
 
     private static function env($name, $default = '')
     {
         $value = getenv($name);
         if ($value === false) {
-            return (string)$default;
+            return (string) $default;
         }
 
-        return trim((string)$value);
+        return trim((string) $value);
     }
 
     private static function toBool($value, $default = false)
@@ -119,7 +119,7 @@ final class MailRuntimeConfig
             return $value;
         }
 
-        $normalized = strtolower(trim((string)$value));
+        $normalized = strtolower(trim((string) $value));
         if ($normalized === '') {
             return $default;
         }
@@ -129,7 +129,7 @@ final class MailRuntimeConfig
 
     private static function toPositiveInt($value, $default)
     {
-        $int = (int)$value;
+        $int = (int) $value;
         if ($int <= 0) {
             return $default;
         }

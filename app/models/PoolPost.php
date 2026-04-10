@@ -1,23 +1,24 @@
 <?php
+
 class PoolPost extends Rails\ActiveRecord\Base
 {
     use Moebooru\Versioning\VersioningTrait;
-    
-    static public function tableName()
+
+    public static function tableName()
     {
         return 'pools_posts';
     }
-    
-    static public function init_versioning($v)
+
+    public static function init_versioning($v)
     {
         $v->versioned_attributes([
-                'active' => ['default' => false, 'allow_reverting_to_default' => true],
-                'sequence'
-            ])
+            'active' => ['default' => false, 'allow_reverting_to_default' => true],
+            'sequence',
+        ])
             ->versioning_group_by(['class' => 'pool'])
             ->versioned_parent('pool');
     }
-    
+
     protected function associations()
     {
         return [
@@ -26,11 +27,11 @@ class PoolPost extends Rails\ActiveRecord\Base
                 'pool', // => ['touch' => true],
                 'next_post' => ['class_name' => "Post", 'foreign_key' => "next_post_id"],
                 'prev_post' => ['class_name' => "Post", 'foreign_key' => "prev_post_id"],
-                
-            ]
+
+            ],
         ];
     }
-    
+
     /**
      * MI: Force setting "active" as changed attribute on create
      * to trigger Versioning on this attribute.
@@ -39,40 +40,41 @@ class PoolPost extends Rails\ActiveRecord\Base
     {
         $this->setChangedAttribute('active', 0);
     }
-    
+
     protected function callbacks()
     {
         return [
             'before_create' => ['set_active_changed'], # MI
-            'after_save' => ['expire_cache']
+            'after_save' => ['expire_cache'],
         ];
     }
-    
+
     public function can_change(User $user, $attribute)
     {
         return $user->is_member_or_higher() || $this->pool->is_public || $user->has_permission($this->pool);
     }
-    
+
     public function can_change_is_public($user)
     {
         return $user->has_permission($pool); # only the owner can change is_public
     }
-    
+
     # This matches Pool.post_pretty_sequence in pool.js.
     public function pretty_sequence()
     {
-        if (preg_match('/^\d+/', $this->sequence))
-            return "#".$this->sequence;
-        else
-            return '"'.$this->sequence.'"';
+        if (preg_match('/^\d+/', $this->sequence)) {
+            return "#" . $this->sequence;
+        } else {
+            return '"' . $this->sequence . '"';
+        }
     }
-    
+
     # Changing pool orderings affects pool sorting in the index.
     public function expire_cache()
     {
         Moebooru\CacheHelper::expire();
     }
-    
+
     public function api_attributes()
     {
         return [
@@ -82,15 +84,15 @@ class PoolPost extends Rails\ActiveRecord\Base
             'active' => $this->active,
             'sequence' => $this->sequence,
             'next_post_id' => $this->next_post_id,
-            'prev_post_id' => $this->prev_post_id
+            'prev_post_id' => $this->prev_post_id,
         ];
     }
-    
+
     public function asJson()
     {
         return $this->api_attributes();
     }
-    
+
     /**
      * Overriding Versioning's delete_history because it's a special case with
      * pools posts.

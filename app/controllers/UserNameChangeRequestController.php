@@ -1,4 +1,5 @@
 <?php
+
 class UserNameChangeRequestController extends ApplicationController
 {
     protected function filters()
@@ -6,8 +7,8 @@ class UserNameChangeRequestController extends ApplicationController
         return [
             'before' => [
                 'member_only' => ['only' => ['blank', 'create', 'show', 'cancel']],
-                'mod_only' => ['only' => ['index', 'approve', 'reject']]
-            ]
+                'mod_only' => ['only' => ['index', 'approve', 'reject']],
+            ],
         ];
     }
 
@@ -33,7 +34,7 @@ class UserNameChangeRequestController extends ApplicationController
                     $data[] = $req->api_attributes();
                 }
                 $this->render(['json' => $data]);
-            }
+            },
         ]);
     }
 
@@ -49,7 +50,7 @@ class UserNameChangeRequestController extends ApplicationController
 
         # Users can only see their own requests; mods can see all.
         if (!current_user()->is_mod_or_higher()
-            && (int)$this->change_request->user_id !== (int)current_user()->id
+            && (int) $this->change_request->user_id !== (int) current_user()->id
         ) {
             $this->access_denied();
             return;
@@ -59,7 +60,7 @@ class UserNameChangeRequestController extends ApplicationController
             'html',
             'json' => function () {
                 $this->render(['json' => $this->change_request->api_attributes()]);
-            }
+            },
         ]);
     }
 
@@ -95,7 +96,7 @@ class UserNameChangeRequestController extends ApplicationController
             $this->respond_to_success(
                 'Username change request submitted',
                 ['user_name_change_request#show', 'id' => $this->change_request->id],
-                ['api' => ['request' => $this->change_request->api_attributes()]]
+                ['api' => ['request' => $this->change_request->api_attributes()]],
             );
         } else {
             $this->respond_to_error($this->change_request, ['user_name_change_request#blank']);
@@ -112,7 +113,7 @@ class UserNameChangeRequestController extends ApplicationController
             return;
         }
 
-        if ((int)$this->change_request->user_id !== (int)current_user()->id) {
+        if ((int) $this->change_request->user_id !== (int) current_user()->id) {
             $this->access_denied();
             return;
         }
@@ -120,12 +121,12 @@ class UserNameChangeRequestController extends ApplicationController
         if ($this->change_request->cancel()) {
             $this->respond_to_success(
                 'Username change request cancelled',
-                ['user#show', 'id' => current_user()->id]
+                ['user#show', 'id' => current_user()->id],
             );
         } else {
             $this->respond_to_error(
                 $this->change_request->errors()->fullMessages(', '),
-                ['user_name_change_request#show', 'id' => $this->change_request->id]
+                ['user_name_change_request#show', 'id' => $this->change_request->id],
             );
         }
     }
@@ -143,12 +144,12 @@ class UserNameChangeRequestController extends ApplicationController
         if ($this->change_request->approve(current_user())) {
             $this->respond_to_success(
                 'Username change approved',
-                ['user_name_change_request#index']
+                ['user_name_change_request#index'],
             );
         } else {
             $this->respond_to_error(
                 $this->change_request->errors()->fullMessages(', '),
-                ['user_name_change_request#index']
+                ['user_name_change_request#index'],
             );
         }
     }
@@ -163,7 +164,7 @@ class UserNameChangeRequestController extends ApplicationController
             return;
         }
 
-        $reason = trim((string)$this->params()->staff_reason);
+        $reason = trim((string) $this->params()->staff_reason);
         if ($reason === '') {
             $reason = null;
         }
@@ -171,19 +172,19 @@ class UserNameChangeRequestController extends ApplicationController
         if ($this->change_request->reject(current_user(), $reason)) {
             $this->respond_to_success(
                 'Username change rejected',
-                ['user_name_change_request#index']
+                ['user_name_change_request#index'],
             );
         } else {
             $this->respond_to_error(
                 $this->change_request->errors()->fullMessages(', '),
-                ['user_name_change_request#index']
+                ['user_name_change_request#index'],
             );
         }
     }
 
     protected function find_request_from_params()
     {
-        $id = (int)$this->params()->id;
+        $id = (int) $this->params()->id;
         if ($id <= 0) {
             $this->respond_to_error('Request not found', ['user#show', 'id' => current_user()->id], ['status' => 404]);
             return null;
@@ -199,12 +200,12 @@ class UserNameChangeRequestController extends ApplicationController
 
     protected function normalize_status($status)
     {
-        $status = strtolower(trim((string)$status));
+        $status = strtolower(trim((string) $status));
         if (in_array($status, [
             UserNameChangeRequest::STATUS_PENDING,
             UserNameChangeRequest::STATUS_APPROVED,
             UserNameChangeRequest::STATUS_REJECTED,
-            UserNameChangeRequest::STATUS_CANCELLED
+            UserNameChangeRequest::STATUS_CANCELLED,
         ], true)) {
             return $status;
         }

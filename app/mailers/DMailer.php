@@ -1,4 +1,5 @@
 <?php
+
 # Sends email to future!
 # Or not. It sends dmail.
 class DMailer extends Rails\ActionMailer\Base

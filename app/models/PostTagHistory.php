@@ -1,7 +1,8 @@
 <?php
+
 class PostTagHistory extends Rails\ActiveRecord\Base
 {
-    static public function undo_user_changes($user_id)
+    public static function undo_user_changes($user_id)
     {
         $posts = Post::joins("join post_tag_histories pth on pth.post_id = posts.id")
                        ->select("distinct posts.id")
@@ -9,37 +10,37 @@ class PostTagHistory extends Rails\ActiveRecord\Base
                        ->take();
         // puts posts.size
         // p posts.map {|x| x.id}
-#        destroy_all(["user_id = ?", user_id])
-#        posts.each do |post|
-#            post.tags = post.tag_history.first.tags
-#            post.updater_user_id = post.tag_history.first.user_id
-#            post.updater_ip_addr = post.tag_history.first.ip_addr
-#            post.save!
-#        end
+        #        destroy_all(["user_id = ?", user_id])
+        #        posts.each do |post|
+        #            post.tags = post.tag_history.first.tags
+        #            post.updater_user_id = post.tag_history.first.user_id
+        #            post.updater_ip_addr = post.tag_history.first.ip_addr
+        #            post.save!
+        #        end
     }
 
-    static public function generate_sql($options = [])
+    public static function generate_sql($options = [])
     {
         $sql = self::none();
         if (!empty($options['post_id'])) {
             $sql->where("post_tag_histories.post_id = ?", $options['post_id']);
         }
-        
+
         if (!empty($options['user_id'])) {
             $sql->where("post_tag_histories.user_id = ?", $options['user_id']);
         }
-        
+
         if (!empty($options['user_name'])) {
             $sql->joins("users ON users.id = post_tag_histories.user_id");
             $sql->where("users.name = ?", $options['user_name']);
         }
-        
+
         return $sql;
     }
 
-    static public function undo_changes_by_user($user_id)
+    public static function undo_changes_by_user($user_id)
     {
-        $this->transaction(function() {
+        $this->transaction(function () {
             $posts = Post::joins("join post_tag_histories pth on pth.post_id = posts.id")
                            ->select("distinct posts.*")
                            ->where("pth.user_id = ?", $user_id)
@@ -127,7 +128,7 @@ class PostTagHistory extends Rails\ActiveRecord\Base
         return parent::toXml(['attributes' => [
             'id'      => $this->id,
             'post_id' => $this->post_id,
-            'tags'    => $this->tags
+            'tags'    => $this->tags,
         ], 'root' => "tag_history"]);
     }
 
@@ -136,17 +137,17 @@ class PostTagHistory extends Rails\ActiveRecord\Base
         return [
             'id'      => $this->id,
             'post_id' => $this->post_id,
-            'tags'    => $this->tags
+            'tags'    => $this->tags,
         ];
     }
-    
+
     protected function associations()
     {
         return [
             'belongs_to' => [
                 'user',
-                'post'
-            ]
+                'post',
+            ],
         ];
     }
 }

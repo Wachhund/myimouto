@@ -1,12 +1,13 @@
 <?php
+
 class PostSetMaintainerController extends ApplicationController
 {
     protected function filters()
     {
         return [
             'before' => [
-                'member_only'
-            ]
+                'member_only',
+            ],
         ];
     }
 
@@ -18,16 +19,16 @@ class PostSetMaintainerController extends ApplicationController
 
         $this->respondTo([
             'html',
-            'json' => function() {
+            'json' => function () {
                 $payload = [];
                 foreach ($this->maintainer_invites as $invite) {
                     $payload[] = $invite->asJson();
                 }
                 $this->render(['json' => $payload]);
             },
-            'xml' => function() {
+            'xml' => function () {
                 $this->render(['xml' => ['count' => $this->maintainer_invites->size()], 'root' => 'post_set_maintainers']);
-            }
+            },
         ]);
     }
 
@@ -71,7 +72,7 @@ class PostSetMaintainerController extends ApplicationController
                 $this->respond_to_success(
                     $target_user->pretty_name() . ' added as maintainer',
                     ['post_set#maintainers', 'id' => $post_set->id],
-                    ['api' => ['post_set_maintainer' => $existing->asJson()]]
+                    ['api' => ['post_set_maintainer' => $existing->asJson()]],
                 );
                 return;
             }
@@ -80,14 +81,14 @@ class PostSetMaintainerController extends ApplicationController
         $maintainer = PostSetMaintainer::create([
             'post_set_id' => $post_set->id,
             'user_id' => $target_user->id,
-            'status' => PostSetMaintainer::STATUS_APPROVED
+            'status' => PostSetMaintainer::STATUS_APPROVED,
         ]);
 
         if ($maintainer->errors()->blank()) {
             $this->respond_to_success(
                 $target_user->pretty_name() . ' added as maintainer',
                 ['post_set#maintainers', 'id' => $post_set->id],
-                ['api' => ['post_set_maintainer' => $maintainer->asJson()]]
+                ['api' => ['post_set_maintainer' => $maintainer->asJson()]],
             );
             return;
         }
@@ -131,14 +132,14 @@ class PostSetMaintainerController extends ApplicationController
         $maintainer = PostSetMaintainer::create([
             'post_set_id' => $post_set->id,
             'user_id' => current_user()->id,
-            'status' => PostSetMaintainer::STATUS_PENDING
+            'status' => PostSetMaintainer::STATUS_PENDING,
         ]);
 
         if ($maintainer->errors()->blank()) {
             $this->respond_to_success(
                 'Maintainer request submitted',
                 ['post_set#show', 'id' => $post_set->id],
-                ['api' => ['post_set_maintainer' => $maintainer->asJson()]]
+                ['api' => ['post_set_maintainer' => $maintainer->asJson()]],
             );
             return;
         }
@@ -165,7 +166,7 @@ class PostSetMaintainerController extends ApplicationController
 
         if ($maintainer->status === PostSetMaintainer::STATUS_APPROVED) {
             $this->respond_to_success('Maintainer already approved', ['post_set#maintainers', 'id' => $maintainer->post_set_id], [
-                'api' => ['post_set_maintainer' => $maintainer->asJson()]
+                'api' => ['post_set_maintainer' => $maintainer->asJson()],
             ]);
             return;
         }
@@ -180,7 +181,7 @@ class PostSetMaintainerController extends ApplicationController
         }
 
         $this->respond_to_success('Maintainer approved', ['post_set#maintainers', 'id' => $maintainer->post_set_id], [
-            'api' => ['post_set_maintainer' => $maintainer->asJson()]
+            'api' => ['post_set_maintainer' => $maintainer->asJson()],
         ]);
     }
 
@@ -196,7 +197,7 @@ class PostSetMaintainerController extends ApplicationController
             return;
         }
 
-        $post_set_id = (int)$maintainer->post_set_id;
+        $post_set_id = (int) $maintainer->post_set_id;
         $maintainer->destroy();
 
         $this->respond_to_success('Maintainer invite denied', ['post_set#maintainers', 'id' => $post_set_id]);
@@ -217,7 +218,7 @@ class PostSetMaintainerController extends ApplicationController
         $maintainer->block();
 
         $this->respond_to_success('Maintainer invite blocked', ['#index'], [
-            'api' => ['post_set_maintainer' => $maintainer->asJson()]
+            'api' => ['post_set_maintainer' => $maintainer->asJson()],
         ]);
     }
 
@@ -233,7 +234,7 @@ class PostSetMaintainerController extends ApplicationController
             return;
         }
 
-        $post_set_id = (int)$maintainer->post_set_id;
+        $post_set_id = (int) $maintainer->post_set_id;
         $maintainer->destroy();
         $this->respond_to_success('Maintainer removed', ['post_set#maintainers', 'id' => $post_set_id]);
     }
@@ -254,7 +255,7 @@ class PostSetMaintainerController extends ApplicationController
             return true;
         }
 
-        return (int)$maintainer->user_id === (int)current_user()->id;
+        return (int) $maintainer->user_id === (int) current_user()->id;
     }
 
     protected function can_block(PostSetMaintainer $maintainer)
@@ -263,17 +264,17 @@ class PostSetMaintainerController extends ApplicationController
             return true;
         }
 
-        return (int)$maintainer->user_id === (int)current_user()->id;
+        return (int) $maintainer->user_id === (int) current_user()->id;
     }
 
     protected function find_target_user()
     {
         if (!empty($this->params()->maintainer_id)) {
-            return User::where(['id' => (int)$this->params()->maintainer_id])->first();
+            return User::where(['id' => (int) $this->params()->maintainer_id])->first();
         }
 
         if (!empty($this->params()->maintainer_name)) {
-            return User::find_by_name((string)$this->params()->maintainer_name);
+            return User::find_by_name((string) $this->params()->maintainer_name);
         }
 
         return null;
@@ -281,7 +282,7 @@ class PostSetMaintainerController extends ApplicationController
 
     protected function find_post_set_from_params($param_key = 'post_set_id')
     {
-        $post_set_id = (int)$this->params()->$param_key;
+        $post_set_id = (int) $this->params()->$param_key;
         if ($post_set_id <= 0) {
             $this->respond_to_error('Set not found', ['post_set#index'], ['status' => 404]);
             return null;
@@ -297,7 +298,7 @@ class PostSetMaintainerController extends ApplicationController
 
     protected function find_maintainer_from_params()
     {
-        $id = (int)$this->params()->id;
+        $id = (int) $this->params()->id;
         if ($id <= 0) {
             $this->respond_to_error('Maintainer record not found', ['#index'], ['status' => 404]);
             return null;

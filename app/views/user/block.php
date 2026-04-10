@@ -1,4 +1,4 @@
-<?= $this->formTag(function(){ ?>
+<?= $this->formTag(function () { ?>
   <?= $this->hiddenField("ban", "user_id") ?>
   <table class="form">
     <tfoot>
