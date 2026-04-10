@@ -16,8 +16,20 @@ class Application extends \Rails\Application\Base
         require __DIR__ . '/config.php';
         require __DIR__ . '/../lib/functions.php';
         $this->booruConfig = new LocalConfig();
-        
+
         $this->I18n()->loadLocale('my-imouto');
+
+        // PROJ-46 AC-2: Reject default password salt in production.
+        if ($this->booruConfig->user_password_salt === 'choujin-steiner') {
+            if (RAILS_ENV === 'production') {
+                throw new \RuntimeException(
+                    'SECURITY: Default password salt is still active. ' .
+                    'Set a unique $user_password_salt in config/config.php before running in production.'
+                );
+            } else {
+                error_log('[WARN] Default password salt "choujin-steiner" is active. Override in config/config.php for production use.');
+            }
+        }
     }
     
     protected function initConfig($config)

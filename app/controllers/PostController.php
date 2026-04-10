@@ -242,7 +242,7 @@ class PostController extends ApplicationController
 
         # Updates to one post may affect others, so only generate the return list after we've already
         # updated everything.
-        # TODO: need better SQL functions.
+        $ids = array_map('intval', $ids);
         $ids = implode(', ', $ids);
 
         $posts = Post::where("id IN ($ids)")->take();
@@ -1363,7 +1363,7 @@ class PostController extends ApplicationController
         return [
             'before' => [
                 'user_can_see_posts' => ['only' => ['show', 'browse']],
-                'member_only' => ['only' => ['create', 'destroy', 'delete', 'flag', 'revertTags', 'activate', 'updateBatch', 'vote']],
+                'member_only' => ['only' => ['create', 'destroy', 'delete', 'flag', 'revertTags', 'activate', 'updateBatch', 'vote', 'error']],
                 'post_member_only' => ['only' => ['update', 'upload', 'flag']],
                 'janitor_only' => ['only' => ['moderate', 'undelete']],
                 'admin_only' => ['only' => ['import']],

@@ -171,6 +171,17 @@ class PostReplacementController extends ApplicationController
             return;
         }
 
+        // PROJ-46 AC-10: Block approval for deleted target posts (e621ng #1746).
+        $target_post = Post::find($replacement->post_id);
+        if ($target_post && $target_post->status === 'deleted') {
+            $this->respond_to_error(
+                'Cannot approve replacement for a deleted post',
+                ['post_replacement#index', 'post_id' => $replacement->post_id],
+                ['status' => 422]
+            );
+            return;
+        }
+
         $approved = null;
         $preloaded_source_path = null;
         $resolved_upload = null;

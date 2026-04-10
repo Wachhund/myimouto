@@ -7,10 +7,9 @@ abstract class Danbooru
         if ((int)$max_size === 0) # unlimited
             $max_size = null;
 
-        # Decode data: URLs.
-        if (preg_match('/^data:([^;]{1,100})(;[^;]{1,100})?,(.*)$/', $source, $m)) {
-            $data = base64_decode($m[3]);
-            return $data;
+        # PROJ-46 AC-7: Reject data: URLs to prevent SSRF bypass.
+        if (preg_match('/^data:/i', $source)) {
+            throw new Danbooru\Exception\RuntimeException('SocketError: data: URLs are not supported');
         }
 
         $redirections_limit = 4;
@@ -44,10 +43,6 @@ abstract class Danbooru
                 $url['port'] = $url['scheme'] == 'https' ? 443 : 80;
 
             $opts = [];
-            if ($url['scheme'] == 'https') {
-                $opts[CURLOPT_SSL_VERIFYPEER] = false;
-                $opts[CURLOPT_SSL_VERIFYHOST] = false;
-            }
             if ($timeout)
                 $opts[CURLOPT_TIMEOUT] = $timeout;
             $opts[CURLOPT_RETURNTRANSFER] = true;

@@ -192,16 +192,22 @@ class Post extends Rails\ActiveRecord\Base
     
     public function destroy_with_reason($reason, $current_user)
     {
+        // PROJ-46 AC-11: Guard against double-deletion (e621ng #1736).
+        if ($this->status === 'deleted') {
+            return false;
+        }
+
         // Post.transaction do
         $existing_flag = $this->latest_flag();
         if ($existing_flag && !$existing_flag->is_resolved)
             $existing_flag->resolve($current_user->id);
         $this->flag($reason, $current_user->id);
         $this->first_delete();
-        
+
         if (CONFIG()->delete_posts_permanently)
             $this->delete_from_database();
         // end
+        return true;
     }
 
     static public function static_destroy_with_reason($id, $reason, $current_user)

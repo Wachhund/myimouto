@@ -4,7 +4,7 @@ class DmailController extends ApplicationController
     protected function filters()
     {
         return [
-            'before' => ['blocked_only']
+            'before' => ['member_only']
         ];
     }
 

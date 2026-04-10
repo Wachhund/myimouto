@@ -91,9 +91,9 @@ class ApplicationController extends Rails\ActionController\Base
             // Compare stored password hash token with current hash.
             if ($user && $this->session()->ph) {
                 $current_ph = $user->bcrypt_password_hash
-                    ? crc32($user->bcrypt_password_hash)
-                    : 0;
-                if ((int)$this->session()->ph !== $current_ph) {
+                    ? substr(hash('sha256', $user->bcrypt_password_hash), 0, 16)
+                    : '';
+                if ((string)$this->session()->ph !== $current_ph) {
                     // Password changed since session was created -- invalidate.
                     $this->session()->delete('user_id');
                     $this->session()->delete('ph');
@@ -157,7 +157,7 @@ class ApplicationController extends Rails\ActionController\Base
             $this->session()->user_id = $user->id;
             // AC-9: Store password hash token for session invalidation check.
             if (!$this->session()->ph && $user->bcrypt_password_hash) {
-                $this->session()->ph = crc32($user->bcrypt_password_hash);
+                $this->session()->ph = substr(hash('sha256', $user->bcrypt_password_hash), 0, 16);
             }
         } else {
             $user = new User();

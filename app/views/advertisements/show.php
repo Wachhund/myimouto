@@ -42,11 +42,11 @@
     <?php else: ?>
     <tr>
       <th><label><?= $this->humanize('image_url') ?></label></th>
-      <td><?= $this->ad->image_url ?></td>
+      <td><?= $this->h($this->ad->image_url) ?></td>
     </tr>
     <tr>
       <th><label><?= $this->humanize('referral_url') ?></label></th>
-      <td><?= $this->ad->referral_url ?></td>
+      <td><?= $this->h($this->ad->referral_url) ?></td>
     </tr>
     <?php endif ?>
   </tbody>

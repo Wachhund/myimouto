@@ -1,11 +1,11 @@
 <h4><?= $this->t(['.title', 'id' => $this->job_task->id]) ?></h4>
 
 <ul>
-  <li><strong><?= $this->t('.table.type') ?></strong>: <?= $this->job_task->task_type ?></li>
-  <li><strong><?= $this->t('.table.status') ?></strong>: <?= $this->job_task->status ?></li>
+  <li><strong><?= $this->t('.table.type') ?></strong>: <?= $this->h($this->job_task->task_type) ?></li>
+  <li><strong><?= $this->t('.table.status') ?></strong>: <?= $this->h($this->job_task->status) ?></li>
   <li><strong><?= $this->t('.table.data') ?></strong>: <?= $this->job_task->pretty_data() ?: "ERROR" ?></li>
   <?php if (current_user()->is_mod_or_higher()) : ?>
-  <li><strong><?= $this->t('.table.message') ?></strong>: <?= $this->job_task->status_message ?></li>
+  <li><strong><?= $this->t('.table.message') ?></strong>: <?= $this->h($this->job_task->status_message) ?></li>
   <?php endif ?>
 </ul>
 

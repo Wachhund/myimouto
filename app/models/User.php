@@ -191,9 +191,7 @@ class User extends Rails\ActiveRecord\Base
     {
         if ($this->password) {
             $this->bcrypt_password_hash = self::hashPassword($this->password);
-            // Keep SHA1 hash for rollback compatibility
-            $this->password_hash = self::sha1($this->password);
-            // Invalidate remember token on password change
+            // SHA-1 write removed (PROJ-46 AC-1): legacy read path in authenticate() preserved.
             $this->remember_token = null;
         }
     }
@@ -233,17 +231,14 @@ class User extends Rails\ActiveRecord\Base
     public function apply_new_password($new_password)
     {
         $bcrypt_hash = self::hashPassword($new_password);
-        $sha1_hash = self::sha1($new_password);
 
         self::connection()->executeSql(
-            "UPDATE users SET bcrypt_password_hash = ?, password_hash = ?, reset_token = NULL, reset_token_expires_at = NULL, remember_token = NULL WHERE id = ?",
+            "UPDATE users SET bcrypt_password_hash = ?, reset_token = NULL, reset_token_expires_at = NULL, remember_token = NULL WHERE id = ?",
             $bcrypt_hash,
-            $sha1_hash,
             $this->id
         );
 
         $this->bcrypt_password_hash = $bcrypt_hash;
-        $this->password_hash = $sha1_hash;
         $this->reset_token = null;
         $this->reset_token_expires_at = null;
         $this->remember_token = null;

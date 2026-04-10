@@ -86,11 +86,12 @@ class Tag extends Rails\ActiveRecord\Base
     
     static public function parse_cast($x, $type)
     {
-        if ($type == 'int')
-            return (int)$x;
-        elseif ($type == 'float')
+        if ($type == 'int') {
+            $val = (int)$x;
+            return max(0, min($val, PHP_INT_MAX));
+        } elseif ($type == 'float') {
             return (float)$x;
-        elseif ($type == 'date') {
+        } elseif ($type == 'date') {
             return $x;
         }
     }
@@ -158,8 +159,17 @@ class Tag extends Rails\ActiveRecord\Base
                     // $q['vote_negated'] = User.find_by_name_nocase($m[2]).id rescue nil
                     if (!$q['vote_negated'])
                         $q['error'] = "no user named ".$m[2];
-                } elseif ($m[1] == "fav")
-                    $q['fav'] = $m[2];
+                } elseif ($m[1] == "fav") {
+                    if (strtolower($m[2]) === 'me') {
+                        if (!current_user()->is_anonymous()) {
+                            $q['fav'] = current_user()->name;
+                        } else {
+                            $q['error'] = "must be logged in to use fav:me";
+                        }
+                    } else {
+                        $q['fav'] = $m[2];
+                    }
+                }
                 elseif ($m[1] == "sub")
                     $q['subscriptions'] = $m[2];
                 elseif ($m[1] == "md5")

@@ -10,7 +10,7 @@ class UserController extends ApplicationController
                 'mod_only'            => ['only' => ['block', 'unblock', 'showBlockedUsers']],
                 'post_member_only'    => ['only' => ['setAvatar']],
                 'no_anonymous'        => ['only' => ['changePassword', 'changeEmail']],
-                'member_only'         => ['only' => ['deleteAccount', 'executeDeleteAccount']],
+                'member_only'         => ['only' => ['deleteAccount', 'executeDeleteAccount', 'error']],
                 'set_settings_layout' => ['only' => ['changePassword', 'changeEmail', 'edit']]
             ]
         ];
@@ -639,7 +639,9 @@ class UserController extends ApplicationController
 
     public function error()
     {
-        $report = $this->params()->report;
+        $report = (string)($this->params()->report ?? '');
+        $report = substr($report, 0, 2048);
+        $report = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F]/', '', $report);
 
         $file = Rails::root() . "/log/user_errors.log";
         if (!is_file($file)) {
@@ -678,7 +680,7 @@ class UserController extends ApplicationController
 
         // AC-9: Store password hash token for session invalidation on password change.
         if ($user->bcrypt_password_hash) {
-            $this->session()->ph = crc32($user->bcrypt_password_hash);
+            $this->session()->ph = substr(hash('sha256', $user->bcrypt_password_hash), 0, 16);
         }
     }
 
