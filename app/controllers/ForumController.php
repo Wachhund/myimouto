@@ -12,7 +12,7 @@ class ForumController extends ApplicationController
             'before' => [
                 'sanitize_id' => ['only' => ['show']],
                 'mod_only' => ['only' => ['stick', 'unstick', 'lock', 'unlock']],
-                'member_only' => ['only' => ['destroy', 'update', 'edit', 'add', 'markAllRead', 'preview', 'subscribe', 'unsubscribe', 'vote']],
+                'member_only' => ['only' => ['destroy', 'update', 'edit', 'add', 'markAllRead', 'preview', 'subscribe', 'unsubscribe', 'vote', 'unvote']],
                 'post_member_only' => ['only' => ['create']]
             ]
         ];
@@ -146,6 +146,18 @@ class ForumController extends ApplicationController
             ForumTopicSubscription::mark_read($this->current_user->id, $this->forum_post->id);
         }
 
+        # Pre-load vote data to avoid N+1 queries in the _post partial
+        $visible_post_ids = [$this->forum_post->id];
+        foreach ($this->children as $child) {
+            $visible_post_ids[] = $child->id;
+        }
+
+        $this->vote_scores = ForumPostVote::bulk_post_scores($visible_post_ids);
+        $this->user_votes = [];
+        if (!$this->current_user->is_anonymous()) {
+            $this->user_votes = ForumPostVote::bulk_user_votes($this->current_user->id, $visible_post_ids);
+        }
+
         $this->respond_to_list("forum_post");
     }
 
@@ -242,6 +254,30 @@ class ForumController extends ApplicationController
                     'success'    => true,
                     'post_id'    => $post_id,
                     'post_score' => ForumPostVote::post_score($post_id)
+                ]]);
+            }
+        ]);
+    }
+
+    public function unvote()
+    {
+        $post_id = (int)$this->params()->id;
+
+        $forum_post = ForumPost::find($post_id);
+        ForumPostVote::unvote($this->current_user->id, $post_id);
+
+        $current_score = ForumPostVote::post_score($post_id);
+
+        $this->respondTo([
+            'html' => function() use ($forum_post) {
+                $this->notice("Vote removed");
+                $this->redirectTo(['action' => "show", 'id' => $forum_post->root_id()]);
+            },
+            'json' => function() use ($post_id, $current_score) {
+                $this->render(['json' => [
+                    'success'    => true,
+                    'post_id'    => $post_id,
+                    'post_score' => $current_score
                 ]]);
             }
         ]);

@@ -18,16 +18,32 @@
     <?php if (empty($this->preview)) : ?>
     <div class="post-footer" style="clear: left;">
       <?php
-        $forum_vote_score = ForumPostVote::post_score($this->post->id);
-        $forum_user_vote = !current_user()->is_anonymous() ? ForumPostVote::user_vote(current_user()->id, $this->post->id) : null;
+        # Use pre-loaded data when available (N+1 optimization), fall back to per-post queries
+        if (isset($this->vote_scores)) {
+            $forum_vote_score = $this->vote_scores[$this->post->id] ?? 0;
+        } else {
+            $forum_vote_score = ForumPostVote::post_score($this->post->id);
+        }
+        if (!current_user()->is_anonymous()) {
+            if (isset($this->user_votes)) {
+                $forum_user_vote = $this->user_votes[$this->post->id] ?? null;
+            } else {
+                $forum_user_vote = ForumPostVote::user_vote(current_user()->id, $this->post->id);
+            }
+        } else {
+            $forum_user_vote = null;
+        }
       ?>
-      <span class="forum-post-votes" style="margin-right: 0.5em;">
+      <span class="forum-post-votes" data-post-id="<?= $this->post->id ?>" style="margin-right: 0.5em;">
         <?php if (!current_user()->is_anonymous()) : ?>
-          <?= $this->linkTo("+1", ['action' => "vote", 'id' => $this->post->id, 'score' => 1], ['method' => 'post', 'class' => 'forum-vote-btn' . ($forum_user_vote === 1 ? ' forum-vote-active' : ''), 'title' => 'Vote up']) ?>
+          <a href="#" class="forum-vote-btn<?= $forum_user_vote === 1 ? ' forum-vote-active' : '' ?>" data-vote-score="1" data-post-id="<?= $this->post->id ?>" title="Vote up">+1</a>
         <?php endif ?>
         <span class="forum-vote-score" title="Score"><?= $forum_vote_score ?></span>
         <?php if (!current_user()->is_anonymous()) : ?>
-          <?= $this->linkTo("-1", ['action' => "vote", 'id' => $this->post->id, 'score' => -1], ['method' => 'post', 'class' => 'forum-vote-btn' . ($forum_user_vote === -1 ? ' forum-vote-active' : ''), 'title' => 'Vote down']) ?>
+          <a href="#" class="forum-vote-btn<?= $forum_user_vote === -1 ? ' forum-vote-active' : '' ?>" data-vote-score="-1" data-post-id="<?= $this->post->id ?>" title="Vote down">-1</a>
+        <?php endif ?>
+        <?php if (!current_user()->is_anonymous() && $forum_user_vote !== null) : ?>
+          <a href="#" class="forum-vote-remove" data-post-id="<?= $this->post->id ?>" title="Remove vote">&#x2715;</a>
         <?php endif ?>
       </span>
       <ul class="flat-list pipe-list">

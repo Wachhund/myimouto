@@ -76,4 +76,53 @@ class ForumPostVote extends Rails\ActiveRecord\Base
         );
         return (int)$result;
     }
+
+    /**
+     * Bulk-load vote scores for multiple forum posts.
+     *
+     * @param int[] $post_ids
+     * @return array<int, int>  post_id => total score
+     */
+    static public function bulk_post_scores(array $post_ids)
+    {
+        $scores = [];
+        if (empty($post_ids)) {
+            return $scores;
+        }
+
+        $placeholders = implode(',', array_fill(0, count($post_ids), '?'));
+        $rows = self::connection()->select(
+            "SELECT forum_post_id, COALESCE(SUM(score), 0) AS total_score FROM forum_post_votes WHERE forum_post_id IN ($placeholders) GROUP BY forum_post_id",
+            ...$post_ids
+        );
+        foreach ($rows as $row) {
+            $scores[(int)$row->forum_post_id] = (int)$row->total_score;
+        }
+        return $scores;
+    }
+
+    /**
+     * Bulk-load a user's votes for multiple forum posts.
+     *
+     * @param int   $user_id
+     * @param int[] $post_ids
+     * @return array<int, int>  post_id => score
+     */
+    static public function bulk_user_votes($user_id, array $post_ids)
+    {
+        $votes = [];
+        if (empty($post_ids)) {
+            return $votes;
+        }
+
+        $placeholders = implode(',', array_fill(0, count($post_ids), '?'));
+        $rows = self::connection()->select(
+            "SELECT forum_post_id, score FROM forum_post_votes WHERE forum_post_id IN ($placeholders) AND user_id = ?",
+            ...[...$post_ids, (int)$user_id]
+        );
+        foreach ($rows as $row) {
+            $votes[(int)$row->forum_post_id] = (int)$row->score;
+        }
+        return $votes;
+    }
 }

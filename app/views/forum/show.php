@@ -17,11 +17,11 @@
 
 <div id="forum" class="response-list">
   <?php if ($this->page_number <= 1) : ?>
-    <?= $this->partial("post", ['post' => $this->forum_post]) ?>
+    <?= $this->partial("post", ['post' => $this->forum_post, 'vote_scores' => $this->vote_scores ?? [], 'user_votes' => $this->user_votes ?? []]) ?>
   <?php endif ?>
 
   <?php foreach ($this->children as $c) : ?>
-    <?= $this->partial("post", ['post' => $c]) ?>
+    <?= $this->partial("post", ['post' => $c, 'vote_scores' => $this->vote_scores ?? [], 'user_votes' => $this->user_votes ?? []]) ?>
   <?php endforeach ?>
 </div>
 
