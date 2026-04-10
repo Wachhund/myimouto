@@ -822,14 +822,23 @@ class PostController extends ApplicationController
             $parent_post_id = $this->params()->parent_post_id;
 
             // Validate reason_category against configured reasons
-            $valid_categories = array_keys(CONFIG()->flag_reasons);
+            $valid_categories = array_map(fn($r) => $r['key'], CONFIG()->flag_reasons);
             if ($reason_category && !in_array($reason_category, $valid_categories)) {
                 $this->respond_to_error("Invalid flag reason category", array("#show", 'id' => $this->params()->id));
                 return;
             }
 
             // Validate requires_detail
-            if ($reason_category && !empty(CONFIG()->flag_reasons[$reason_category]['requires_detail'])) {
+            $reason_config = null;
+            if ($reason_category) {
+                foreach (CONFIG()->flag_reasons as $r) {
+                    if ($r['key'] === $reason_category) {
+                        $reason_config = $r;
+                        break;
+                    }
+                }
+            }
+            if ($reason_config && !empty($reason_config['requires_detail'])) {
                 if (!$this->params()->reason || trim($this->params()->reason) === '') {
                     $this->respond_to_error("This flag reason requires a detailed explanation", array("#show", 'id' => $this->params()->id));
                     return;

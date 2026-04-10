@@ -198,6 +198,7 @@ class Ticket extends Rails\ActiveRecord\Base
             return false;
         }
 
+        $old_status = (string)$this->status;
         $this->claimant_id = (int)$staff->id;
         $this->response = trim((string)$response);
         $this->status = $status;
@@ -206,7 +207,9 @@ class Ticket extends Rails\ActiveRecord\Base
 
         if ($result) {
             ModAction::log('ticket_update', ['ticket_id' => (int)$this->id, 'status' => $status]);
-            $this->send_status_dmail($staff);
+            if ($this->status !== $old_status) {
+                $this->send_status_dmail($staff);
+            }
         }
 
         return $result;
