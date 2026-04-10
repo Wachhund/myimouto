@@ -5,7 +5,7 @@ class TakedownController extends ApplicationController
     {
         return [
             'before' => [
-                'mod_only' => ['only' => ['index', 'show', 'create', 'update', 'destroy', 'add_posts', 'remove_posts']]
+                'mod_only' => ['only' => ['index', 'show', 'create', 'update', 'destroy', 'add_posts', 'remove_posts', 'add_posts_by_tags']]
             ]
         ];
     }
@@ -232,6 +232,70 @@ class TakedownController extends ApplicationController
                 }
             }
         ]);
+    }
+
+    public function add_posts_by_tags()
+    {
+        $this->takedown = $this->find_takedown_from_params();
+        if (!$this->takedown) {
+            return;
+        }
+
+        $tags = trim((string)($this->params()->tags ?: ''));
+
+        if ($tags === '') {
+            $this->respond_to_error('No tags provided', ['#show', 'id' => $this->takedown->id], ['status' => 424]);
+            return;
+        }
+
+        try {
+            $q = Tag::parse_query($tags);
+        } catch (\Throwable $e) {
+            $this->respond_to_error('Invalid tag query: ' . $e->getMessage(), ['#show', 'id' => $this->takedown->id], ['status' => 424]);
+            return;
+        }
+
+        $cap = 1000;
+
+        try {
+            list($sql, $params) = Post::generate_sql($q, [
+                'original_query' => $tags,
+                'from_api' => true,
+                'order' => 'p.id DESC',
+                'limit' => $cap + 1,
+                'select' => 'p.id'
+            ]);
+        } catch (\Throwable $e) {
+            $this->respond_to_error('Tag query error: ' . $e->getMessage(), ['#show', 'id' => $this->takedown->id], ['status' => 424]);
+            return;
+        }
+
+        $results = Post::findBySql($sql, $params);
+        $post_ids = [];
+        foreach ($results as $post) {
+            $post_ids[] = (int)$post->id;
+        }
+
+        if (empty($post_ids)) {
+            $this->respond_to_error('No posts found matching the given tags', ['#show', 'id' => $this->takedown->id], ['status' => 424]);
+            return;
+        }
+
+        $over_cap = false;
+        if (count($post_ids) > $cap) {
+            $over_cap = true;
+            $post_ids = array_slice($post_ids, 0, $cap);
+        }
+
+        $add_result = $this->takedown->add_posts($post_ids);
+        $added_count = count($add_result['added']);
+
+        $message = sprintf('%d posts added to takedown by tag search', $added_count);
+        if ($over_cap) {
+            $message .= sprintf(' (results capped at %d posts)', $cap);
+        }
+
+        $this->respond_to_success($message, ['#show', 'id' => $this->takedown->id], ['api' => $add_result]);
     }
 
     protected function find_takedown_from_params()

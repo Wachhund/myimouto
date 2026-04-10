@@ -186,6 +186,7 @@ MyImouto\Application::routes()->draw(function() {
     $this->match('post/upload_problem', ['via' => ['get', 'post']]);
     $this->match('post/view(/:id)', 'post#view', ['via' => ['get', 'post']]);
     $this->match('post/flag(/:id)', 'post#flag', ['via' => ['post', 'put']]);
+    $this->match('post/resolve_flag(.:format)(/:id)', 'post#resolve_flag', ['via' => 'post']);
     $this->match('post/revert_tags(.:format)(/:id)', 'post#revert_tags', ['via' => ['post', 'put']]);
     $this->match('post/update(.:format)(/:id)', 'post#update', ['via' => ['post', 'put']]);
     $this->match('post/vote(.:format)(/:id)', 'post#vote', ['via' => ['post', 'put']]);
@@ -318,6 +319,7 @@ MyImouto\Application::routes()->draw(function() {
     $this->post('forum/subscribe(/:id)', 'forum#subscribe');
     $this->post('forum/unsubscribe(/:id)', 'forum#unsubscribe');
     $this->post('forum/vote(/:id)', 'forum#vote');
+    $this->post('forum/unvote(/:id)', 'forum#unvote');
 
     # ModAction (PROJ-37)
     $this->match('mod_action(/index)(.:format)', 'mod_action#index', ['via' => ['get']]);
@@ -330,6 +332,7 @@ MyImouto\Application::routes()->draw(function() {
     $this->post('takedown/update(/:id)', 'takedown#update');
     $this->post('takedown/destroy(/:id)', 'takedown#destroy');
     $this->post('takedown/add_posts(/:id)', 'takedown#add_posts');
+    $this->post('takedown/add_posts_by_tags(/:id)', 'takedown#add_posts_by_tags');
     $this->post('takedown/remove_posts(/:id)', 'takedown#remove_posts');
     $this->match('takedown/status', ['via' => ['get']]);
 

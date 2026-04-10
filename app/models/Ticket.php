@@ -119,24 +119,52 @@ class Ticket extends Rails\ActiveRecord\Base
     }
 
     /**
-     * Claim this ticket for a staff member.
+     * Claim this ticket for a staff member using optimistic locking.
+     *
+     * Returns an array with keys:
+     *   'success'  => bool
+     *   'reason'   => string|null  ('not_claimable', 'already_claimed', or null on success)
+     *   'claimant' => string|null  (current claimant name on conflict)
      */
     public function claim($staff)
     {
         if ((string)$this->status !== self::STATUS_PENDING && (string)$this->status !== self::STATUS_IN_PROGRESS) {
-            return false;
+            return ['success' => false, 'reason' => 'not_claimable', 'claimant' => null];
         }
 
+        $now = date('Y-m-d H:i:s');
+        $stmt = self::connection()->executeSql(
+            "UPDATE tickets SET claimant_id = ?, status = ?, updated_at = ? WHERE id = ? AND (claimant_id IS NULL OR claimant_id = ?)",
+            (int)$staff->id,
+            self::STATUS_IN_PROGRESS,
+            $now,
+            (int)$this->id,
+            (int)$staff->id
+        );
+
+        if ($stmt->rowCount() === 0) {
+            // Conflict — reload to find out who claimed it
+            $current = self::find((int)$this->id);
+            $claimant_name = null;
+            if ($current->claimant_id) {
+                try {
+                    $claimant_user = User::find((int)$current->claimant_id);
+                    $claimant_name = $claimant_user->name;
+                } catch (\Exception $e) {
+                    $claimant_name = 'Unknown';
+                }
+            }
+            return ['success' => false, 'reason' => 'already_claimed', 'claimant' => $claimant_name];
+        }
+
+        // Update local object state
         $this->claimant_id = (int)$staff->id;
         $this->status = self::STATUS_IN_PROGRESS;
-        $this->updated_at = date('Y-m-d H:i:s');
-        $result = $this->save();
+        $this->updated_at = $now;
 
-        if ($result) {
-            ModAction::log('ticket_claim', ['ticket_id' => (int)$this->id]);
-        }
+        ModAction::log('ticket_claim', ['ticket_id' => (int)$this->id]);
 
-        return $result;
+        return ['success' => true, 'reason' => null, 'claimant' => null];
     }
 
     /**
@@ -178,6 +206,7 @@ class Ticket extends Rails\ActiveRecord\Base
 
         if ($result) {
             ModAction::log('ticket_update', ['ticket_id' => (int)$this->id, 'status' => $status]);
+            $this->send_status_dmail($staff);
         }
 
         return $result;
@@ -188,6 +217,8 @@ class Ticket extends Rails\ActiveRecord\Base
      */
     public function update_response($staff, $response, $status = null)
     {
+        $old_status = (string)$this->status;
+
         $this->claimant_id = (int)$staff->id;
         $this->response = trim((string)$response);
         $this->updated_at = date('Y-m-d H:i:s');
@@ -200,6 +231,11 @@ class Ticket extends Rails\ActiveRecord\Base
 
         if ($result) {
             ModAction::log('ticket_update', ['ticket_id' => (int)$this->id, 'status' => (string)$this->status]);
+
+            // Only send Dmail when status actually changed to a terminal state
+            if ((string)$this->status !== $old_status) {
+                $this->send_status_dmail($staff);
+            }
         }
 
         return $result;
@@ -254,6 +290,75 @@ class Ticket extends Rails\ActiveRecord\Base
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at
         ];
+    }
+
+    /**
+     * Find an existing open ticket with the same creator, model_type, and model_id.
+     * Returns the ticket or null.
+     */
+    public static function find_duplicate($creator_id, $model_type, $model_id)
+    {
+        if ($model_type === null || $model_type === '' || $model_id === null) {
+            return null;
+        }
+
+        return self::where(
+            'creator_id = ? AND model_type = ? AND model_id = ? AND status IN (?)',
+            (int)$creator_id,
+            (string)$model_type,
+            (int)$model_id,
+            [self::STATUS_PENDING, self::STATUS_IN_PROGRESS]
+        )->first();
+    }
+
+    /**
+     * Send a Dmail notification to the ticket creator when status becomes terminal.
+     * Failures are caught silently to never block the status transition.
+     */
+    protected function send_status_dmail($staff)
+    {
+        // Only send for terminal statuses
+        if (!in_array((string)$this->status, [self::STATUS_APPROVED, self::STATUS_REJECTED], true)) {
+            return;
+        }
+
+        try {
+            // Check that creator exists
+            if (!$this->creator_id) {
+                return;
+            }
+
+            $creator = User::where('id = ?', (int)$this->creator_id)->first();
+            if (!$creator || $creator->is_anonymous()) {
+                return;
+            }
+
+            // Check opt-out preference
+            if (isset($creator->receive_ticket_dmails) && !$creator->receive_ticket_dmails) {
+                return;
+            }
+
+            $status_label = $this->status_label();
+            $title = "Ticket #{$this->id} — {$status_label}";
+            $body = (string)$this->response;
+            if ($body === '') {
+                $body = "Your ticket #{$this->id} has been {$status_label}.";
+            }
+
+            Dmail::create([
+                'from_id' => (int)$staff->id,
+                'to_id' => (int)$this->creator_id,
+                'title' => $title,
+                'body' => $body
+            ]);
+        } catch (\Exception $e) {
+            // Dmail failure must not prevent the status transition
+            try {
+                \Rails::log()->warning('[ticket] failed to send status dmail for ticket #' . $this->id . ': ' . $e->getMessage());
+            } catch (\Exception $logEx) {
+                // Ignore logging failures too
+            }
+        }
     }
 
     public function asJson(array $args = [])
