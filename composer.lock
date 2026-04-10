@@ -389,16 +389,16 @@
         },
         {
             "name": "railsphp/willpaginate",
-            "version": "v1.0.0",
+            "version": "v1.0.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/railsphp/WillPaginate.git",
-                "reference": "2e0802b568b0a06c155550a28684172137d2f0d7"
+                "reference": "e6b317aab0fd1d8b264fccd29c64de6c0482b07c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/railsphp/WillPaginate/zipball/2e0802b568b0a06c155550a28684172137d2f0d7",
-                "reference": "2e0802b568b0a06c155550a28684172137d2f0d7",
+                "url": "https://api.github.com/repos/railsphp/WillPaginate/zipball/e6b317aab0fd1d8b264fccd29c64de6c0482b07c",
+                "reference": "e6b317aab0fd1d8b264fccd29c64de6c0482b07c",
                 "shasum": ""
             },
             "require": {
@@ -412,7 +412,11 @@
             },
             "notification-url": "https://packagist.org/downloads/",
             "description": "Pagination helper for RailsPHP Framework",
-            "time": "2014-05-26T12:38:37+00:00"
+            "support": {
+                "issues": "https://github.com/railsphp/WillPaginate/issues",
+                "source": "https://github.com/railsphp/WillPaginate/tree/v1.0.1"
+            },
+            "time": "2022-01-18T20:17:37+00:00"
         },
         {
             "name": "symfony/yaml",
