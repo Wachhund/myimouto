@@ -8799,7 +8799,7 @@ parameters:
 		-
 			message: '#^Access to an undefined property PostReplacement\:\:\$creator_id\.$#'
 			identifier: property.notFound
-			count: 5
+			count: 4
 			path: lib/MyImouto/PostReplacement/NotificationService.php
 
 		-
